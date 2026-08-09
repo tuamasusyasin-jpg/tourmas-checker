@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>ツアマス所持率チェッカー</title>
-<meta name="description" content="アーケードゲーム「アイドルマスター TOURS（ツアマス）」のカード所持率を管理・共有できる非公式チェッカーです。">
+  <meta name="description" content="アーケードゲーム「アイドルマスター TOURS（ツアマス）」のカード所持率を管理できる非公式チェッカーです。">
   <style>
     /* ▼ テーマカラー用の変数 */
     :root {
@@ -133,7 +133,7 @@
     <div class="menu-section auth-container">
       <span id="userInfo">未ログイン</span>
       <label class="checkbox-label" style="justify-content: center; font-size: 11px; margin-top: 5px;">
-        <input type="checkbox" id="privacyToggle"> 名前を隠す (仕事モード)
+        <input type="checkbox" id="privacyToggle"> 名前を隠す
       </label>
       <button id="loginBtn">Googleでログイン</button>
       <button id="logoutBtn" class="logout-btn" style="display:none;">ログアウト</button>
@@ -171,14 +171,14 @@
     </div>
     
     <div class="menu-section" style="border-bottom: none;">
-      <button id="egaoBtn">✨ 笑顔満点ですっ♡占い ✨</button>
+      <button id="egaoBtn">笑顔満点ですっ♡</button>
       <div id="egaoResult"></div>
     </div>
   </div>
 
   <main>
     <div class="controls">
-      <h2 id="counterDisplay">種類数: 0 / 0種 (0%) <span id="totalCountDisplay">総枚数: 0枚</span></h2>
+      <h2 id="counterDisplay">所持数: 0 / 0種 (0%) <span id="totalCountDisplay">総枚数: 0枚</span></h2>
       <div class="search-area">
         <input type="text" id="searchInput" placeholder="検索ワードを入力...">
         <div class="search-toggles">
@@ -190,16 +190,16 @@
       <!-- ▼ ソートと手動セーブボタン -->
       <div class="sort-controls">
         <select id="sortSelect">
-          <option value="number">カード番号 (画像順)</option>
+          <option value="number">追加順</option>
           <option value="rarity">レアリティ</option>
           <option value="vocal">アピール値: Vocal</option>
           <option value="dance">アピール値: Dance</option>
           <option value="visual">アピール値: Visual</option>
-          <option value="wish">欲しいリスト (★順)</option>
+          <option value="wish">★順</option>
         </select>
         <button id="sortOrderBtn" data-order="asc">昇順 ▲</button>
         <!-- ▼ 新設：クラウド保存ボタン -->
-        <button id="cloudSaveBtn" style="display:none;">☁️ クラウドにセーブ</button>
+        <button id="cloudSaveBtn" style="display:none;">クラウドにセーブ</button>
       </div>
       
       <button id="toggleFilterBtn">▼ 詳細な絞り込みを開く</button>
@@ -251,7 +251,7 @@
           <table class="detail-table" id="modalTable"></table>
           
           <div class="user-input-area">
-            <h4>プロデューサー用メモ (一時保存)</h4>
+            <h4>プロデューサー用メモ</h4>
             <div class="input-row">
               <label>所持枚数:</label>
               <input type="number" id="modalCount" min="0" value="0">
@@ -260,14 +260,14 @@
               <label>欲しい度:</label>
               <select id="modalWish">
                 <option value="0">設定なし</option>
-                <option value="1">★1 (欲しい)</option>
-                <option value="2">★2 (とても欲しい)</option>
-                <option value="3">★3 (絶対欲しい！)</option>
+                <option value="1">★1</option>
+                <option value="2">★2</option>
+                <option value="3">★3</option>
               </select>
             </div>
             <div class="input-row">
               <label>自由メモ:</label>
-              <textarea id="modalMemo" placeholder="交換予定や保管場所など..."></textarea>
+              <textarea id="modalMemo" placeholder="交換予定など..."></textarea>
             </div>
           </div>
         </div>
@@ -275,7 +275,7 @@
     </div>
   </div>
   
-  <div id="toast">自動保存しました✨</div>
+  <div id="toast">保存しました</div>
 
   <script type="module">
     import { siteConfig, filterConfig, cardData } from './data.js';
@@ -300,7 +300,21 @@
     let currentUser = null;
     let ownedCardIds = new Set();
     let userCardDetails = {}; 
-    let hasUnsavedChanges = false; // ★ セーブが必要かどうかを判定するフラグ
+    let hasUnsavedChanges = false; 
+
+    // ▼ 名前表示の更新関数
+    const updateUserInfo = () => {
+      const userInfo = document.getElementById('userInfo');
+      if (currentUser) {
+        if (document.getElementById('privacyToggle').checked) {
+          userInfo.innerText = `プロデューサー さん`;
+        } else {
+          userInfo.innerText = `${currentUser.displayName} さん`;
+        }
+      } else {
+        userInfo.innerText = "未ログイン（セーブ不可）";
+      }
+    };
 
     const loadSettings = () => {
       const savedTheme = localStorage.getItem('tourmas_theme') || 'default';
@@ -308,6 +322,9 @@
       let savedDetailMode = true; 
       if (localStorage.getItem('tourmas_detailMode') === 'false') { savedDetailMode = false; }
       const savedCloseOutside = localStorage.getItem('tourmas_closeOutside') !== 'false';
+      
+      // ▼ 仕事モードの記憶を呼び出す処理を追加！
+      const savedPrivacy = localStorage.getItem('tourmas_privacy') === 'true';
 
       document.getElementById('themeSelect').value = savedTheme;
       applyTheme(savedTheme);
@@ -315,6 +332,10 @@
       document.getElementById('marqueeContainer').style.display = savedNotice ? 'block' : 'none';
       document.getElementById('detailModeToggle').checked = savedDetailMode;
       document.getElementById('closeOutsideToggle').checked = savedCloseOutside;
+      
+      // ▼ チェックボックスに反映して、名前表示も更新！
+      document.getElementById('privacyToggle').checked = savedPrivacy;
+      updateUserInfo();
     };
 
     const themes = {
@@ -346,6 +367,12 @@
     document.getElementById('closeOutsideToggle').addEventListener('change', (e) => {
       localStorage.setItem('tourmas_closeOutside', e.target.checked);
     });
+    
+    // ▼ 仕事モードの設定を保存する処理を追加！
+    document.getElementById('privacyToggle').addEventListener('change', (e) => {
+      localStorage.setItem('tourmas_privacy', e.target.checked);
+      updateUserInfo();
+    });
 
     const egaoEffects = [
       "コンボ時のスコアUP", "GOOD以上判定時のスコアUP", "GREAT以上判定時のスコアUP", "PERFECT判定時のスコアUP",
@@ -357,7 +384,7 @@
       const dai = egaoEffects[Math.floor(Math.random() * egaoEffects.length)];
       const shou = egaoEffects[Math.floor(Math.random() * egaoEffects.length)];
       const resDiv = document.getElementById('egaoResult');
-      resDiv.innerHTML = `<strong>効果(大)：</strong>${dai}<br><strong>効果(小)：</strong>${shou}<br><br>今日もプロデュース頑張りましょう！`;
+      resDiv.innerHTML = `<strong>効果(大)：</strong>${dai}<br><strong>効果(小)：</strong>${shou}<br>`;
       resDiv.style.display = 'block';
     };
 
@@ -369,7 +396,7 @@
       let bdayDate = new Date(today.getFullYear(), parseInt(month) - 1, parseInt(day));
       let diffDays = (today - bdayDate) / (1000 * 60 * 60 * 24);
       if (diffDays >= 0 && diffDays <= 2) {
-        bdayMessages.push(`🎉 ${idol.name} のバースデーライブ期間！`);
+        bdayMessages.push(`${idol.name} のバースデーライブ期間！`);
       }
     });
     let finalNotice = siteConfig.noticeText;
@@ -411,12 +438,11 @@
     const detailModal = document.getElementById('detailModal');
     let currentModalCardData = null; 
 
-    // ▼ 未保存マークをつける関数
     const markAsUnsaved = () => {
       hasUnsavedChanges = true;
       const btn = document.getElementById('cloudSaveBtn');
       btn.classList.add('unsaved');
-      btn.innerText = "⚠️ クラウドにセーブ (未保存)";
+      btn.innerText = "クラウドにセーブ (未保存)";
     };
 
     function renderCards() {
@@ -453,7 +479,7 @@
         cardDiv.dataset.genre = data["ジャンル"] || ""; 
 
         const exactKeywords = [data["アイドル名"], data["カード名"], data["番号"], data["シリーズブランド名"]].join(" ").toLowerCase();
-        const partialKeywords = exactKeywords + " " + [data["写り込み"], data["タグ"], data["対象アイドル／サポート効果対象"], data["部位"], data["キャラコメント"], data["セットボーナス"]].join(" ").toLowerCase();
+        const partialKeywords = exactKeywords + " " + [data["写り込み"], data["タグ"], data["対象アイドル／サポート効果対象"], data["部位"], data["コメント"], data["セットボーナス"]].join(" ").toLowerCase();
         
         cardDiv.dataset.searchExact = exactKeywords;
         cardDiv.dataset.searchPartial = partialKeywords;
@@ -476,7 +502,7 @@
               else userCardDetails[data["番号"]].count = 1;
             }
             applyFiltersAndSort();
-            markAsUnsaved(); // ★ 通信はせず、未保存マークだけつける
+            markAsUnsaved(); 
           }
         };
         container.appendChild(cardDiv);
@@ -484,7 +510,6 @@
       applyFiltersAndSort();
     }
 
-    // ▼ 内部（メモリ上）だけ即時更新する関数
     const updateLocalMemory = () => {
       if (!currentModalCardData) return;
       const countVal = parseInt(document.getElementById('modalCount').value) || 0;
@@ -497,7 +522,7 @@
       
       userCardDetails[cardId] = { count: countVal, memo: memoVal, wish: wishVal };
       markAsUnsaved();
-      renderCards(); // 表示だけ更新
+      renderCards(); 
     };
 
     function openModal(data) {
@@ -535,7 +560,6 @@
         return html;
       };
 
-      // ★ ご指定のテーブル順序に完全一致させました
       addRow("番号", data["番号"]);
       addRow("レアリティ", data["レアリティ"]);
       addRow("種類", data["種類"]);
@@ -549,11 +573,8 @@
       addRow("部位", data["部位"]);
       addRow("効果／リズム効果", data["サポート効果／リズムライブ効果"]);
       addRow("備考", formattedBikou);
-      
-      // ▼ 新設：制限緩和（空欄なら表示しない）
       addRow("制限緩和", data["制限緩和"]); 
-      
-      addRow("キャラコメント", data["キャラコメント"]);
+      addRow("コメント", data["コメント"]);
       addRow("入手手段", data["入手手段"]);
       
       if (data["セットボーナス"]) {
@@ -561,7 +582,7 @@
         addRow("セットボーナス", bonusHtml);
       }
 
-      addRow("別イラスト", createCardLinks(data["別イラスト"], 'id'));
+      addRow("別カード", createCardLinks(data["別カード"], 'id'));
       addRow("色違い", createCardLinks(data["色違い"], 'name'));
       addRow("写り込み", formattedUtsurikomi);
       
@@ -578,7 +599,7 @@
           const targetId = btn.dataset.targetId;
           const targetData = cardData.find(c => c["番号"] === targetId);
           if (targetData) {
-            updateLocalMemory(); // メモリだけ更新
+            updateLocalMemory(); 
             openModal(targetData); 
           }
         };
@@ -611,11 +632,9 @@
       setTimeout(() => toast.classList.remove('show'), 2000);
     };
 
-    // ▼ クラウドセーブ機能（手動で一括保存！）
     document.getElementById('cloudSaveBtn').onclick = async () => {
       if (!currentUser) return alert("セーブするにはログインしてください。");
       
-      // 最後に開いているモーダルの情報も回収
       if (detailModal.classList.contains('open')) {
         updateLocalMemory();
       }
@@ -628,17 +647,16 @@
       hasUnsavedChanges = false;
       const btn = document.getElementById('cloudSaveBtn');
       btn.classList.remove('unsaved');
-      btn.innerText = "☁️ クラウドにセーブ済";
-      showToast("クラウドに一括保存しました！✨");
+      btn.innerText = "クラウドにセーブ済";
+      showToast("クラウドに保存しました！");
     };
 
-    // 変更時にメモリだけ更新
     document.getElementById('modalCount').addEventListener('change', updateLocalMemory);
     document.getElementById('modalWish').addEventListener('change', updateLocalMemory);
     let memoTimeout;
     document.getElementById('modalMemo').addEventListener('input', () => {
       clearTimeout(memoTimeout);
-      memoTimeout = setTimeout(updateLocalMemory, 500); // メモリ更新なので早くても負荷ゼロ！
+      memoTimeout = setTimeout(updateLocalMemory, 500); 
     });
 
     function applyFiltersAndSort() {
@@ -714,7 +732,7 @@
       cardsArray.forEach(card => container.appendChild(card));
       const percent = visibleCount === 0 ? 0 : Math.floor((ownedVisibleCount / visibleCount) * 100);
       
-      document.getElementById('counterDisplay').innerHTML = `種類数: ${ownedVisibleCount} / ${visibleCount}種 (${percent}%) <span id="totalCountDisplay">総枚数: ${totalCardsCount}枚</span>`;
+      document.getElementById('counterDisplay').innerHTML = `所持数: ${ownedVisibleCount} / ${visibleCount}種 (${percent}%) <span id="totalCountDisplay">総枚数: ${totalCardsCount}枚</span>`;
     }
 
     document.getElementById('searchInput').addEventListener('input', applyFiltersAndSort);
@@ -733,21 +751,6 @@
     const closeMenu = () => { document.getElementById('sidebar').classList.remove('open'); document.getElementById('overlay').classList.remove('open'); };
     document.getElementById('menuCloseBtn').onclick = closeMenu;
     document.getElementById('overlay').onclick = closeMenu;
-    
-    const updateUserInfo = () => {
-      const userInfo = document.getElementById('userInfo');
-      if (currentUser) {
-        if (document.getElementById('privacyToggle').checked) {
-          userInfo.innerText = `プロデューサー さん`;
-        } else {
-          userInfo.innerText = `${currentUser.displayName} さん`;
-        }
-      } else {
-        userInfo.innerText = "未ログイン（セーブ不可）";
-      }
-    };
-    
-    document.getElementById('privacyToggle').addEventListener('change', updateUserInfo);
 
     const loginBtn = document.getElementById('loginBtn');
     const logoutBtn = document.getElementById('logoutBtn');
@@ -760,8 +763,7 @@
         currentUser = user;
         loginBtn.style.display = 'none';
         logoutBtn.style.display = 'block';
-        document.getElementById('cloudSaveBtn').style.display = 'inline-block'; // ログインしたらセーブボタンを出す
-        updateUserInfo();
+        document.getElementById('cloudSaveBtn').style.display = 'inline-block'; 
         
         const docRef = doc(db, "users", user.uid);
         const docSnap = await getDoc(docRef);
@@ -779,8 +781,9 @@
         loginBtn.style.display = 'block';
         logoutBtn.style.display = 'none';
         document.getElementById('cloudSaveBtn').style.display = 'none';
-        updateUserInfo();
       }
+      
+      // ▼ ここで記憶を呼び出して、最後に名前を確定させます！
       loadSettings(); 
       renderCards();
     });
