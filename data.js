@@ -1,7 +1,7 @@
 // 【data.js】
 
 export const siteConfig = {
-  noticeText: "【お知らせ】S1弾稼働！総所持枚数のカウントとジャンル絞り込みに対応しました！",
+  noticeText: "【お知らせ】test",
   seriesList: ["S1弾", "筐体第一弾", "筐体第二弾"] // S1弾を追加
 };
 
