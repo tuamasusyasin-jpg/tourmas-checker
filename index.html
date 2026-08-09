@@ -1,0 +1,792 @@
+html_content = """<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>ツアマス所持率チェッカー</title>
+  <style>
+    /* ▼ テーマカラー用の変数 */
+    :root {
+      --main-color: #ff66a3;
+      --sub-color: #ffebf0;
+    }
+
+    body { font-family: sans-serif; padding: 0; margin: 0; background-color: #f0f0f0; }
+    #marqueeContainer { background: #333; color: #fff; padding: 8px 0; font-size: 14px; font-weight: bold; }
+    header { background: #fff; padding: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex; align-items: center; }
+    #menuOpenBtn { font-size: 24px; background: none; border: none; cursor: pointer; margin-right: 15px; color: #555; }
+    header h1 { margin: 0; font-size: 18px; color: #333; }
+
+    /* サイドメニュー */
+    #sidebar { position: fixed; top: 0; left: -300px; width: 300px; height: 100%; background: #fff; box-shadow: 2px 0 10px rgba(0,0,0,0.2); transition: left 0.3s ease; z-index: 1000; padding: 20px; box-sizing: border-box; overflow-y: auto; }
+    #sidebar.open { left: 0; }
+    #menuCloseBtn { font-size: 24px; background: none; border: none; cursor: pointer; color: #999; display: block; text-align: right; width: 100%; margin-bottom: 20px; }
+    #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); opacity: 0; pointer-events: none; transition: opacity 0.3s ease; z-index: 999; }
+    #overlay.open { opacity: 1; pointer-events: auto; }
+    .menu-section { margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid #eee; }
+    .menu-section h3 { margin: 0 0 10px 0; font-size: 15px; color: #555; }
+    
+    .auth-container { text-align: center; background: #e3f2fd; padding: 15px; border-radius: 10px; }
+    .auth-container button { padding: 8px; width: 100%; font-weight: bold; cursor: pointer; border-radius: 5px; border: none; background: #1a73e8; color: white; transition: 0.2s; margin-top: 10px; }
+    .auth-container button.logout-btn { background: #dc3545; }
+    #userInfo { font-size: 12px; font-weight: bold; color: #333; display: block; margin-bottom: 5px; }
+    .checkbox-label { display: flex; align-items: center; margin-bottom: 8px; font-size: 14px; cursor: pointer; }
+    
+    .mode-switch { background: var(--sub-color); padding: 10px; border-radius: 8px; border: 2px solid var(--main-color); font-weight: bold; color: #333; margin-bottom: 15px; transition: 0.3s;}
+
+    /* 占いボタン */
+    #egaoBtn { background: linear-gradient(45deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%); border: 2px solid #ff66a3; border-radius: 8px; padding: 10px; width: 100%; font-weight: bold; color: #d81b60; cursor: pointer; margin-top: 10px; transition: 0.2s; }
+    #egaoBtn:hover { filter: brightness(0.95); transform: scale(0.98); }
+    #egaoResult { display: none; margin-top: 10px; padding: 12px; border-radius: 8px; background: #fff; border: 2px dashed var(--main-color); font-size: 13px; color: #333; line-height: 1.6; text-align: left; transition: 0.3s; }
+    #egaoResult strong { color: var(--main-color); }
+
+    main { padding: 20px; }
+    .controls { text-align: center; margin-bottom: 20px; }
+    
+    #counterDisplay { color: var(--main-color); font-size: 22px; margin-top: 0; transition: color 0.3s;}
+    #totalCountDisplay { font-size: 16px; color: #666; margin-left: 15px; display: inline-block; }
+    
+    .search-area { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-bottom: 10px; align-items: center; }
+    #searchInput { padding: 10px 20px; width: 100%; max-width: 350px; font-size: 15px; border-radius: 30px; border: 2px solid #ddd; outline: none; }
+    .search-toggles { display: flex; gap: 15px; font-size: 13px; color: #555; }
+    
+    /* ▼ ソート＆セーブボタンのエリア */
+    .sort-controls { display: flex; gap: 5px; margin-top: 10px; justify-content: center; align-items: center; }
+    .sort-controls select, .sort-controls button { padding: 8px 12px; font-size: 14px; border-radius: 20px; border: 1px solid #ccc; outline: none; cursor: pointer; background: #fff; }
+    .sort-controls button { background: #555; color: white; font-weight: bold; border: none; transition: 0.2s; }
+    
+    /* ▼ 新設のクラウド保存ボタン */
+    #cloudSaveBtn { background: #1a73e8; margin-left: 10px; box-shadow: 0 2px 5px rgba(26,115,232,0.3); }
+    #cloudSaveBtn:hover { background: #1557b0; transform: scale(1.05); }
+    #cloudSaveBtn.unsaved { animation: pulse 1.5s infinite; background: #e91e63; box-shadow: 0 2px 5px rgba(233,30,99,0.3); }
+    @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+    
+    #toggleFilterBtn { padding: 8px 20px; border-radius: 30px; border: none; background: #555; color: white; font-weight: bold; cursor: pointer; transition: 0.2s; margin-top: 10px; }
+    #filterPanel { max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out; background: #fff; border-radius: 15px; text-align: left; margin: 15px auto 20px auto; max-width: 800px; padding: 0 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+    #filterPanel.open { max-height: 2500px; padding: 20px; }
+    .filter-group { margin-bottom: 15px; }
+    .filter-group h4 { margin: 0 0 10px 0; color: var(--main-color); border-bottom: 2px solid var(--sub-color); padding-bottom: 5px; font-size: 15px; transition: 0.3s;}
+    .filter-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+    .filter-btn-label { display: inline-block; padding: 6px 12px; border-radius: 20px; border: 1px solid #ccc; background: #fafafa; font-size: 13px; cursor: pointer; transition: 0.2s; user-select: none; }
+    .filter-btn-label input { display: none; }
+    .filter-btn-label:has(input:checked) { background: var(--main-color); color: white; border-color: var(--main-color); font-weight: bold; }
+
+    /* カード一覧 */
+    .card-list { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; }
+    .card { border: 3px solid #ccc; border-radius: 12px; width: 160px; aspect-ratio: 378 / 533; cursor: pointer; transition: all 0.2s ease; background-color: #999; position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; }
+    .card-info { background: rgba(255, 255, 255, 0.95); padding: 10px; text-align: center; border-top: 1px solid #eee; }
+    .card-info h4 { margin: 0; font-size: 14px; color: #333; }
+    .card-info p { margin: 3px 0 0; font-size: 10px; color: #666; }
+    .rarity-badge { position: absolute; top: 5px; left: 5px; background-color: #333; color: #fff; padding: 3px 8px; border-radius: 10px; font-size: 11px; font-weight: bold; }
+    .card::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); pointer-events: none; transition: 0.2s; }
+    .card.owned { border-color: var(--main-color); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+    .card.owned::after { background-color: rgba(0, 0, 0, 0); }
+    
+    .wish-star { position: absolute; top: 5px; right: 5px; color: #ffeb3b; text-shadow: 0 0 3px #000; font-size: 16px; z-index: 10; font-weight: bold; }
+
+    /* 詳細確認モーダル */
+    #detailModal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; display: none; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; }
+    #detailModal.open { display: flex; }
+    
+    .modal-content { background: #fff; border-radius: 15px; width: 100%; max-width: 1050px; max-height: 90vh; overflow-y: auto; position: relative; padding: 40px 30px; box-sizing: border-box; }
+    .modal-close { position: absolute; top: 15px; right: 20px; font-size: 28px; background: none; border: none; cursor: pointer; color: #999; z-index: 20; }
+    
+    .modal-layout { display: flex; flex-wrap: wrap; gap: 40px; margin-top: 10px; align-items: center; justify-content: center; }
+    .modal-images { flex: 1 1 400px; max-width: 460px; display: flex; flex-direction: row; gap: 15px; justify-content: center; align-items: center; }
+    .modal-images img { width: calc(50% - 7.5px); height: auto; object-fit: contain; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+    
+    .modal-text { flex: 1.5 1 400px; min-width: 300px; font-size: 14px; line-height: 1.6; }
+    .modal-text h2 { margin: 0 0 5px 0; color: var(--main-color); font-size: 22px; transition: 0.3s;}
+    .modal-text h3 { margin: 0 0 15px 0; color: #555; font-size: 14px; border-bottom: 2px solid #eee; padding-bottom: 5px; }
+    .detail-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+    .detail-table th { background: var(--sub-color); padding: 8px; text-align: left; width: 35%; border-bottom: 1px solid #fff; color: #333; transition: 0.3s;}
+    .detail-table td { background: #fafafa; padding: 8px; border-bottom: 1px solid #fff; color: #555; }
+    
+    .card-link-btn { background: var(--sub-color); color: var(--main-color); border: 1px solid var(--main-color); border-radius: 4px; padding: 4px 8px; margin: 2px; cursor: pointer; font-size: 12px; font-weight: bold; transition: 0.2s; }
+    .card-link-btn:hover { background: var(--main-color); color: #fff; }
+    .card-link-btn.disabled { background: #eee; color: #999; border-color: #ccc; cursor: not-allowed; }
+
+    .user-input-area { background: #f0f8ff; padding: 15px; border-radius: 8px; border: 1px solid #b3d4ff; position: relative; }
+    .user-input-area h4 { margin: 0 0 10px 0; color: #0056b3; }
+    .input-row { display: flex; align-items: center; margin-bottom: 10px; }
+    .input-row label { width: 80px; font-weight: bold; }
+    .input-row input, .input-row select { width: 100px; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
+    .input-row textarea { flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 4px; height: 60px; resize: vertical; font-size: 14px; }
+    
+    #toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 10px 20px; border-radius: 30px; z-index: 3000; font-weight: bold; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+    #toast.show { opacity: 1; }
+  </style>
+</head>
+<body>
+
+  <div id="marqueeContainer"><marquee id="marqueeText" scrollamount="5"></marquee></div>
+
+  <header>
+    <button id="menuOpenBtn">☰</button>
+    <h1>ツアマス所持率チェッカー</h1>
+  </header>
+
+  <div id="overlay"></div>
+  <div id="sidebar">
+    <button id="menuCloseBtn">✖</button>
+    
+    <div class="menu-section auth-container">
+      <span id="userInfo">未ログイン</span>
+      <label class="checkbox-label" style="justify-content: center; font-size: 11px; margin-top: 5px;">
+        <input type="checkbox" id="privacyToggle"> 名前を隠す (仕事モード)
+      </label>
+      <button id="loginBtn">Googleでログイン</button>
+      <button id="logoutBtn" class="logout-btn" style="display:none;">ログアウト</button>
+    </div>
+    
+    <div class="menu-section mode-switch">
+      <label class="checkbox-label" style="margin: 0;">
+        <input type="checkbox" id="detailModeToggle"> 詳細確認モード
+      </label>
+      <label class="checkbox-label" style="margin: 10px 0 0 0; font-size: 12px; font-weight: normal; color: #555;">
+        <input type="checkbox" id="closeOutsideToggle" checked> 外枠をタップして閉じる
+      </label>
+    </div>
+
+    <div class="menu-section">
+      <h3>テーマカラー変更</h3>
+      <select id="themeSelect" style="width: 100%; padding: 8px; border-radius: 5px; border: 1px solid #ccc; font-weight: bold;">
+        <option value="default">デフォルト (ピンク)</option>
+        <option value="as">アイドルマスター (赤)</option>
+        <option value="cg">シンデレラガールズ (青)</option>
+        <option value="ml">ミリオンライブ！ (黄)</option>
+        <option value="sidem">SideM (緑)</option>
+        <option value="sc">シャイニーカラーズ (水色)</option>
+        <option value="gakumas">学園アイドルマスター (オレンジ)</option>
+      </select>
+    </div>
+
+    <div class="menu-section">
+      <h3>表示設定</h3>
+      <label class="checkbox-label"><input type="checkbox" id="noticeToggle" checked> お知らせを表示</label>
+    </div>
+    <div class="menu-section">
+      <h3>表示する弾数</h3>
+      <div id="seriesFilterContainer"></div>
+    </div>
+    
+    <div class="menu-section" style="border-bottom: none;">
+      <button id="egaoBtn">✨ 笑顔満点ですっ♡占い ✨</button>
+      <div id="egaoResult"></div>
+    </div>
+  </div>
+
+  <main>
+    <div class="controls">
+      <h2 id="counterDisplay">種類数: 0 / 0種 (0%) <span id="totalCountDisplay">総枚数: 0枚</span></h2>
+      <div class="search-area">
+        <input type="text" id="searchInput" placeholder="検索ワードを入力...">
+        <div class="search-toggles">
+          <label><input type="radio" name="searchMode" value="exact" checked> 基本情報のみ</label>
+          <label><input type="radio" name="searchMode" value="partial"> 関連情報も含める</label>
+        </div>
+      </div>
+      
+      <!-- ▼ ソートと手動セーブボタン -->
+      <div class="sort-controls">
+        <select id="sortSelect">
+          <option value="number">カード番号 (画像順)</option>
+          <option value="rarity">レアリティ</option>
+          <option value="vocal">アピール値: Vocal</option>
+          <option value="dance">アピール値: Dance</option>
+          <option value="visual">アピール値: Visual</option>
+          <option value="wish">欲しいリスト (★順)</option>
+        </select>
+        <button id="sortOrderBtn" data-order="asc">昇順 ▲</button>
+        <!-- ▼ 新設：クラウド保存ボタン -->
+        <button id="cloudSaveBtn" style="display:none;">☁️ クラウドにセーブ</button>
+      </div>
+      
+      <button id="toggleFilterBtn">▼ 詳細な絞り込みを開く</button>
+      
+      <div id="filterPanel">
+        <div style="text-align: right; margin-bottom: 10px;"><button onclick="resetFilters()" style="padding:5px 10px; cursor:pointer;">✖ 全てクリア</button></div>
+        
+        <div class="filter-group">
+          <h4>所持状況</h4>
+          <div class="filter-grid">
+            <label class="filter-btn-label"><input type="radio" name="filterOwned" value="all" checked> すべて表示</label>
+            <label class="filter-btn-label"><input type="radio" name="filterOwned" value="owned"> 持っている</label>
+            <label class="filter-btn-label"><input type="radio" name="filterOwned" value="unowned"> 持っていない</label>
+          </div>
+        </div>
+        <div class="filter-group">
+          <h4>欲しいリスト (★)</h4>
+          <div class="filter-grid">
+            <label class="filter-btn-label"><input type="radio" name="filterWish" value="0" checked> 指定なし</label>
+            <label class="filter-btn-label"><input type="radio" name="filterWish" value="1"> ★1以上</label>
+            <label class="filter-btn-label"><input type="radio" name="filterWish" value="2"> ★2以上</label>
+            <label class="filter-btn-label"><input type="radio" name="filterWish" value="3"> ★3のみ</label>
+          </div>
+        </div>
+
+        <div class="filter-group"><h4>レアリティ</h4><div class="filter-grid" id="rarityFilters"></div></div>
+        <div class="filter-group"><h4>カード種類</h4><div class="filter-grid" id="typeFilters"></div></div>
+        <div class="filter-group"><h4>ブランド</h4><div class="filter-grid" id="brandFilters"></div></div>
+        <div class="filter-group"><h4>対象・効果</h4><div class="filter-grid" id="targetFilters"></div></div>
+        <div class="filter-group"><h4>部位</h4><div class="filter-grid" id="partFilters"></div></div>
+        <div class="filter-group"><h4>ジャンル</h4><div class="filter-grid" id="genreFilters"></div></div>
+        <div class="filter-group"><h4>アイドル</h4><div class="filter-grid" id="idolFilters"></div></div>
+      </div>
+    </div>
+    <div class="card-list" id="cardList"></div>
+  </main>
+
+  <div id="detailModal">
+    <div class="modal-content" id="modalContentInner">
+      <button class="modal-close" id="modalCloseBtn">✖</button>
+      <div class="modal-layout">
+        <div class="modal-images">
+          <img id="modalImgFront" src="" style="display:none;" alt="カード表">
+          <img id="modalImgBack" src="" style="display:none;" alt="カード裏">
+        </div>
+        <div class="modal-text">
+          <h2 id="modalCardName">カード名</h2>
+          <h3 id="modalCardIdol">ブランド / アイドル名</h3>
+          <table class="detail-table" id="modalTable"></table>
+          
+          <div class="user-input-area">
+            <h4>プロデューサー用メモ (一時保存)</h4>
+            <div class="input-row">
+              <label>所持枚数:</label>
+              <input type="number" id="modalCount" min="0" value="0">
+            </div>
+            <div class="input-row">
+              <label>欲しい度:</label>
+              <select id="modalWish">
+                <option value="0">設定なし</option>
+                <option value="1">★1 (欲しい)</option>
+                <option value="2">★2 (とても欲しい)</option>
+                <option value="3">★3 (絶対欲しい！)</option>
+              </select>
+            </div>
+            <div class="input-row">
+              <label>自由メモ:</label>
+              <textarea id="modalMemo" placeholder="交換予定や保管場所など..."></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div id="toast">自動保存しました✨</div>
+
+  <script type="module">
+    import { siteConfig, filterConfig, cardData } from './data.js';
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBBMuCXDKeF7sjBnPN8GqGy3WZ32HMYfQ0",
+      authDomain: "tourmas-checker-b05c1.firebaseapp.com",
+      projectId: "tourmas-checker-b05c1",
+      storageBucket: "tourmas-checker-b05c1.firebasestorage.app",
+      messagingSenderId: "3796099655",
+      appId: "1:3796099655:web:0a01862393e31117ec8762"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const provider = new GoogleAuthProvider();
+
+    let currentUser = null;
+    let ownedCardIds = new Set();
+    let userCardDetails = {}; 
+    let hasUnsavedChanges = false; // ★ セーブが必要かどうかを判定するフラグ
+
+    const loadSettings = () => {
+      const savedTheme = localStorage.getItem('tourmas_theme') || 'default';
+      const savedNotice = localStorage.getItem('tourmas_notice') !== 'false';
+      let savedDetailMode = true; 
+      if (localStorage.getItem('tourmas_detailMode') === 'false') { savedDetailMode = false; }
+      const savedCloseOutside = localStorage.getItem('tourmas_closeOutside') !== 'false';
+
+      document.getElementById('themeSelect').value = savedTheme;
+      applyTheme(savedTheme);
+      document.getElementById('noticeToggle').checked = savedNotice;
+      document.getElementById('marqueeContainer').style.display = savedNotice ? 'block' : 'none';
+      document.getElementById('detailModeToggle').checked = savedDetailMode;
+      document.getElementById('closeOutsideToggle').checked = savedCloseOutside;
+    };
+
+    const themes = {
+      default: { main: '#ff66a3', sub: '#ffebf0' },
+      as: { main: '#f34f6d', sub: '#fce4e8' },
+      cg: { main: '#2681c8', sub: '#e4f0f9' },
+      ml: { main: '#ffc30b', sub: '#fff8e1' },
+      sidem: { main: '#0fbe94', sub: '#e0f7f1' },
+      sc: { main: '#8dbbff', sub: '#eef4ff' },
+      gakumas: { main: '#f39800', sub: '#feeee0' }
+    };
+    const applyTheme = (themeKey) => {
+      const t = themes[themeKey] || themes['default'];
+      document.documentElement.style.setProperty('--main-color', t.main);
+      document.documentElement.style.setProperty('--sub-color', t.sub);
+    };
+
+    document.getElementById('themeSelect').addEventListener('change', (e) => {
+      localStorage.setItem('tourmas_theme', e.target.value);
+      applyTheme(e.target.value);
+    });
+    document.getElementById('noticeToggle').addEventListener('change', (e) => {
+      localStorage.setItem('tourmas_notice', e.target.checked);
+      document.getElementById('marqueeContainer').style.display = e.target.checked ? 'block' : 'none';
+    });
+    document.getElementById('detailModeToggle').addEventListener('change', (e) => {
+      localStorage.setItem('tourmas_detailMode', e.target.checked);
+    });
+    document.getElementById('closeOutsideToggle').addEventListener('change', (e) => {
+      localStorage.setItem('tourmas_closeOutside', e.target.checked);
+    });
+
+    const egaoEffects = [
+      "コンボ時のスコアUP", "GOOD以上判定時のスコアUP", "GREAT以上判定時のスコアUP", "PERFECT判定時のスコアUP",
+      "成功判定のコンボ数UP", "すべての判定がPERFECTになる", "GOOD以上判定がPERFECTになる", "GREAT判定がPERFECTになる",
+      "MISS判定でもコンボが継続する", "コンボ数に応じてスコア獲得", "FEVERゲージ上昇率UP", "判定が長くなる",
+      "MISS判定時スコアDOWN", "判定が短くなる", "FEVERゲージを消費する", "SPアピール回数を1回消費"
+    ];
+    document.getElementById('egaoBtn').onclick = () => {
+      const dai = egaoEffects[Math.floor(Math.random() * egaoEffects.length)];
+      const shou = egaoEffects[Math.floor(Math.random() * egaoEffects.length)];
+      const resDiv = document.getElementById('egaoResult');
+      resDiv.innerHTML = `<strong>効果(大)：</strong>${dai}<br><strong>効果(小)：</strong>${shou}<br><br>今日もプロデュース頑張りましょう！`;
+      resDiv.style.display = 'block';
+    };
+
+    let bdayMessages = [];
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    filterConfig.idols.forEach(idol => {
+      const [month, day] = idol.birthday.split('-');
+      let bdayDate = new Date(today.getFullYear(), parseInt(month) - 1, parseInt(day));
+      let diffDays = (today - bdayDate) / (1000 * 60 * 60 * 24);
+      if (diffDays >= 0 && diffDays <= 2) {
+        bdayMessages.push(`🎉 ${idol.name} のバースデーライブ期間！`);
+      }
+    });
+    let finalNotice = siteConfig.noticeText;
+    if (bdayMessages.length > 0) finalNotice += " ｜ " + bdayMessages.join(" ｜ ");
+    document.getElementById('marqueeText').innerText = finalNotice;
+
+    function createFilterGrid(containerId, dataArray, filterClass) {
+      const container = document.getElementById(containerId);
+      dataArray.forEach(item => {
+        const value = typeof item === 'object' ? item.name : item;
+        container.innerHTML += `<label class="filter-btn-label"><input type="checkbox" class="advanced-filter ${filterClass}" value="${value}"> ${value}</label>`;
+      });
+    }
+    createFilterGrid('rarityFilters', filterConfig.rarities, 'filter-rarity');
+    createFilterGrid('typeFilters', filterConfig.types, 'filter-type');
+    createFilterGrid('brandFilters', filterConfig.brands, 'filter-brand');
+    createFilterGrid('targetFilters', filterConfig.targets, 'filter-target');
+    createFilterGrid('partFilters', filterConfig.parts, 'filter-part');
+    createFilterGrid('genreFilters', filterConfig.genres, 'filter-genre');
+    createFilterGrid('idolFilters', filterConfig.idols, 'filter-idol');
+
+    const seriesContainer = document.getElementById('seriesFilterContainer');
+    siteConfig.seriesList.forEach(series => {
+      seriesContainer.innerHTML += `<label class="checkbox-label"><input type="checkbox" class="series-filter" value="${series}" checked> ${series}</label>`;
+    });
+
+    const filterPanel = document.getElementById('filterPanel');
+    const toggleBtn = document.getElementById('toggleFilterBtn');
+    toggleBtn.onclick = () => { filterPanel.classList.toggle('open'); toggleBtn.innerText = filterPanel.classList.contains('open') ? "▲ 詳細な絞り込みを閉じる" : "▼ 詳細な絞り込みを開く"; };
+    window.resetFilters = () => {
+      document.querySelectorAll('.advanced-filter').forEach(cb => cb.checked = false);
+      document.querySelector('input[name="filterOwned"][value="all"]').checked = true;
+      document.querySelector('input[name="filterWish"][value="0"]').checked = true;
+      applyFiltersAndSort();
+    };
+
+    const rarityOrder = { "UR": 9, "SSR": 8, "SR": 7, "R": 6, "N": 5, "CO": 4, "TSSR": 3, "TSR": 2, "TR": 1 };
+    const container = document.getElementById('cardList');
+    const detailModal = document.getElementById('detailModal');
+    let currentModalCardData = null; 
+
+    // ▼ 未保存マークをつける関数
+    const markAsUnsaved = () => {
+      hasUnsavedChanges = true;
+      const btn = document.getElementById('cloudSaveBtn');
+      btn.classList.add('unsaved');
+      btn.innerText = "⚠️ クラウドにセーブ (未保存)";
+    };
+
+    function renderCards() {
+      container.innerHTML = '';
+      cardData.forEach(data => {
+        const cardDiv = document.createElement('div');
+        cardDiv.className = 'card';
+        if (ownedCardIds.has(data["番号"])) cardDiv.classList.add('owned');
+        
+        let imgNum = 99999;
+        if (data["カード表"]) {
+          cardDiv.style.backgroundImage = `url('images/${data["カード表"]}')`;
+          cardDiv.style.backgroundSize = 'cover';
+          const match = data["カード表"].match(/\d+/);
+          if (match) imgNum = parseInt(match[0]);
+        }
+
+        const uData = userCardDetails[data["番号"]] || { count: 0, memo: "", wish: 0 };
+        const wishStars = uData.wish > 0 ? `<div class="wish-star">${'★'.repeat(uData.wish)}</div>` : '';
+
+        cardDiv.dataset.number = data["番号"];
+        cardDiv.dataset.imgNum = imgNum;
+        cardDiv.dataset.vocal = parseInt(data["アピール値（Vocal)"]) || 0;
+        cardDiv.dataset.dance = parseInt(data["アピール値（Dance）"]) || 0;
+        cardDiv.dataset.visual = parseInt(data["アピール値（Visual）"]) || 0;
+        cardDiv.dataset.wish = uData.wish || 0;
+        cardDiv.dataset.rarity = data["レアリティ"] || "";
+        cardDiv.dataset.type = data["種類"] || "";
+        cardDiv.dataset.brand = data["シリーズブランド名"] || "";
+        cardDiv.dataset.idol = data["アイドル名"] || "";
+        cardDiv.dataset.series = data["入手手段"] || "";
+        cardDiv.dataset.target = data["対象アイドル／サポート効果対象"] || "";
+        cardDiv.dataset.part = data["部位"] || "";
+        cardDiv.dataset.genre = data["ジャンル"] || ""; 
+
+        const exactKeywords = [data["アイドル名"], data["カード名"], data["番号"], data["シリーズブランド名"]].join(" ").toLowerCase();
+        const partialKeywords = exactKeywords + " " + [data["写り込み"], data["タグ"], data["対象アイドル／サポート効果対象"], data["部位"], data["キャラコメント"], data["セットボーナス"]].join(" ").toLowerCase();
+        
+        cardDiv.dataset.searchExact = exactKeywords;
+        cardDiv.dataset.searchPartial = partialKeywords;
+        
+        cardDiv.innerHTML = `${wishStars}<div class="rarity-badge">${data["レアリティ"]}</div><div class="card-info"><h4>${data["アイドル名"]}</h4><p>${data["カード名"]}</p></div>`;
+        
+        cardDiv.onclick = async () => {
+          const isDetailMode = document.getElementById('detailModeToggle').checked;
+          if (isDetailMode) {
+            openModal(data);
+          } else {
+            if (ownedCardIds.has(data["番号"])) {
+              ownedCardIds.delete(data["番号"]);
+              cardDiv.classList.remove('owned');
+              if (userCardDetails[data["番号"]]) userCardDetails[data["番号"]].count = 0;
+            } else {
+              ownedCardIds.add(data["番号"]);
+              cardDiv.classList.add('owned');
+              if (!userCardDetails[data["番号"]]) userCardDetails[data["番号"]] = { count: 1, memo: "", wish: 0 };
+              else userCardDetails[data["番号"]].count = 1;
+            }
+            applyFiltersAndSort();
+            markAsUnsaved(); // ★ 通信はせず、未保存マークだけつける
+          }
+        };
+        container.appendChild(cardDiv);
+      });
+      applyFiltersAndSort();
+    }
+
+    // ▼ 内部（メモリ上）だけ即時更新する関数
+    const updateLocalMemory = () => {
+      if (!currentModalCardData) return;
+      const countVal = parseInt(document.getElementById('modalCount').value) || 0;
+      const wishVal = parseInt(document.getElementById('modalWish').value) || 0;
+      const memoVal = document.getElementById('modalMemo').value;
+      const cardId = currentModalCardData["番号"];
+      
+      if (countVal > 0) ownedCardIds.add(cardId);
+      else ownedCardIds.delete(cardId);
+      
+      userCardDetails[cardId] = { count: countVal, memo: memoVal, wish: wishVal };
+      markAsUnsaved();
+      renderCards(); // 表示だけ更新
+    };
+
+    function openModal(data) {
+      currentModalCardData = data;
+      const imgFront = document.getElementById('modalImgFront');
+      const imgBack = document.getElementById('modalImgBack');
+      if (data["カード表"]) { imgFront.src = `images/${data["カード表"]}`; imgFront.style.display = 'block'; } else { imgFront.style.display = 'none'; }
+      if (data["カード裏"]) { imgBack.src = `images/${data["カード裏"]}`; imgBack.style.display = 'block'; } else { imgBack.style.display = 'none'; }
+      
+      document.getElementById('modalCardName').innerText = data["カード名"] || "名称不明";
+      document.getElementById('modalCardIdol').innerText = `${data["シリーズブランド名"]} / ${data["アイドル名"]}`;
+      
+      const table = document.getElementById('modalTable');
+      table.innerHTML = '';
+      const addRow = (label, value) => { if (value && value !== "") table.innerHTML += `<tr><th>${label}</th><td>${value}</td></tr>`; };
+      
+      let formattedUtsurikomi = (data["写り込み"] || "").replace(/,/g, '、');
+      let formattedBikou = (data["備考"] || "").replace(/,/g, '<br>');
+      
+      const createCardLinks = (idsString, displayType) => {
+        if (!idsString) return '';
+        const ids = idsString.split(',').map(id => id.trim()).filter(id => id !== '');
+        if (ids.length === 0) return '';
+        let html = '';
+        ids.forEach(id => {
+          const targetCard = cardData.find(c => c["番号"] === id);
+          if (targetCard) {
+            const btnText = displayType === 'name' ? targetCard["カード名"] : targetCard["番号"];
+            html += `<button class="card-link-btn" data-target-id="${id}">${btnText}</button>`;
+          } else {
+            const btnText = displayType === 'name' ? id : id;
+            html += `<button class="card-link-btn disabled" disabled>${btnText} (未登録)</button>`;
+          }
+        });
+        return html;
+      };
+
+      // ★ ご指定のテーブル順序に完全一致させました
+      addRow("番号", data["番号"]);
+      addRow("レアリティ", data["レアリティ"]);
+      addRow("種類", data["種類"]);
+      
+      if (data["アピール値（Vocal)"] || data["アピール値（Dance）"] || data["アピール値（Visual）"]) {
+        const v = data["アピール値（Vocal)"] || 0; const d = data["アピール値（Dance）"] || 0; const vi = data["アピール値（Visual）"] || 0;
+        addRow("アピール値", `<span style="color:#e91e63">Vo: ${v}</span> / <span style="color:#2196f3">Da: ${d}</span> / <span style="color:#ffc107">Vi: ${vi}</span>`);
+      }
+      
+      addRow("対象／効果対象", data["対象アイドル／サポート効果対象"]);
+      addRow("部位", data["部位"]);
+      addRow("効果／リズム効果", data["サポート効果／リズムライブ効果"]);
+      addRow("備考", formattedBikou);
+      
+      // ▼ 新設：制限緩和（空欄なら表示しない）
+      addRow("制限緩和", data["制限緩和"]); 
+      
+      addRow("キャラコメント", data["キャラコメント"]);
+      addRow("入手手段", data["入手手段"]);
+      
+      if (data["セットボーナス"]) {
+        const bonusHtml = `<button class="card-link-btn set-bonus-link" data-bonus="${data["セットボーナス"]}">${data["セットボーナス"]}</button>`;
+        addRow("セットボーナス", bonusHtml);
+      }
+
+      addRow("別イラスト", createCardLinks(data["別イラスト"], 'id'));
+      addRow("色違い", createCardLinks(data["色違い"], 'name'));
+      addRow("写り込み", formattedUtsurikomi);
+      
+      const userDetail = userCardDetails[data["番号"]] || { count: (ownedCardIds.has(data["番号"]) ? 1 : 0), memo: "", wish: 0 };
+      document.getElementById('modalCount').value = userDetail.count;
+      document.getElementById('modalWish').value = userDetail.wish;
+      document.getElementById('modalMemo').value = userDetail.memo;
+      
+      detailModal.classList.add('open');
+
+      const linkBtns = table.querySelectorAll('.card-link-btn:not(.disabled):not(.set-bonus-link)');
+      linkBtns.forEach(btn => {
+        btn.onclick = () => {
+          const targetId = btn.dataset.targetId;
+          const targetData = cardData.find(c => c["番号"] === targetId);
+          if (targetData) {
+            updateLocalMemory(); // メモリだけ更新
+            openModal(targetData); 
+          }
+        };
+      });
+
+      const bonusBtns = table.querySelectorAll('.set-bonus-link');
+      bonusBtns.forEach(btn => {
+        btn.onclick = () => {
+          updateLocalMemory();
+          detailModal.classList.remove('open');
+          document.querySelector('input[name="searchMode"][value="partial"]').checked = true;
+          document.getElementById('searchInput').value = btn.dataset.bonus;
+          applyFiltersAndSort();
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+      });
+    }
+
+    document.getElementById('modalCloseBtn').onclick = () => detailModal.classList.remove('open');
+    detailModal.addEventListener('click', (e) => {
+      if (e.target === detailModal && document.getElementById('closeOutsideToggle').checked) {
+        detailModal.classList.remove('open');
+      }
+    });
+    
+    const showToast = (msg) => {
+      const toast = document.getElementById('toast');
+      toast.innerText = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2000);
+    };
+
+    // ▼ クラウドセーブ機能（手動で一括保存！）
+    document.getElementById('cloudSaveBtn').onclick = async () => {
+      if (!currentUser) return alert("セーブするにはログインしてください。");
+      
+      // 最後に開いているモーダルの情報も回収
+      if (detailModal.classList.contains('open')) {
+        updateLocalMemory();
+      }
+
+      await setDoc(doc(db, "users", currentUser.uid), { 
+        ownedCards: Array.from(ownedCardIds), 
+        cardDetails: userCardDetails 
+      }, { merge: true });
+      
+      hasUnsavedChanges = false;
+      const btn = document.getElementById('cloudSaveBtn');
+      btn.classList.remove('unsaved');
+      btn.innerText = "☁️ クラウドにセーブ済";
+      showToast("クラウドに一括保存しました！✨");
+    };
+
+    // 変更時にメモリだけ更新
+    document.getElementById('modalCount').addEventListener('change', updateLocalMemory);
+    document.getElementById('modalWish').addEventListener('change', updateLocalMemory);
+    let memoTimeout;
+    document.getElementById('modalMemo').addEventListener('input', () => {
+      clearTimeout(memoTimeout);
+      memoTimeout = setTimeout(updateLocalMemory, 500); // メモリ更新なので早くても負荷ゼロ！
+    });
+
+    function applyFiltersAndSort() {
+      const text = document.getElementById('searchInput').value.toLowerCase();
+      const searchMode = document.querySelector('input[name="searchMode"]:checked').value;
+      
+      const filterOwned = document.querySelector('input[name="filterOwned"]:checked').value;
+      const filterWish = parseInt(document.querySelector('input[name="filterWish"]:checked').value);
+      
+      const getChecked = (className) => {
+        const checked = Array.from(document.querySelectorAll(`.${className}:checked`)).map(cb => cb.value);
+        return checked.length > 0 ? checked : null;
+      };
+
+      const checkedRarities = getChecked('filter-rarity');
+      const checkedTypes = getChecked('filter-type');
+      const checkedBrands = getChecked('filter-brand');
+      const checkedTargets = getChecked('filter-target');
+      const checkedParts = getChecked('filter-part');
+      const checkedGenres = getChecked('filter-genre');
+      const checkedIdols = getChecked('filter-idol');
+      const checkedSeries = Array.from(document.querySelectorAll('.series-filter:checked')).map(cb => cb.value);
+      
+      let cardsArray = Array.from(document.querySelectorAll('.card'));
+      let visibleCount = 0;
+      let ownedVisibleCount = 0;
+      let totalCardsCount = 0;
+
+      cardsArray.forEach(card => {
+        const searchTarget = (searchMode === 'partial') ? card.dataset.searchPartial : card.dataset.searchExact;
+        const matchText = searchTarget.includes(text);
+        const matchSeries = checkedSeries.includes(card.dataset.series);
+        
+        const isOwned = card.classList.contains('owned');
+        const matchOwned = filterOwned === 'all' || (filterOwned === 'owned' && isOwned) || (filterOwned === 'unowned' && !isOwned);
+        const cardWish = parseInt(card.dataset.wish) || 0;
+        const matchWish = filterWish === 0 || (filterWish === 3 ? cardWish === 3 : cardWish >= filterWish);
+
+        const matchRarity = !checkedRarities || checkedRarities.includes(card.dataset.rarity);
+        const matchType = !checkedTypes || checkedTypes.includes(card.dataset.type);
+        const matchBrand = !checkedBrands || checkedBrands.includes(card.dataset.brand);
+        const matchTarget = !checkedTargets || checkedTargets.some(t => card.dataset.target.includes(t));
+        const matchPart = !checkedParts || checkedParts.includes(card.dataset.part);
+        const matchGenre = !checkedGenres || checkedGenres.includes(card.dataset.genre);
+        const matchIdol = !checkedIdols || checkedIdols.includes(card.dataset.idol);
+
+        if (matchText && matchSeries && matchRarity && matchType && matchBrand && matchTarget && matchPart && matchGenre && matchIdol && matchOwned && matchWish) {
+          card.style.display = 'flex';
+          visibleCount++;
+          if (isOwned) {
+            ownedVisibleCount++;
+            const cardId = card.dataset.number;
+            const count = userCardDetails[cardId] ? userCardDetails[cardId].count : 1;
+            totalCardsCount += count;
+          }
+        } else {
+          card.style.display = 'none';
+        }
+      });
+      
+      const sortKey = document.getElementById('sortSelect').value;
+      const isAsc = document.getElementById('sortOrderBtn').dataset.order === 'asc';
+
+      cardsArray.sort((a, b) => {
+        let valA, valB;
+        if (sortKey === 'number') { valA = parseInt(a.dataset.imgNum); valB = parseInt(b.dataset.imgNum); } 
+        else if (sortKey === 'wish') { valA = parseInt(a.dataset.wish); valB = parseInt(b.dataset.wish); }
+        else if (sortKey === 'vocal' || sortKey === 'dance' || sortKey === 'visual') { valA = parseInt(a.dataset[sortKey]); valB = parseInt(b.dataset[sortKey]); } 
+        else if (sortKey === 'rarity') { valA = rarityOrder[a.dataset.rarity] || -1; valB = rarityOrder[b.dataset.rarity] || -1; }
+        return isAsc ? valA - valB : valB - valA;
+      });
+
+      cardsArray.forEach(card => container.appendChild(card));
+      const percent = visibleCount === 0 ? 0 : Math.floor((ownedVisibleCount / visibleCount) * 100);
+      
+      document.getElementById('counterDisplay').innerHTML = `種類数: ${ownedVisibleCount} / ${visibleCount}種 (${percent}%) <span id="totalCountDisplay">総枚数: ${totalCardsCount}枚</span>`;
+    }
+
+    document.getElementById('searchInput').addEventListener('input', applyFiltersAndSort);
+    document.querySelectorAll('input[name="searchMode"]').forEach(radio => radio.addEventListener('change', applyFiltersAndSort));
+    document.getElementById('sortSelect').addEventListener('change', applyFiltersAndSort);
+    const sortOrderBtn = document.getElementById('sortOrderBtn');
+    sortOrderBtn.addEventListener('click', () => {
+      if (sortOrderBtn.dataset.order === 'asc') { sortOrderBtn.dataset.order = 'desc'; sortOrderBtn.innerText = "降順 ▼"; } 
+      else { sortOrderBtn.dataset.order = 'asc'; sortOrderBtn.innerText = "昇順 ▲"; }
+      applyFiltersAndSort();
+    });
+    document.querySelectorAll('.series-filter').forEach(cb => cb.addEventListener('change', applyFiltersAndSort));
+    document.getElementById('filterPanel').addEventListener('change', applyFiltersAndSort);
+
+    document.getElementById('menuOpenBtn').onclick = () => { document.getElementById('sidebar').classList.add('open'); document.getElementById('overlay').classList.add('open'); };
+    const closeMenu = () => { document.getElementById('sidebar').classList.remove('open'); document.getElementById('overlay').classList.remove('open'); };
+    document.getElementById('menuCloseBtn').onclick = closeMenu;
+    document.getElementById('overlay').onclick = closeMenu;
+    
+    const updateUserInfo = () => {
+      const userInfo = document.getElementById('userInfo');
+      if (currentUser) {
+        if (document.getElementById('privacyToggle').checked) {
+          userInfo.innerText = `プロデューサー さん`;
+        } else {
+          userInfo.innerText = `${currentUser.displayName} さん`;
+        }
+      } else {
+        userInfo.innerText = "未ログイン（セーブ不可）";
+      }
+    };
+    
+    document.getElementById('privacyToggle').addEventListener('change', updateUserInfo);
+
+    const loginBtn = document.getElementById('loginBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+
+    loginBtn.addEventListener('click', () => signInWithPopup(auth, provider));
+    logoutBtn.addEventListener('click', () => signOut(auth));
+
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        currentUser = user;
+        loginBtn.style.display = 'none';
+        logoutBtn.style.display = 'block';
+        document.getElementById('cloudSaveBtn').style.display = 'inline-block'; // ログインしたらセーブボタンを出す
+        updateUserInfo();
+        
+        const docRef = doc(db, "users", user.uid);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          ownedCardIds = new Set(docSnap.data().ownedCards || []);
+          userCardDetails = docSnap.data().cardDetails || {};
+        } else {
+          ownedCardIds = new Set();
+          userCardDetails = {};
+        }
+      } else {
+        currentUser = null;
+        ownedCardIds = new Set();
+        userCardDetails = {};
+        loginBtn.style.display = 'block';
+        logoutBtn.style.display = 'none';
+        document.getElementById('cloudSaveBtn').style.display = 'none';
+        updateUserInfo();
+      }
+      loadSettings(); 
+      renderCards();
+    });
+  </script>
+</body>
+</html>
+"""
+with open("index_v18.html", "w", encoding="utf-8") as f:
+    f.write(html_content)
+print("[file-tag: index_v18.html]")
