@@ -5,7 +5,6 @@
   <title>ツアマス所持率チェッカー</title>
   <meta name="description" content="アーケードゲーム「アイドルマスター TOURS（ツアマス）」のカード所持率を管理できる非公式チェッカーです。">
   <style>
-    /* ▼ テーマカラー用の変数 */
     :root {
       --main-color: #ff66a3;
       --sub-color: #ffebf0;
@@ -17,15 +16,19 @@
     #menuOpenBtn { font-size: 24px; background: none; border: none; cursor: pointer; margin-right: 15px; color: #555; }
     header h1 { margin: 0; font-size: 18px; color: #333; }
 
-    /* サイドメニュー */
     #sidebar { position: fixed; top: 0; left: -300px; width: 300px; height: 100%; background: #fff; box-shadow: 2px 0 10px rgba(0,0,0,0.2); transition: left 0.3s ease; z-index: 1000; padding: 20px; box-sizing: border-box; overflow-y: auto; }
     #sidebar.open { left: 0; }
     #menuCloseBtn { font-size: 24px; background: none; border: none; cursor: pointer; color: #999; display: block; text-align: right; width: 100%; margin-bottom: 20px; }
     #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); opacity: 0; pointer-events: none; transition: opacity 0.3s ease; z-index: 999; }
     #overlay.open { opacity: 1; pointer-events: auto; }
+    
     .menu-section { margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid #eee; }
     .menu-section h3 { margin: 0 0 10px 0; font-size: 15px; color: #555; }
     
+    /* ▼ ナビゲーションメニュー用のボタン */
+    .nav-btn { display: block; width: 100%; padding: 12px; margin-bottom: 10px; background: var(--sub-color); border: 2px solid var(--main-color); color: #333; font-weight: bold; border-radius: 8px; cursor: pointer; transition: 0.2s; text-align: center; }
+    .nav-btn:hover { background: var(--main-color); color: #fff; }
+
     .auth-container { text-align: center; background: #e3f2fd; padding: 15px; border-radius: 10px; }
     .auth-container button { padding: 8px; width: 100%; font-weight: bold; cursor: pointer; border-radius: 5px; border: none; background: #1a73e8; color: white; transition: 0.2s; margin-top: 10px; }
     .auth-container button.logout-btn { background: #dc3545; }
@@ -34,15 +37,44 @@
     
     .mode-switch { background: var(--sub-color); padding: 10px; border-radius: 8px; border: 2px solid var(--main-color); font-weight: bold; color: #333; margin-bottom: 15px; transition: 0.3s;}
 
-    /* 占いボタン */
     #egaoBtn { background: linear-gradient(45deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%); border: 2px solid #ff66a3; border-radius: 8px; padding: 10px; width: 100%; font-weight: bold; color: #d81b60; cursor: pointer; margin-top: 10px; transition: 0.2s; }
     #egaoBtn:hover { filter: brightness(0.95); transform: scale(0.98); }
     #egaoResult { display: none; margin-top: 10px; padding: 12px; border-radius: 8px; background: #fff; border: 2px dashed var(--main-color); font-size: 13px; color: #333; line-height: 1.6; text-align: left; transition: 0.3s; }
-    #egaoResult strong { color: var(--main-color); }
-
-    main { padding: 20px; }
-    .controls { text-align: center; margin-bottom: 20px; }
     
+    /* ▼ SPA用のビュー切り替え */
+    .view-section { display: none; padding: 20px; max-width: 1200px; margin: 0 auto; }
+    .view-section.active { display: block; }
+    .page-title { color: var(--main-color); border-bottom: 3px solid var(--sub-color); padding-bottom: 10px; margin-top: 0; }
+
+    /* プライバシーポリシー用のデザイン */
+    .policy-content { background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); line-height: 1.8; color: #444; }
+    .policy-content h3 { color: var(--main-color); margin-top: 30px; border-left: 5px solid var(--main-color); padding-left: 10px; }
+
+    /* ▼ 編成メモ用のデザイン */
+    .formation-card { background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 20px; border: 2px solid var(--sub-color); }
+    .formation-header { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
+    .formation-header input { flex: 1; padding: 10px; font-size: 16px; border: 1px solid #ccc; border-radius: 6px; font-weight: bold; }
+    .formation-header select { padding: 10px; border: 1px solid #ccc; border-radius: 6px; }
+    .delete-formation-btn { background: #dc3545; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+    
+    .formation-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; margin-bottom: 20px; }
+    .formation-col { background: #fafafa; padding: 15px; border-radius: 8px; border: 1px solid #eee; }
+    .formation-col h4 { margin: 0 0 10px 0; text-align: center; color: #555; background: #eee; padding: 5px; border-radius: 4px; }
+    .f-row { display: flex; align-items: center; margin-bottom: 8px; }
+    .f-row label { width: 60px; font-size: 12px; font-weight: bold; color: #777; }
+    .f-row input { flex: 1; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px; }
+    
+    .formation-bottom { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; }
+    .f-box { background: #fff8e1; padding: 15px; border-radius: 8px; border: 1px solid #ffe082; }
+    .f-box.support { background: #e3f2fd; border-color: #90caf9; }
+    .f-box h4 { margin: 0 0 10px 0; font-size: 14px; color: #333; }
+    .f-note { font-size: 11px; color: #d32f2f; margin-bottom: 5px; display: block; }
+    
+    #addFormationBtn { background: var(--main-color); color: white; border: none; padding: 12px 20px; border-radius: 30px; font-size: 16px; font-weight: bold; cursor: pointer; display: block; margin: 0 auto; transition: 0.2s; box-shadow: 0 4px 10px rgba(255,102,163,0.3); }
+    #addFormationBtn:hover { filter: brightness(0.9); transform: scale(1.05); }
+
+    /* コントロール・一覧エリア */
+    .controls { text-align: center; margin-bottom: 20px; }
     #counterDisplay { color: var(--main-color); font-size: 22px; margin-top: 0; transition: color 0.3s;}
     #totalCountDisplay { font-size: 16px; color: #666; margin-left: 15px; display: inline-block; }
     
@@ -50,12 +82,10 @@
     #searchInput { padding: 10px 20px; width: 100%; max-width: 350px; font-size: 15px; border-radius: 30px; border: 2px solid #ddd; outline: none; }
     .search-toggles { display: flex; gap: 15px; font-size: 13px; color: #555; }
     
-    /* ▼ ソート＆セーブボタンのエリア */
     .sort-controls { display: flex; gap: 5px; margin-top: 10px; justify-content: center; align-items: center; }
     .sort-controls select, .sort-controls button { padding: 8px 12px; font-size: 14px; border-radius: 20px; border: 1px solid #ccc; outline: none; cursor: pointer; background: #fff; }
     .sort-controls button { background: #555; color: white; font-weight: bold; border: none; transition: 0.2s; }
     
-    /* ▼ 新設のクラウド保存ボタン */
     #cloudSaveBtn { background: #1a73e8; margin-left: 10px; box-shadow: 0 2px 5px rgba(26,115,232,0.3); }
     #cloudSaveBtn:hover { background: #1557b0; transform: scale(1.05); }
     #cloudSaveBtn.unsaved { animation: pulse 1.5s infinite; background: #e91e63; box-shadow: 0 2px 5px rgba(233,30,99,0.3); }
@@ -71,7 +101,6 @@
     .filter-btn-label input { display: none; }
     .filter-btn-label:has(input:checked) { background: var(--main-color); color: white; border-color: var(--main-color); font-weight: bold; }
 
-    /* カード一覧 */
     .card-list { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; }
     .card { border: 3px solid #ccc; border-radius: 12px; width: 160px; aspect-ratio: 378 / 533; cursor: pointer; transition: all 0.2s ease; background-color: #999; position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; }
     .card-info { background: rgba(255, 255, 255, 0.95); padding: 10px; text-align: center; border-top: 1px solid #eee; }
@@ -81,13 +110,11 @@
     .card::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); pointer-events: none; transition: 0.2s; }
     .card.owned { border-color: var(--main-color); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
     .card.owned::after { background-color: rgba(0, 0, 0, 0); }
-    
     .wish-star { position: absolute; top: 5px; right: 5px; color: #ffeb3b; text-shadow: 0 0 3px #000; font-size: 16px; z-index: 10; font-weight: bold; }
 
-    /* 詳細確認モーダル */
+    /* モーダル */
     #detailModal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; display: none; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; }
     #detailModal.open { display: flex; }
-    
     .modal-content { background: #fff; border-radius: 15px; width: 100%; max-width: 1050px; max-height: 90vh; overflow-y: auto; position: relative; padding: 40px 30px; box-sizing: border-box; }
     .modal-close { position: absolute; top: 15px; right: 20px; font-size: 28px; background: none; border: none; cursor: pointer; color: #999; z-index: 20; }
     
@@ -130,6 +157,13 @@
   <div id="sidebar">
     <button id="menuCloseBtn">✖</button>
     
+    <!-- ▼ 画面切り替えメニュー -->
+    <div class="menu-section">
+      <button class="nav-btn" onclick="switchView('collection')">🗂️ カード一覧に戻る</button>
+      <button class="nav-btn" onclick="switchView('formation')" style="border-color: #1a73e8; color: #1a73e8;">📝 俺の編成メモ</button>
+      <button class="nav-btn" onclick="switchView('privacy')" style="border-color: #999; color: #777;">🔒 プライバシーポリシー</button>
+    </div>
+
     <div class="menu-section auth-container">
       <span id="userInfo">未ログイン</span>
       <label class="checkbox-label" style="justify-content: center; font-size: 11px; margin-top: 5px;">
@@ -177,64 +211,93 @@
   </div>
 
   <main>
-    <div class="controls">
-      <h2 id="counterDisplay">所持数: 0 / 0種 (0%) <span id="totalCountDisplay">総枚数: 0枚</span></h2>
-      <div class="search-area">
-        <input type="text" id="searchInput" placeholder="検索ワードを入力...">
-        <div class="search-toggles">
-          <label><input type="radio" name="searchMode" value="exact" checked> 基本情報のみ</label>
-          <label><input type="radio" name="searchMode" value="partial"> 関連情報も含める</label>
+    <!-- ★ 1. カード一覧画面（初期表示） -->
+    <div id="view-collection" class="view-section active">
+      <div class="controls">
+        <h2 id="counterDisplay">所持数: 0 / 0種 (0%) <span id="totalCountDisplay">総枚数: 0枚</span></h2>
+        <div class="search-area">
+          <input type="text" id="searchInput" placeholder="検索ワードを入力...">
+          <div class="search-toggles">
+            <label><input type="radio" name="searchMode" value="exact" checked> 基本情報のみ</label>
+            <label><input type="radio" name="searchMode" value="partial"> 関連情報も含める</label>
+          </div>
         </div>
-      </div>
-      
-      <!-- ▼ ソートと手動セーブボタン -->
-      <div class="sort-controls">
-        <select id="sortSelect">
-          <option value="number">追加順</option>
-          <option value="rarity">レアリティ</option>
-          <option value="vocal">アピール値: Vocal</option>
-          <option value="dance">アピール値: Dance</option>
-          <option value="visual">アピール値: Visual</option>
-          <option value="wish">★順</option>
-        </select>
-        <button id="sortOrderBtn" data-order="asc">昇順 ▲</button>
-        <!-- ▼ 新設：クラウド保存ボタン -->
-        <button id="cloudSaveBtn" style="display:none;">クラウドにセーブ</button>
-      </div>
-      
-      <button id="toggleFilterBtn">▼ 詳細な絞り込みを開く</button>
-      
-      <div id="filterPanel">
-        <div style="text-align: right; margin-bottom: 10px;"><button onclick="resetFilters()" style="padding:5px 10px; cursor:pointer;">✖ 全てクリア</button></div>
         
-        <div class="filter-group">
-          <h4>所持状況</h4>
-          <div class="filter-grid">
-            <label class="filter-btn-label"><input type="radio" name="filterOwned" value="all" checked> すべて表示</label>
-            <label class="filter-btn-label"><input type="radio" name="filterOwned" value="owned"> 持っている</label>
-            <label class="filter-btn-label"><input type="radio" name="filterOwned" value="unowned"> 持っていない</label>
-          </div>
+        <div class="sort-controls">
+          <select id="sortSelect">
+            <option value="number">追加順</option>
+            <option value="rarity">レアリティ</option>
+            <option value="vocal">アピール値: Vocal</option>
+            <option value="dance">アピール値: Dance</option>
+            <option value="visual">アピール値: Visual</option>
+            <option value="wish">★順</option>
+          </select>
+          <button id="sortOrderBtn" data-order="asc">昇順 ▲</button>
+          <button id="cloudSaveBtn" style="display:none;">クラウドにセーブ</button>
         </div>
-        <div class="filter-group">
-          <h4>欲しいリスト (★)</h4>
-          <div class="filter-grid">
-            <label class="filter-btn-label"><input type="radio" name="filterWish" value="0" checked> 指定なし</label>
-            <label class="filter-btn-label"><input type="radio" name="filterWish" value="1"> ★1以上</label>
-            <label class="filter-btn-label"><input type="radio" name="filterWish" value="2"> ★2以上</label>
-            <label class="filter-btn-label"><input type="radio" name="filterWish" value="3"> ★3のみ</label>
+        
+        <button id="toggleFilterBtn">▼ 詳細な絞り込みを開く</button>
+        
+        <div id="filterPanel">
+          <div style="text-align: right; margin-bottom: 10px;"><button onclick="resetFilters()" style="padding:5px 10px; cursor:pointer;">✖ 全てクリア</button></div>
+          <div class="filter-group">
+            <h4>所持状況</h4>
+            <div class="filter-grid">
+              <label class="filter-btn-label"><input type="radio" name="filterOwned" value="all" checked> すべて表示</label>
+              <label class="filter-btn-label"><input type="radio" name="filterOwned" value="owned"> 持っている</label>
+              <label class="filter-btn-label"><input type="radio" name="filterOwned" value="unowned"> 持っていない</label>
+            </div>
           </div>
+          <div class="filter-group">
+            <h4>欲しいリスト (★)</h4>
+            <div class="filter-grid">
+              <label class="filter-btn-label"><input type="radio" name="filterWish" value="0" checked> 指定なし</label>
+              <label class="filter-btn-label"><input type="radio" name="filterWish" value="1"> ★1以上</label>
+              <label class="filter-btn-label"><input type="radio" name="filterWish" value="2"> ★2以上</label>
+              <label class="filter-btn-label"><input type="radio" name="filterWish" value="3"> ★3のみ</label>
+            </div>
+          </div>
+          <div class="filter-group"><h4>レアリティ</h4><div class="filter-grid" id="rarityFilters"></div></div>
+          <div class="filter-group"><h4>カード種類</h4><div class="filter-grid" id="typeFilters"></div></div>
+          <div class="filter-group"><h4>ブランド</h4><div class="filter-grid" id="brandFilters"></div></div>
+          <div class="filter-group"><h4>対象・効果</h4><div class="filter-grid" id="targetFilters"></div></div>
+          <div class="filter-group"><h4>部位</h4><div class="filter-grid" id="partFilters"></div></div>
+          <div class="filter-group"><h4>ジャンル</h4><div class="filter-grid" id="genreFilters"></div></div>
+          <div class="filter-group"><h4>アイドル</h4><div class="filter-grid" id="idolFilters"></div></div>
         </div>
+      </div>
+      <div class="card-list" id="cardList"></div>
+    </div>
 
-        <div class="filter-group"><h4>レアリティ</h4><div class="filter-grid" id="rarityFilters"></div></div>
-        <div class="filter-group"><h4>カード種類</h4><div class="filter-grid" id="typeFilters"></div></div>
-        <div class="filter-group"><h4>ブランド</h4><div class="filter-grid" id="brandFilters"></div></div>
-        <div class="filter-group"><h4>対象・効果</h4><div class="filter-grid" id="targetFilters"></div></div>
-        <div class="filter-group"><h4>部位</h4><div class="filter-grid" id="partFilters"></div></div>
-        <div class="filter-group"><h4>ジャンル</h4><div class="filter-grid" id="genreFilters"></div></div>
-        <div class="filter-group"><h4>アイドル</h4><div class="filter-grid" id="idolFilters"></div></div>
+    <!-- ★ 2. 編成メモ画面（SPA） -->
+    <div id="view-formation" class="view-section">
+      <h2 class="page-title">📝 俺の考えたさいきょーの編成メモ</h2>
+      <p style="color: #666; font-size: 14px; margin-bottom: 20px;">
+        スコアアタック用の理想の編成を記録できます。入力内容は一覧画面の「クラウドにセーブ」ボタンでアカウントに自動保存されます！
+      </p>
+      <div id="formationListContainer"></div>
+      <button id="addFormationBtn" onclick="addFormation()">＋ 新しい編成を記録する</button>
+    </div>
+
+    <!-- ★ 3. プライバシーポリシー画面（SPA） -->
+    <div id="view-privacy" class="view-section">
+      <h2 class="page-title">🔒 プライバシーポリシー</h2>
+      <div class="policy-content">
+        <p>ツアマス所持率チェッカー（以下「当サイト」）は、ユーザーの皆様が安心してご利用いただけるよう、以下の通りプライバシーポリシーを定めます。</p>
+        
+        <h3>1. 収集する情報と目的</h3>
+        <p>当サイトは、セーブ機能を提供するために「Googleログイン（Firebase Authentication）」を使用しています。取得した認証情報（ユーザーIDなど）は、個人の特定や悪用、第三者への提供には一切使用しません。</p>
+        
+        <h3>2. データの保存先</h3>
+        <p>ログインしたユーザーのカード所持データ、メモ、編成データは、Googleが提供する安全なデータベース（Cloud Firestore）にのみ保存されます。他者があなたのデータを閲覧・改ざんすることはできません。</p>
+        
+        <h3>3. 動作データの収集</h3>
+        <p>サービスの品質向上のため、Vercelのアクセス解析機能を使用し、個人を特定しない形でページの表示速度などの動作情報を収集しています。</p>
+        
+        <h3>4. 免責事項</h3>
+        <p>当サイトは、ファンが個人的に作成した「非公式チェッカー」であり、公式の運営企業様とは一切関係ありません。当サイトの利用により生じたトラブルや損害について、開発者は一切の責任を負いかねます。</p>
       </div>
     </div>
-    <div class="card-list" id="cardList"></div>
   </main>
 
   <div id="detailModal">
@@ -300,9 +363,22 @@
     let currentUser = null;
     let ownedCardIds = new Set();
     let userCardDetails = {}; 
+    let userFormations = []; // ★ 編成データを格納する配列
     let hasUnsavedChanges = false; 
 
-    // ▼ 名前表示の更新関数
+    // ▼ SPA切り替え処理
+    window.switchView = (viewId) => {
+      document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+      document.getElementById('view-' + viewId).classList.add('active');
+      
+      // 編成画面を開いたときにレンダリングする
+      if (viewId === 'formation') renderFormations();
+      
+      document.getElementById('sidebar').classList.remove('open'); 
+      document.getElementById('overlay').classList.remove('open');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
     const updateUserInfo = () => {
       const userInfo = document.getElementById('userInfo');
       if (currentUser) {
@@ -322,8 +398,6 @@
       let savedDetailMode = true; 
       if (localStorage.getItem('tourmas_detailMode') === 'false') { savedDetailMode = false; }
       const savedCloseOutside = localStorage.getItem('tourmas_closeOutside') !== 'false';
-      
-      // ▼ 仕事モードの記憶を呼び出す処理を追加！
       const savedPrivacy = localStorage.getItem('tourmas_privacy') === 'true';
 
       document.getElementById('themeSelect').value = savedTheme;
@@ -332,8 +406,6 @@
       document.getElementById('marqueeContainer').style.display = savedNotice ? 'block' : 'none';
       document.getElementById('detailModeToggle').checked = savedDetailMode;
       document.getElementById('closeOutsideToggle').checked = savedCloseOutside;
-      
-      // ▼ チェックボックスに反映して、名前表示も更新！
       document.getElementById('privacyToggle').checked = savedPrivacy;
       updateUserInfo();
     };
@@ -367,8 +439,6 @@
     document.getElementById('closeOutsideToggle').addEventListener('change', (e) => {
       localStorage.setItem('tourmas_closeOutside', e.target.checked);
     });
-    
-    // ▼ 仕事モードの設定を保存する処理を追加！
     document.getElementById('privacyToggle').addEventListener('change', (e) => {
       localStorage.setItem('tourmas_privacy', e.target.checked);
       updateUserInfo();
@@ -441,9 +511,13 @@
     const markAsUnsaved = () => {
       hasUnsavedChanges = true;
       const btn = document.getElementById('cloudSaveBtn');
+      btn.style.display = 'inline-block';
       btn.classList.add('unsaved');
-      btn.innerText = "クラウドにセーブ (未保存)";
+      btn.innerText = "⚠️ セーブ(未保存)";
     };
+    
+    // ★ HTML内から呼び出せるように登録
+    window.markAsUnsaved = markAsUnsaved;
 
     function renderCards() {
       container.innerHTML = '';
@@ -478,8 +552,10 @@
         cardDiv.dataset.part = data["部位"] || "";
         cardDiv.dataset.genre = data["ジャンル"] || ""; 
 
+        // ★ エラー回避：data["コメント"] と data["キャラコメント"] の両方に対応
+        const commentData = data["キャラコメント"] || data["コメント"] || "";
         const exactKeywords = [data["アイドル名"], data["カード名"], data["番号"], data["シリーズブランド名"]].join(" ").toLowerCase();
-        const partialKeywords = exactKeywords + " " + [data["写り込み"], data["タグ"], data["対象アイドル／サポート効果対象"], data["部位"], data["コメント"], data["セットボーナス"]].join(" ").toLowerCase();
+        const partialKeywords = exactKeywords + " " + [data["写り込み"], data["タグ"], data["対象アイドル／サポート効果対象"], data["部位"], commentData, data["セットボーナス"]].join(" ").toLowerCase();
         
         cardDiv.dataset.searchExact = exactKeywords;
         cardDiv.dataset.searchPartial = partialKeywords;
@@ -574,7 +650,7 @@
       addRow("効果／リズム効果", data["サポート効果／リズムライブ効果"]);
       addRow("備考", formattedBikou);
       addRow("制限緩和", data["制限緩和"]); 
-      addRow("コメント", data["コメント"]);
+      addRow("コメント", data["キャラコメント"] || data["コメント"]);
       addRow("入手手段", data["入手手段"]);
       
       if (data["セットボーナス"]) {
@@ -582,7 +658,7 @@
         addRow("セットボーナス", bonusHtml);
       }
 
-      addRow("別カード", createCardLinks(data["別カード"], 'id'));
+      addRow("別カード", createCardLinks(data["別カード"] || data["別イラスト"], 'id'));
       addRow("色違い", createCardLinks(data["色違い"], 'name'));
       addRow("写り込み", formattedUtsurikomi);
       
@@ -610,10 +686,10 @@
         btn.onclick = () => {
           updateLocalMemory();
           detailModal.classList.remove('open');
+          window.switchView('collection');
           document.querySelector('input[name="searchMode"][value="partial"]').checked = true;
           document.getElementById('searchInput').value = btn.dataset.bonus;
           applyFiltersAndSort();
-          window.scrollTo({ top: 0, behavior: 'smooth' });
         };
       });
     }
@@ -624,7 +700,123 @@
         detailModal.classList.remove('open');
       }
     });
+
+    /* =======================================
+       ★ 編成メモ機能（最強の編成）のロジック
+       ======================================= */
     
+    window.updateFormationData = (index, field, subfield, value) => {
+      if (subfield) {
+        if (!userFormations[index][field]) userFormations[index][field] = {};
+        userFormations[index][field][subfield] = value;
+      } else {
+        userFormations[index][field] = value;
+      }
+      markAsUnsaved();
+    };
+
+    window.deleteFormation = (index) => {
+      if(confirm("この編成を削除しますか？")) {
+        userFormations.splice(index, 1);
+        renderFormations();
+        markAsUnsaved();
+      }
+    };
+
+    window.addFormation = () => {
+      userFormations.push({
+        name: "新しい編成",
+        songAttr: "指定なし",
+        idol1: {}, idol2: {}, idol3: {},
+        sp1: "", sp2: "", sp3: "",
+        sup1: "", sup2: "", sup3: ""
+      });
+      renderFormations();
+      markAsUnsaved();
+    };
+
+    const renderFormations = () => {
+      const container = document.getElementById('formationListContainer');
+      container.innerHTML = '';
+      
+      if(userFormations.length === 0) {
+        container.innerHTML = '<p style="text-align:center; color:#999; margin:30px 0;">まだ編成が登録されていません。<br>下の「＋」ボタンから追加してください。</p>';
+        return;
+      }
+
+      userFormations.forEach((f, idx) => {
+        const div = document.createElement('div');
+        div.className = 'formation-card';
+        
+        const createIdolCol = (idolKey, title) => `
+          <div class="formation-col">
+            <h4>${title}</h4>
+            <div class="f-row"><label>ｱｲﾄﾞル</label><input type="text" value="${f[idolKey]?.name || ''}" oninput="updateFormationData(${idx}, '${idolKey}', 'name', this.value)" placeholder="アイドル名"></div>
+            <div class="f-row"><label>衣装</label><input type="text" value="${f[idolKey]?.costume || ''}" oninput="updateFormationData(${idx}, '${idolKey}', 'costume', this.value)"></div>
+            <div class="f-row"><label>頭ｱｸｾ</label><input type="text" value="${f[idolKey]?.head || ''}" oninput="updateFormationData(${idx}, '${idolKey}', 'head', this.value)"></div>
+            <div class="f-row"><label>顔ｱｸｾ</label><input type="text" value="${f[idolKey]?.face || ''}" oninput="updateFormationData(${idx}, '${idolKey}', 'face', this.value)"></div>
+            <div class="f-row"><label>手ｱｸｾ</label><input type="text" value="${f[idolKey]?.hand || ''}" oninput="updateFormationData(${idx}, '${idolKey}', 'hand', this.value)"></div>
+            <div class="f-row"><label>胴ｱｸｾ</label><input type="text" value="${f[idolKey]?.body || ''}" oninput="updateFormationData(${idx}, '${idolKey}', 'body', this.value)"></div>
+            <div class="f-row"><label>腰ｱｸｾ</label><input type="text" value="${f[idolKey]?.waist || ''}" oninput="updateFormationData(${idx}, '${idolKey}', 'waist', this.value)"></div>
+            <div class="f-row"><label>脚ｱｸｾ</label><input type="text" value="${f[idolKey]?.leg || ''}" oninput="updateFormationData(${idx}, '${idolKey}', 'leg', this.value)"></div>
+          </div>
+        `;
+
+        div.innerHTML = `
+          <div class="formation-header">
+            <input type="text" value="${f.name}" oninput="updateFormationData(${idx}, 'name', null, this.value)" placeholder="編成の名前 (例：Vo特化編成)">
+            <select onchange="updateFormationData(${idx}, 'songAttr', null, this.value)">
+              <option value="指定なし" ${f.songAttr==='指定なし'?'selected':''}>属性: 指定なし</option>
+              <option value="Vo" ${f.songAttr==='Vo'?'selected':''}>Vo (ボーカル)</option>
+              <option value="Da" ${f.songAttr==='Da'?'selected':''}>Da (ダンス)</option>
+              <option value="Vi" ${f.songAttr==='Vi'?'selected':''}>Vi (ビジュアル)</option>
+              <option value="VoDa" ${f.songAttr==='VoDa'?'selected':''}>Vo.Da</option>
+              <option value="VoVi" ${f.songAttr==='VoVi'?'selected':''}>Vo.Vi</option>
+              <option value="DaVi" ${f.songAttr==='DaVi'?'selected':''}>Da.Vi.</option>
+              <option value="VoDaVi" ${f.songAttr==='VoDaVi'?'selected':''}>Vo.Da.Vi</option>
+            </select>
+            <button class="delete-formation-btn" onclick="deleteFormation(${idx})">削除</button>
+          </div>
+          
+          <div class="formation-grid">
+            ${createIdolCol('idol1', '🎤 左ポジション')}
+            ${createIdolCol('idol2', '👑 センター')}
+            ${createIdolCol('idol3', '🎤 右ポジション')}
+          </div>
+          
+          <div class="formation-bottom">
+            <div class="f-box">
+              <h4>✨ SPアピール配置</h4>
+              <div class="f-row"><label>左 (1)</label><input type="text" value="${f.sp1 || ''}" oninput="updateFormationData(${idx}, 'sp1', null, this.value)"></div>
+              <div class="f-row"><label>中央(2)</label><input type="text" value="${f.sp2 || ''}" oninput="updateFormationData(${idx}, 'sp2', null, this.value)"></div>
+              <div class="f-row"><label>右 (3)</label><input type="text" value="${f.sp3 || ''}" oninput="updateFormationData(${idx}, 'sp3', null, this.value)"></div>
+            </div>
+            
+            <div class="f-box support">
+              <h4>🤝 サポートカード配置</h4>
+              <div class="f-row">
+                <label>左枠</label><input type="text" value="${f.sup1 || ''}" oninput="updateFormationData(${idx}, 'sup1', null, this.value)">
+              </div>
+              <span class="f-note">※制限: SR, TSR, CO, R, TR, N</span>
+              
+              <div class="f-row">
+                <label>中央枠</label><input type="text" value="${f.sup2 || ''}" oninput="updateFormationData(${idx}, 'sup2', null, this.value)">
+              </div>
+              <span class="f-note" style="color:#1a73e8;">※制限なし (全レアリティ可)</span>
+              
+              <div class="f-row">
+                <label>右枠</label><input type="text" value="${f.sup3 || ''}" oninput="updateFormationData(${idx}, 'sup3', null, this.value)">
+              </div>
+              <span class="f-note">※制限: R, TR, N</span>
+            </div>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    };
+
+    /* ======================================= */
+
     const showToast = (msg) => {
       const toast = document.getElementById('toast');
       toast.innerText = msg;
@@ -641,14 +833,15 @@
 
       await setDoc(doc(db, "users", currentUser.uid), { 
         ownedCards: Array.from(ownedCardIds), 
-        cardDetails: userCardDetails 
+        cardDetails: userCardDetails,
+        formations: userFormations // ★ 編成データも一緒に保存！
       }, { merge: true });
       
       hasUnsavedChanges = false;
       const btn = document.getElementById('cloudSaveBtn');
       btn.classList.remove('unsaved');
-      btn.innerText = "クラウドにセーブ済";
-      showToast("クラウドに保存しました！");
+      btn.innerText = "☁️ クラウドにセーブ済";
+      showToast("クラウドに一括保存しました！✨");
     };
 
     document.getElementById('modalCount').addEventListener('change', updateLocalMemory);
@@ -770,22 +963,25 @@
         if (docSnap.exists()) {
           ownedCardIds = new Set(docSnap.data().ownedCards || []);
           userCardDetails = docSnap.data().cardDetails || {};
+          userFormations = docSnap.data().formations || []; // ★ 編成データを呼び出し！
         } else {
           ownedCardIds = new Set();
           userCardDetails = {};
+          userFormations = [];
         }
       } else {
         currentUser = null;
         ownedCardIds = new Set();
         userCardDetails = {};
+        userFormations = [];
         loginBtn.style.display = 'block';
         logoutBtn.style.display = 'none';
         document.getElementById('cloudSaveBtn').style.display = 'none';
       }
       
-      // ▼ ここで記憶を呼び出して、最後に名前を確定させます！
       loadSettings(); 
       renderCards();
+      renderFormations(); 
     });
   </script>
 </body>
