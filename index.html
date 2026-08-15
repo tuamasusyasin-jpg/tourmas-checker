@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>ツアマス所持率チェッカー</title>
-  <meta name="description" content="アーケードゲーム「アイドルマスター TOURS」のカード所持率を管理できる非公式チェッカーです。">
+  <meta name="description" content="アーケードゲーム「アイドルマスター TOURS（ツアマス）」のカード所持率を管理できる非公式チェッカーです。">
   <style>
     :root {
       --main-color: #ff66a3;
@@ -25,7 +25,6 @@
     .menu-section { margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid #eee; }
     .menu-section h3 { margin: 0 0 10px 0; font-size: 15px; color: #555; }
     
-    /* ▼ ナビゲーションメニュー用のボタン */
     .nav-btn { display: block; width: 100%; padding: 12px; margin-bottom: 10px; background: var(--sub-color); border: 2px solid var(--main-color); color: #333; font-weight: bold; border-radius: 8px; cursor: pointer; transition: 0.2s; text-align: center; }
     .nav-btn:hover { background: var(--main-color); color: #fff; }
 
@@ -41,12 +40,10 @@
     #egaoBtn:hover { filter: brightness(0.95); transform: scale(0.98); }
     #egaoResult { display: none; margin-top: 10px; padding: 12px; border-radius: 8px; background: #fff; border: 2px dashed var(--main-color); font-size: 13px; color: #333; line-height: 1.6; text-align: left; transition: 0.3s; }
     
-    /* ▼ SPA用のビュー切り替え */
     .view-section { display: none; padding: 20px; max-width: 1200px; margin: 0 auto; }
     .view-section.active { display: block; }
     .page-title { color: var(--main-color); border-bottom: 3px solid var(--sub-color); padding-bottom: 10px; margin-top: 0; }
 
-    /* プライバシーポリシー用のデザイン */
     .policy-content { background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); line-height: 1.8; color: #444; }
     .policy-content h3 { color: var(--main-color); margin-top: 30px; border-left: 5px solid var(--main-color); padding-left: 10px; }
 
@@ -56,13 +53,15 @@
     .formation-header input { flex: 1; padding: 10px; font-size: 16px; border: 1px solid #ccc; border-radius: 6px; font-weight: bold; }
     .formation-header select { padding: 10px; border: 1px solid #ccc; border-radius: 6px; }
     .delete-formation-btn { background: #dc3545; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+    .toggle-formation-btn { background: #6c757d; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; }
     
     .formation-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; margin-bottom: 20px; }
     .formation-col { background: #fafafa; padding: 15px; border-radius: 8px; border: 1px solid #eee; }
     .formation-col h4 { margin: 0 0 10px 0; text-align: center; color: #555; background: #eee; padding: 5px; border-radius: 4px; }
     .f-row { display: flex; align-items: center; margin-bottom: 8px; }
     .f-row label { width: 60px; font-size: 12px; font-weight: bold; color: #777; }
-    .f-row input { flex: 1; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px; }
+    .f-row input { flex: 1; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px; cursor: pointer; background: #fff; }
+    .f-row input:hover { border-color: var(--main-color); }
     
     .formation-bottom { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; }
     .f-box { background: #fff8e1; padding: 15px; border-radius: 8px; border: 1px solid #ffe082; }
@@ -73,7 +72,6 @@
     #addFormationBtn { background: var(--main-color); color: white; border: none; padding: 12px 20px; border-radius: 30px; font-size: 16px; font-weight: bold; cursor: pointer; display: block; margin: 0 auto; transition: 0.2s; box-shadow: 0 4px 10px rgba(255,102,163,0.3); }
     #addFormationBtn:hover { filter: brightness(0.9); transform: scale(1.05); }
 
-    /* コントロール・一覧エリア */
     .controls { text-align: center; margin-bottom: 20px; }
     #counterDisplay { color: var(--main-color); font-size: 22px; margin-top: 0; transition: color 0.3s;}
     #totalCountDisplay { font-size: 16px; color: #666; margin-left: 15px; display: inline-block; }
@@ -142,6 +140,12 @@
     
     #toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 10px 20px; border-radius: 30px; z-index: 3000; font-weight: bold; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
     #toast.show { opacity: 1; }
+
+    /* ▼ 編成用カード選択モーダル */
+    #cardSelectModal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2100; display: none; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; }
+    #cardSelectModal.open { display: flex; }
+    #cardSelectModal .modal-content { display: flex; flex-direction: column; max-height: 90vh; }
+    #cardSelectList { overflow-y: auto; padding: 10px; flex: 1; }
   </style>
 </head>
 <body>
@@ -157,11 +161,9 @@
   <div id="sidebar">
     <button id="menuCloseBtn">✖</button>
     
-    <!-- ▼ 画面切り替えメニュー -->
     <div class="menu-section">
-      <button class="nav-btn" onclick="switchView('collection')">🗂️ カード一覧に戻る</button>
-      <button class="nav-btn" onclick="switchView('formation')" style="border-color: #1a73e8; color: #1a73e8;">📝 俺の編成メモ</button>
-      <button class="nav-btn" onclick="switchView('privacy')" style="border-color: #999; color: #777;">🔒 プライバシーポリシー</button>
+      <button class="nav-btn" onclick="switchView('collection')">カード一覧に戻る</button>
+      <button class="nav-btn" onclick="switchView('formation')" style="border-color: #1a73e8; color: #1a73e8;">マイ編成メモ</button>
     </div>
 
     <div class="menu-section auth-container">
@@ -196,22 +198,26 @@
     </div>
 
     <div class="menu-section">
-      <h3>表示設定</h3>
-      <label class="checkbox-label"><input type="checkbox" id="noticeToggle" checked> お知らせを表示</label>
-    </div>
-    <div class="menu-section">
       <h3>表示する弾数</h3>
       <div id="seriesFilterContainer"></div>
     </div>
     
+    <div class="menu-section">
+      <h3>表示設定</h3>
+      <label class="checkbox-label"><input type="checkbox" id="noticeToggle" checked> お知らせを表示</label>
+    </div>
+
+    <div class="menu-section">
+      <button class="nav-btn" onclick="switchView('privacy')" style="border-color: #999; color: #777;">プライバシーポリシー</button>
+    </div>
+    
     <div class="menu-section" style="border-bottom: none;">
-      <button id="egaoBtn">笑顔満点ですっ♡</button>
+      <button id="egaoBtn">笑顔満点ですっ</button>
       <div id="egaoResult"></div>
     </div>
   </div>
 
   <main>
-    <!-- ★ 1. カード一覧画面（初期表示） -->
     <div id="view-collection" class="view-section active">
       <div class="controls">
         <h2 id="counterDisplay">所持数: 0 / 0種 (0%) <span id="totalCountDisplay">総枚数: 0枚</span></h2>
@@ -230,7 +236,7 @@
             <option value="vocal">アピール値: Vocal</option>
             <option value="dance">アピール値: Dance</option>
             <option value="visual">アピール値: Visual</option>
-            <option value="wish">★順</option>
+            <option value="wish">欲しい度順</option>
           </select>
           <button id="sortOrderBtn" data-order="asc">昇順 ▲</button>
           <button id="cloudSaveBtn" style="display:none;">クラウドにセーブ</button>
@@ -249,12 +255,14 @@
             </div>
           </div>
           <div class="filter-group">
-            <h4>欲しいリスト (★)</h4>
+            <h4>欲しいリスト</h4>
             <div class="filter-grid">
               <label class="filter-btn-label"><input type="radio" name="filterWish" value="0" checked> 指定なし</label>
               <label class="filter-btn-label"><input type="radio" name="filterWish" value="1"> ★1以上</label>
               <label class="filter-btn-label"><input type="radio" name="filterWish" value="2"> ★2以上</label>
-              <label class="filter-btn-label"><input type="radio" name="filterWish" value="3"> ★3のみ</label>
+              <label class="filter-btn-label"><input type="radio" name="filterWish" value="3"> ★3以上</label>
+              <label class="filter-btn-label"><input type="radio" name="filterWish" value="4"> ★4以上</label>
+              <label class="filter-btn-label"><input type="radio" name="filterWish" value="5"> ★5のみ</label>
             </div>
           </div>
           <div class="filter-group"><h4>レアリティ</h4><div class="filter-grid" id="rarityFilters"></div></div>
@@ -269,19 +277,17 @@
       <div class="card-list" id="cardList"></div>
     </div>
 
-    <!-- ★ 2. 編成メモ画面（SPA） -->
     <div id="view-formation" class="view-section">
-      <h2 class="page-title">📝 俺の考えたさいきょーの編成メモ</h2>
+      <h2 class="page-title">マイ編成メモ</h2>
       <p style="color: #666; font-size: 14px; margin-bottom: 20px;">
-        スコアアタック用の理想の編成を記録できます。入力内容は一覧画面の「クラウドにセーブ」ボタンでアカウントに自動保存されます！
+        スコアアタック用の理想の編成を記録できます。入力内容は一覧画面の「クラウドにセーブ」ボタンで自動保存されます。枠をタップするとカード一覧から選択できます。
       </p>
       <div id="formationListContainer"></div>
       <button id="addFormationBtn" onclick="addFormation()">＋ 新しい編成を記録する</button>
     </div>
 
-    <!-- ★ 3. プライバシーポリシー画面（SPA） -->
     <div id="view-privacy" class="view-section">
-      <h2 class="page-title">🔒 プライバシーポリシー</h2>
+      <h2 class="page-title">プライバシーポリシー</h2>
       <div class="policy-content">
         <p>ツアマス所持率チェッカー（以下「当サイト」）は、ユーザーの皆様が安心してご利用いただけるよう、以下の通りプライバシーポリシーを定めます。</p>
         
@@ -326,6 +332,8 @@
                 <option value="1">★1</option>
                 <option value="2">★2</option>
                 <option value="3">★3</option>
+                <option value="4">★4</option>
+                <option value="5">★5</option>
               </select>
             </div>
             <div class="input-row">
@@ -335,6 +343,18 @@
           </div>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- ▼ 編成用カード選択モーダル -->
+  <div id="cardSelectModal">
+    <div class="modal-content">
+      <button class="modal-close" id="cardSelectCloseBtn">✖</button>
+      <h2 id="cardSelectTitle" style="color:var(--main-color); margin-top:0;">カードを選択</h2>
+      <div style="text-align:center; margin-bottom:10px;">
+        <button id="cardSelectClearBtn" style="padding:10px 20px; background:#f44336; color:white; font-weight:bold; border:none; border-radius:8px; cursor:pointer;">この枠を「未設定」にする</button>
+      </div>
+      <div class="card-list" id="cardSelectList"></div>
     </div>
   </div>
   
@@ -363,17 +383,13 @@
     let currentUser = null;
     let ownedCardIds = new Set();
     let userCardDetails = {}; 
-    let userFormations = []; // ★ 編成データを格納する配列
+    let userFormations = [];
     let hasUnsavedChanges = false; 
 
-    // ▼ SPA切り替え処理
     window.switchView = (viewId) => {
       document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
       document.getElementById('view-' + viewId).classList.add('active');
-      
-      // 編成画面を開いたときにレンダリングする
       if (viewId === 'formation') renderFormations();
-      
       document.getElementById('sidebar').classList.remove('open'); 
       document.getElementById('overlay').classList.remove('open');
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -513,10 +529,9 @@
       const btn = document.getElementById('cloudSaveBtn');
       btn.style.display = 'inline-block';
       btn.classList.add('unsaved');
-      btn.innerText = "⚠️ セーブ(未保存)";
+      btn.innerText = "セーブ(未保存)";
     };
     
-    // ★ HTML内から呼び出せるように登録
     window.markAsUnsaved = markAsUnsaved;
 
     function renderCards() {
@@ -552,15 +567,19 @@
         cardDiv.dataset.part = data["部位"] || "";
         cardDiv.dataset.genre = data["ジャンル"] || ""; 
 
-        // ★ エラー回避：data["コメント"] と data["キャラコメント"] の両方に対応
         const commentData = data["キャラコメント"] || data["コメント"] || "";
         const exactKeywords = [data["アイドル名"], data["カード名"], data["番号"], data["シリーズブランド名"]].join(" ").toLowerCase();
-        const partialKeywords = exactKeywords + " " + [data["写り込み"], data["タグ"], data["対象アイドル／サポート効果対象"], data["部位"], commentData, data["セットボーナス"]].join(" ").toLowerCase();
+        
+        // ★ 関連検索に レアリティ, 種類, ジャンル を追加
+        const partialKeywords = exactKeywords + " " + [
+          data["レアリティ"], data["種類"], data["ジャンル"],
+          data["写り込み"], data["タグ"], data["対象アイドル／サポート効果対象"], data["部位"], commentData, data["セットボーナス"]
+        ].join(" ").toLowerCase();
         
         cardDiv.dataset.searchExact = exactKeywords;
         cardDiv.dataset.searchPartial = partialKeywords;
         
-        cardDiv.innerHTML = `${wishStars}<div class="rarity-badge">${data["レアリティ"]}</div><div class="card-info"><h4>${data["アイドル名"]}</h4><p>${data["カード名"]}</p></div>`;
+        cardDiv.innerHTML = `${wishStars}<div class="rarity-badge">${data["レアリティ"]}</div><div class="card-info"><h4>${data["アイドル名"]}</h4><p>${data["カード名"] || data["番号"]}</p></div>`;
         
         cardDiv.onclick = async () => {
           const isDetailMode = document.getElementById('detailModeToggle').checked;
@@ -608,7 +627,7 @@
       if (data["カード表"]) { imgFront.src = `images/${data["カード表"]}`; imgFront.style.display = 'block'; } else { imgFront.style.display = 'none'; }
       if (data["カード裏"]) { imgBack.src = `images/${data["カード裏"]}`; imgBack.style.display = 'block'; } else { imgBack.style.display = 'none'; }
       
-      document.getElementById('modalCardName').innerText = data["カード名"] || "名称不明";
+      document.getElementById('modalCardName').innerText = data["カード名"] || data["番号"] || "名称不明";
       document.getElementById('modalCardIdol').innerText = `${data["シリーズブランド名"]} / ${data["アイドル名"]}`;
       
       const table = document.getElementById('modalTable');
@@ -639,6 +658,7 @@
       addRow("番号", data["番号"]);
       addRow("レアリティ", data["レアリティ"]);
       addRow("種類", data["種類"]);
+      addRow("ジャンル", data["ジャンル"]); // ★ 追加
       
       if (data["アピール値（Vocal)"] || data["アピール値（Dance）"] || data["アピール値（Visual）"]) {
         const v = data["アピール値（Vocal)"] || 0; const d = data["アピール値（Dance）"] || 0; const vi = data["アピール値（Visual）"] || 0;
@@ -702,7 +722,7 @@
     });
 
     /* =======================================
-       ★ 編成メモ機能（最強の編成）のロジック
+       ★ 編成メモ機能（折りたたみ＆カード選択）
        ======================================= */
     
     window.updateFormationData = (index, field, subfield, value) => {
@@ -725,12 +745,17 @@
 
     window.addFormation = () => {
       userFormations.push({
-        name: "新しい編成",
-        songAttr: "指定なし",
+        name: "新しい編成", songAttr: "指定なし", isOpen: true,
         idol1: {}, idol2: {}, idol3: {},
-        sp1: "", sp2: "", sp3: "",
-        sup1: "", sup2: "", sup3: ""
+        sp1: "", sp2: "", sp3: "", sup1: "", sup2: "", sup3: ""
       });
+      renderFormations();
+      markAsUnsaved();
+    };
+
+    window.toggleFormationBody = (idx) => {
+      if (userFormations[idx].isOpen === undefined) userFormations[idx].isOpen = true;
+      userFormations[idx].isOpen = !userFormations[idx].isOpen;
       renderFormations();
       markAsUnsaved();
     };
@@ -745,20 +770,21 @@
       }
 
       userFormations.forEach((f, idx) => {
+        const isOpen = f.isOpen !== false; 
         const div = document.createElement('div');
         div.className = 'formation-card';
         
         const createIdolCol = (idolKey, title) => `
           <div class="formation-col">
             <h4>${title}</h4>
-            <div class="f-row"><label>ｱｲﾄﾞル</label><input type="text" value="${f[idolKey]?.name || ''}" oninput="updateFormationData(${idx}, '${idolKey}', 'name', this.value)" placeholder="アイドル名"></div>
-            <div class="f-row"><label>衣装</label><input type="text" value="${f[idolKey]?.costume || ''}" oninput="updateFormationData(${idx}, '${idolKey}', 'costume', this.value)"></div>
-            <div class="f-row"><label>頭ｱｸｾ</label><input type="text" value="${f[idolKey]?.head || ''}" oninput="updateFormationData(${idx}, '${idolKey}', 'head', this.value)"></div>
-            <div class="f-row"><label>顔ｱｸｾ</label><input type="text" value="${f[idolKey]?.face || ''}" oninput="updateFormationData(${idx}, '${idolKey}', 'face', this.value)"></div>
-            <div class="f-row"><label>手ｱｸｾ</label><input type="text" value="${f[idolKey]?.hand || ''}" oninput="updateFormationData(${idx}, '${idolKey}', 'hand', this.value)"></div>
-            <div class="f-row"><label>胴ｱｸｾ</label><input type="text" value="${f[idolKey]?.body || ''}" oninput="updateFormationData(${idx}, '${idolKey}', 'body', this.value)"></div>
-            <div class="f-row"><label>腰ｱｸｾ</label><input type="text" value="${f[idolKey]?.waist || ''}" oninput="updateFormationData(${idx}, '${idolKey}', 'waist', this.value)"></div>
-            <div class="f-row"><label>脚ｱｸｾ</label><input type="text" value="${f[idolKey]?.leg || ''}" oninput="updateFormationData(${idx}, '${idolKey}', 'leg', this.value)"></div>
+            <div class="f-row"><label>ｱｲﾄﾞル</label><input type="text" value="${f[idolKey]?.name || ''}" oninput="updateFormationData(${idx}, '${idolKey}', 'name', this.value)" placeholder="手入力"></div>
+            <div class="f-row"><label>衣装</label><input type="text" value="${f[idolKey]?.costume || ''}" readonly onclick="openCardSelectModal(${idx}, '${idolKey}', 'costume')" placeholder="タップして選択"></div>
+            <div class="f-row"><label>頭ｱｸｾ</label><input type="text" value="${f[idolKey]?.head || ''}" readonly onclick="openCardSelectModal(${idx}, '${idolKey}', 'head')" placeholder="タップして選択"></div>
+            <div class="f-row"><label>顔ｱｸｾ</label><input type="text" value="${f[idolKey]?.face || ''}" readonly onclick="openCardSelectModal(${idx}, '${idolKey}', 'face')" placeholder="タップして選択"></div>
+            <div class="f-row"><label>手ｱｸｾ</label><input type="text" value="${f[idolKey]?.hand || ''}" readonly onclick="openCardSelectModal(${idx}, '${idolKey}', 'hand')" placeholder="タップして選択"></div>
+            <div class="f-row"><label>胴ｱｸｾ</label><input type="text" value="${f[idolKey]?.body || ''}" readonly onclick="openCardSelectModal(${idx}, '${idolKey}', 'body')" placeholder="タップして選択"></div>
+            <div class="f-row"><label>腰ｱｸｾ</label><input type="text" value="${f[idolKey]?.waist || ''}" readonly onclick="openCardSelectModal(${idx}, '${idolKey}', 'waist')" placeholder="タップして選択"></div>
+            <div class="f-row"><label>脚ｱｸｾ</label><input type="text" value="${f[idolKey]?.leg || ''}" readonly onclick="openCardSelectModal(${idx}, '${idolKey}', 'leg')" placeholder="タップして選択"></div>
           </div>
         `;
 
@@ -772,47 +798,114 @@
               <option value="Vi" ${f.songAttr==='Vi'?'selected':''}>Vi (ビジュアル)</option>
               <option value="VoDa" ${f.songAttr==='VoDa'?'selected':''}>Vo.Da</option>
               <option value="VoVi" ${f.songAttr==='VoVi'?'selected':''}>Vo.Vi</option>
-              <option value="DaVi" ${f.songAttr==='DaVi'?'selected':''}>Da.Vi.</option>
+              <option value="DaVi" ${f.songAttr==='DaVi'?'selected':''}>Da.Vi</option>
               <option value="VoDaVi" ${f.songAttr==='VoDaVi'?'selected':''}>Vo.Da.Vi</option>
             </select>
+            <button class="toggle-formation-btn" onclick="toggleFormationBody(${idx})">${isOpen ? '▲ 閉じる' : '▼ 開く'}</button>
             <button class="delete-formation-btn" onclick="deleteFormation(${idx})">削除</button>
           </div>
           
-          <div class="formation-grid">
-            ${createIdolCol('idol1', '🎤 左ポジション')}
-            ${createIdolCol('idol2', '👑 センター')}
-            ${createIdolCol('idol3', '🎤 右ポジション')}
-          </div>
-          
-          <div class="formation-bottom">
-            <div class="f-box">
-              <h4>✨ SPアピール配置</h4>
-              <div class="f-row"><label>左 (1)</label><input type="text" value="${f.sp1 || ''}" oninput="updateFormationData(${idx}, 'sp1', null, this.value)"></div>
-              <div class="f-row"><label>中央(2)</label><input type="text" value="${f.sp2 || ''}" oninput="updateFormationData(${idx}, 'sp2', null, this.value)"></div>
-              <div class="f-row"><label>右 (3)</label><input type="text" value="${f.sp3 || ''}" oninput="updateFormationData(${idx}, 'sp3', null, this.value)"></div>
+          <div class="formation-body" style="display: ${isOpen ? 'block' : 'none'};">
+            <div class="formation-grid">
+              ${createIdolCol('idol1', '左ポジション')}
+              ${createIdolCol('idol2', 'センター')}
+              ${createIdolCol('idol3', '右ポジション')}
             </div>
             
-            <div class="f-box support">
-              <h4>🤝 サポートカード配置</h4>
-              <div class="f-row">
-                <label>左枠</label><input type="text" value="${f.sup1 || ''}" oninput="updateFormationData(${idx}, 'sup1', null, this.value)">
+            <div class="formation-bottom">
+              <div class="f-box">
+                <h4>SPアピール配置</h4>
+                <div class="f-row"><label>左 (1)</label><input type="text" value="${f.sp1 || ''}" readonly onclick="openCardSelectModal(${idx}, 'sp1', null)" placeholder="タップして選択"></div>
+                <div class="f-row"><label>中央(2)</label><input type="text" value="${f.sp2 || ''}" readonly onclick="openCardSelectModal(${idx}, 'sp2', null)" placeholder="タップして選択"></div>
+                <div class="f-row"><label>右 (3)</label><input type="text" value="${f.sp3 || ''}" readonly onclick="openCardSelectModal(${idx}, 'sp3', null)" placeholder="タップして選択"></div>
               </div>
-              <span class="f-note">※制限: SR, TSR, CO, R, TR, N</span>
               
-              <div class="f-row">
-                <label>中央枠</label><input type="text" value="${f.sup2 || ''}" oninput="updateFormationData(${idx}, 'sup2', null, this.value)">
+              <div class="f-box support">
+                <h4>サポートカード配置</h4>
+                <div class="f-row">
+                  <label>左枠</label><input type="text" value="${f.sup1 || ''}" readonly onclick="openCardSelectModal(${idx}, 'sup1', null)" placeholder="タップして選択">
+                </div>
+                <span class="f-note">※制限: SR, TSR, CO, R, TR, N</span>
+                
+                <div class="f-row">
+                  <label>中央枠</label><input type="text" value="${f.sup2 || ''}" readonly onclick="openCardSelectModal(${idx}, 'sup2', null)" placeholder="タップして選択">
+                </div>
+                <span class="f-note" style="color:#1a73e8;">※制限なし (全レアリティ可)</span>
+                
+                <div class="f-row">
+                  <label>右枠</label><input type="text" value="${f.sup3 || ''}" readonly onclick="openCardSelectModal(${idx}, 'sup3', null)" placeholder="タップして選択">
+                </div>
+                <span class="f-note">※制限: R, TR, N</span>
               </div>
-              <span class="f-note" style="color:#1a73e8;">※制限なし (全レアリティ可)</span>
-              
-              <div class="f-row">
-                <label>右枠</label><input type="text" value="${f.sup3 || ''}" oninput="updateFormationData(${idx}, 'sup3', null, this.value)">
-              </div>
-              <span class="f-note">※制限: R, TR, N</span>
             </div>
           </div>
         `;
         container.appendChild(div);
       });
+    };
+
+    /* =======================================
+       ★ 編成用カード選択モーダルのロジック
+       ======================================= */
+    let currentSelectTarget = null;
+
+    window.openCardSelectModal = (idx, field, subfield) => {
+      currentSelectTarget = { idx, field, subfield };
+      
+      let filterType = ""; let filterPart = ""; let filterRarities = null; let title = "";
+      
+      if (subfield === 'costume') { filterType = "コスチューム"; title = "衣装を選択"; }
+      else if (subfield === 'head') { filterType = "アクセサリー"; filterPart = "頭"; title = "頭アクセを選択"; }
+      else if (subfield === 'face') { filterType = "アクセサリー"; filterPart = "顔"; title = "顔アクセを選択"; }
+      else if (subfield === 'hand') { filterType = "アクセサリー"; filterPart = "手"; title = "手アクセを選択"; }
+      else if (subfield === 'body') { filterType = "アクセサリー"; filterPart = "胴"; title = "胴アクセを選択"; }
+      else if (subfield === 'waist') { filterType = "アクセサリー"; filterPart = "腰"; title = "腰アクセを選択"; }
+      else if (subfield === 'leg') { filterType = "アクセサリー"; filterPart = "脚"; title = "脚アクセを選択"; }
+      else if (field.startsWith('sp')) { filterType = "SPアピール"; title = "SPアピールを選択"; }
+      else if (field === 'sup1') { filterType = "サポート"; filterRarities = ["SR", "TSR", "CO", "R", "TR", "N"]; title = "左サポートを選択"; }
+      else if (field === 'sup2') { filterType = "サポート"; title = "中央サポートを選択"; }
+      else if (field === 'sup3') { filterType = "サポート"; filterRarities = ["R", "TR", "N"]; title = "右サポートを選択"; }
+      
+      document.getElementById('cardSelectTitle').innerText = title;
+      const list = document.getElementById('cardSelectList');
+      list.innerHTML = '';
+      
+      cardData.forEach(data => {
+        if (filterType && data["種類"] !== filterType) return;
+        if (filterPart && data["部位"] !== filterPart) return;
+        if (filterRarities && !filterRarities.includes(data["レアリティ"])) return;
+        
+        const cardDiv = document.createElement('div');
+        cardDiv.className = 'card';
+        if (data["カード表"]) {
+          cardDiv.style.backgroundImage = `url('images/${data["カード表"]}')`;
+          cardDiv.style.backgroundSize = 'cover';
+        }
+        
+        const displayName = data["カード名"] || data["番号"] || "未登録";
+        cardDiv.innerHTML = `<div class="rarity-badge">${data["レアリティ"]}</div><div class="card-info"><h4>${data["アイドル名"] || '-'}</h4><p>${displayName}</p></div>`;
+        
+        cardDiv.onclick = () => {
+          const val = `[${data["レアリティ"]}] ${displayName}`;
+          updateFormationData(currentSelectTarget.idx, currentSelectTarget.field, currentSelectTarget.subfield, val);
+          document.getElementById('cardSelectModal').classList.remove('open');
+          renderFormations();
+        };
+        list.appendChild(cardDiv);
+      });
+      document.getElementById('cardSelectModal').classList.add('open');
+    };
+
+    document.getElementById('cardSelectCloseBtn').onclick = () => {
+      document.getElementById('cardSelectModal').classList.remove('open');
+    };
+
+    document.getElementById('cardSelectClearBtn').onclick = () => {
+      if (currentSelectTarget) {
+        updateFormationData(currentSelectTarget.idx, currentSelectTarget.field, currentSelectTarget.subfield, "");
+        renderFormations();
+      }
+      document.getElementById('cardSelectModal').classList.remove('open');
     };
 
     /* ======================================= */
@@ -826,22 +919,19 @@
 
     document.getElementById('cloudSaveBtn').onclick = async () => {
       if (!currentUser) return alert("セーブするにはログインしてください。");
-      
-      if (detailModal.classList.contains('open')) {
-        updateLocalMemory();
-      }
+      if (detailModal.classList.contains('open')) updateLocalMemory();
 
       await setDoc(doc(db, "users", currentUser.uid), { 
         ownedCards: Array.from(ownedCardIds), 
         cardDetails: userCardDetails,
-        formations: userFormations // ★ 編成データも一緒に保存！
+        formations: userFormations 
       }, { merge: true });
       
       hasUnsavedChanges = false;
       const btn = document.getElementById('cloudSaveBtn');
       btn.classList.remove('unsaved');
-      btn.innerText = "☁️ クラウドにセーブ済";
-      showToast("クラウドに一括保存しました！✨");
+      btn.innerText = "クラウドにセーブ済";
+      showToast("クラウドに一括保存しました！");
     };
 
     document.getElementById('modalCount').addEventListener('change', updateLocalMemory);
@@ -855,7 +945,6 @@
     function applyFiltersAndSort() {
       const text = document.getElementById('searchInput').value.toLowerCase();
       const searchMode = document.querySelector('input[name="searchMode"]:checked').value;
-      
       const filterOwned = document.querySelector('input[name="filterOwned"]:checked').value;
       const filterWish = parseInt(document.querySelector('input[name="filterWish"]:checked').value);
       
@@ -886,7 +975,9 @@
         const isOwned = card.classList.contains('owned');
         const matchOwned = filterOwned === 'all' || (filterOwned === 'owned' && isOwned) || (filterOwned === 'unowned' && !isOwned);
         const cardWish = parseInt(card.dataset.wish) || 0;
-        const matchWish = filterWish === 0 || (filterWish === 3 ? cardWish === 3 : cardWish >= filterWish);
+        
+        // ★ 欲しい度の判定（5段階対応）
+        const matchWish = filterWish === 0 || (filterWish === 5 ? cardWish === 5 : cardWish >= filterWish);
 
         const matchRarity = !checkedRarities || checkedRarities.includes(card.dataset.rarity);
         const matchType = !checkedTypes || checkedTypes.includes(card.dataset.type);
@@ -963,7 +1054,7 @@
         if (docSnap.exists()) {
           ownedCardIds = new Set(docSnap.data().ownedCards || []);
           userCardDetails = docSnap.data().cardDetails || {};
-          userFormations = docSnap.data().formations || []; // ★ 編成データを呼び出し！
+          userFormations = docSnap.data().formations || []; 
         } else {
           ownedCardIds = new Set();
           userCardDetails = {};
