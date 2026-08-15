@@ -61,7 +61,6 @@
     .f-row label { width: 60px; font-size: 12px; font-weight: bold; color: #777; }
     .f-row input { flex: 1; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px; cursor: pointer; background: #fff; }
     .f-row input:hover { border-color: var(--main-color); }
-    .f-row select { flex: 1; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px; cursor: pointer; background: #fff; }
     
     .formation-bottom { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; }
     .f-box { background: #fff8e1; padding: 15px; border-radius: 8px; border: 1px solid #ffe082; }
@@ -102,16 +101,16 @@
     .card-list { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; }
     .card { border: 3px solid #ccc; border-radius: 12px; width: 160px; aspect-ratio: 378 / 533; cursor: pointer; transition: all 0.2s ease; background-color: #999; position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; }
     
-    /* ★ カード名とキャラ名の改行防止・スクロール設定 */
+    /* ★ 改行防止 ＆ 新・縮小魔法（段階的な文字詰め） */
     .card-info { background: rgba(255, 255, 255, 0.95); padding: 10px; text-align: center; border-top: 1px solid #eee; overflow: hidden; }
     .card-info h4, .card-info p { margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
     .card-info h4 { font-size: 14px; color: #333; line-height: 1.2; font-weight: bold; }
     .card-info p { margin-top: 5px; font-size: 10px; color: #666; }
     
-    /* 縮小モード（意地でも1行にする） */
-    .shrink-text { font-size: 11px !important; letter-spacing: -1px; transform: scaleX(0.85); transform-origin: center; width: 115% !important; margin-left: -7.5% !important; }
+    .shrink-text-lg { font-size: 12px !important; letter-spacing: -0.5px; }
+    .shrink-text-md { font-size: 11px !important; letter-spacing: -1px; }
+    .shrink-text-sm { font-size: 10px !important; letter-spacing: -1.5px; transform: scaleX(0.95); transform-origin: left center; width: 105% !important; }
     
-    /* スクロールモード（マーキーヨーヨー） */
     .marquee-text { display: inline-block !important; overflow: visible !important; animation: scroll-left 5s linear infinite alternate; }
     @keyframes scroll-left {
       0%, 15% { transform: translateX(0); }
@@ -178,12 +177,8 @@
   <div id="sidebar">
     <button id="menuCloseBtn">✖</button>
     
-    <!-- サイドバーメニュー：完全ご要望通りの順番 -->
     <div class="menu-section">
       <button class="nav-btn" onclick="switchView('collection')">カード一覧に戻る</button>
-    </div>
-
-    <div class="menu-section">
       <button class="nav-btn" onclick="switchView('formation')" style="border-color: #1a73e8; color: #1a73e8;">マイ編成メモ</button>
     </div>
 
@@ -211,7 +206,7 @@
     </div>
 
     <div class="menu-section">
-      <button class="nav-btn" onclick="switchView('settings')" style="border-color: #ff9800; color: #e65100; background: #fff8e1;">アプリ設定</button>
+      <button class="nav-btn" onclick="switchView('settings')" style="border-color: #ff9800; color: #e65100; background: #fff8e1;">チェッカー設定</button>
     </div>
     
     <div class="menu-section">
@@ -289,7 +284,7 @@
     <div id="view-formation" class="view-section">
       <h2 class="page-title">マイ編成メモ</h2>
       <p style="color: #666; font-size: 14px; margin-bottom: 20px;">
-        スコアアタック用の理想の編成を記録できます。枠をタップすると所持・未所持に関わらず全てのカードから検索・選択できます。
+        スコアアタック用の理想の編成を記録できます。枠をタップすると所持・未所持に関わらず全てのデータから検索・選択できます。
       </p>
       <div id="formationListContainer"></div>
       <button id="addFormationBtn" onclick="addFormation()">＋ 新しい編成を記録する</button>
@@ -297,9 +292,9 @@
 
     <!-- アプリ設定画面 -->
     <div id="view-settings" class="view-section">
-      <h2 class="page-title">アプリ設定</h2>
+      <h2 class="page-title">チェッカー設定</h2>
       <p style="color: #666; font-size: 14px; margin-bottom: 20px;">
-        自分好みにチェッカーをカスタマイズできます。設定は自動でブラウザに保存されます。
+        自分好みにカスタマイズできます。設定は自動でブラウザに保存されます。
       </p>
 
       <div class="policy-content" style="padding:20px; margin-bottom:20px;">
@@ -406,11 +401,11 @@
   <div id="cardSelectModal">
     <div class="modal-content">
       <button class="modal-close" id="cardSelectCloseBtn">✖</button>
-      <h2 id="cardSelectTitle" style="color:var(--main-color); margin-top:0;">カードを選択</h2>
+      <h2 id="cardSelectTitle" style="color:var(--main-color); margin-top:0;">選択してください</h2>
       
-      <!-- ▼ 弾数での絞り込みフィルターを追加！ -->
+      <!-- ▼ 動的に切り替わる絞り込みフィルター -->
       <div style="text-align:center; margin-bottom:10px; display:flex; flex-wrap:wrap; gap:10px; justify-content:center;">
-        <select id="modalSeriesFilter" style="padding:8px; border-radius:5px; border:1px solid #ccc; font-weight:bold;">
+        <select id="modalFilterSelect" style="padding:8px; border-radius:5px; border:1px solid #ccc; font-weight:bold;">
           <!-- JSで自動生成されます -->
         </select>
         <button id="cardSelectClearBtn" style="padding:8px 20px; background:#f44336; color:white; font-weight:bold; border:none; border-radius:8px; cursor:pointer;">この枠を「未設定」にする</button>
@@ -447,6 +442,15 @@
     let userCardDetails = {}; 
     let userFormations = [];
     let hasUnsavedChanges = false; 
+    let seriesSetForModal = new Set(); // モーダル用の弾数リスト
+    
+    // ★ アイドルのブランドをカードデータから自動推測して辞書を作る
+    const idolBrandMap = new Map();
+    cardData.forEach(c => {
+        if (c["アイドル名"] && c["シリーズブランド名"]) {
+            idolBrandMap.set(c["アイドル名"], c["シリーズブランド名"]);
+        }
+    });
 
     const safeAddListener = (id, event, handler) => {
       const el = document.getElementById(id);
@@ -575,7 +579,7 @@
     safeAddListener('nameStyleSelect', 'change', (e) => {
       localStorage.setItem('tourmas_nameStyle', e.target.value);
       renderCards();
-      renderCardSelectModalList();
+      renderSelectModalList();
     });
 
     const syncNoticeToggle = (e) => {
@@ -653,26 +657,24 @@
     createFilterGrid('genreFilters', filterConfig.genres, 'filter-genre');
     createFilterGrid('idolFilters', filterConfig.idols, 'filter-idol');
 
-    // ★ CSVの「シリーズ」列に対応させた完全版フィルター
     const setupSeriesFilter = () => {
-      const seriesSet = new Set();
+      seriesSetForModal.clear();
       let hasToursRare = false;
       let hasUnknown = false;
       cardData.forEach(c => {
-        // ★ 優先度：シリーズ ＞ 入手手段 ＞ 未設定
         let s = c["シリーズ"] || c["入手手段"];
         if (!s || s === "") {
           hasUnknown = true;
           return;
         }
         if (s.includes("ツアーズレア")) hasToursRare = true;
-        else seriesSet.add(s);
+        else seriesSetForModal.add(s);
       });
       
       const seriesContainer = document.getElementById('seriesFilterContainer');
       if(seriesContainer) {
           seriesContainer.innerHTML = '';
-          Array.from(seriesSet).forEach(s => {
+          Array.from(seriesSetForModal).forEach(s => {
             seriesContainer.innerHTML += `<label class="checkbox-label"><input type="checkbox" class="series-filter" value="${s}" checked> ${s}</label>`;
           });
           if (hasToursRare) {
@@ -681,17 +683,6 @@
           if (hasUnknown) {
             seriesContainer.innerHTML += `<label class="checkbox-label" style="color:#888;"><input type="checkbox" class="series-filter" value="未設定" checked> 未設定（追加予定）</label>`;
           }
-      }
-
-      // ★ モーダル（編成）用のプルダウンにも反映
-      const msf = document.getElementById('modalSeriesFilter');
-      if(msf) {
-          msf.innerHTML = '<option value="all">すべての弾</option>';
-          Array.from(seriesSet).forEach(s => {
-            msf.innerHTML += `<option value="${s}">${s}</option>`;
-          });
-          if (hasToursRare) msf.innerHTML += `<option value="ツアーズレア">ツアーズレア (全弾一括)</option>`;
-          if (hasUnknown) msf.innerHTML += `<option value="未設定">未設定</option>`;
       }
     };
     setupSeriesFilter();
@@ -774,7 +765,7 @@
         cardDiv.dataset.searchExact = exactKeywords;
         cardDiv.dataset.searchPartial = partialKeywords;
         
-        // ★ 上がカード名、下がキャラ名（名前なしならブランド名）のロジック
+        // ★ 画像のご要望：上がカード名、下がキャラ名（なければブランド、それもなければ空）
         const mainText = data["カード名"] || data["番号"] || "未登録";
         let subText = "";
         if (data["アイドル名"]) {
@@ -783,11 +774,16 @@
             subText = `<p>${data["シリーズブランド名"]}</p>`;
         }
         
-        // ★ スタイル設定の適用（文字数が多い時だけ）
+        // ★ 新・縮小魔法（段階的な文字詰め）
         let h4Class = "";
-        if (mainText.length >= 9) {
+        const len = mainText.length;
+        if (len >= 11) {
             if (nameStyle === 'marquee') h4Class = 'class="marquee-text"';
-            if (nameStyle === 'shrink') h4Class = 'class="shrink-text"';
+            else if (nameStyle === 'shrink') {
+                if (len >= 16) h4Class = 'class="shrink-text-sm"';
+                else if (len >= 13) h4Class = 'class="shrink-text-md"';
+                else h4Class = 'class="shrink-text-lg"';
+            }
         }
         
         cardDiv.innerHTML = `${wishStars}<div class="rarity-badge">${data["レアリティ"]}</div><div class="card-info"><h4 ${h4Class}>${mainText}</h4>${subText}</div>`;
@@ -1035,26 +1031,20 @@
         const div = document.createElement('div');
         div.className = 'formation-card';
         
+        // ★ アイドル名をモーダル選択に変更
         const createIdolCol = (idolKey, title) => {
           const selectedName = f[idolKey]?.name || '';
-          let selectHtml = `<select onchange="updateFormationData(${idx}, '${idolKey}', 'name', this.value)">`;
-          selectHtml += `<option value="">未選択</option>`;
-          filterConfig.idols.forEach(i => {
-              selectHtml += `<option value="${i.name}" ${selectedName === i.name ? 'selected' : ''}>${i.name}</option>`;
-          });
-          selectHtml += `</select>`;
-
           return `
           <div class="formation-col">
             <h4>${title}</h4>
-            <div class="f-row"><label>アイドル</label>${selectHtml}</div>
-            <div class="f-row"><label>衣装</label><input type="text" value="${f[idolKey]?.costume || ''}" readonly onclick="openCardSelectModal(${idx}, '${idolKey}', 'costume')" placeholder="タップして選択"></div>
-            <div class="f-row"><label>頭アクセ</label><input type="text" value="${f[idolKey]?.head || ''}" readonly onclick="openCardSelectModal(${idx}, '${idolKey}', 'head')" placeholder="タップして選択"></div>
-            <div class="f-row"><label>顔アクセ</label><input type="text" value="${f[idolKey]?.face || ''}" readonly onclick="openCardSelectModal(${idx}, '${idolKey}', 'face')" placeholder="タップして選択"></div>
-            <div class="f-row"><label>手アクセ</label><input type="text" value="${f[idolKey]?.hand || ''}" readonly onclick="openCardSelectModal(${idx}, '${idolKey}', 'hand')" placeholder="タップして選択"></div>
-            <div class="f-row"><label>胴アクセ</label><input type="text" value="${f[idolKey]?.body || ''}" readonly onclick="openCardSelectModal(${idx}, '${idolKey}', 'body')" placeholder="タップして選択"></div>
-            <div class="f-row"><label>腰アクセ</label><input type="text" value="${f[idolKey]?.waist || ''}" readonly onclick="openCardSelectModal(${idx}, '${idolKey}', 'waist')" placeholder="タップして選択"></div>
-            <div class="f-row"><label>脚アクセ</label><input type="text" value="${f[idolKey]?.leg || ''}" readonly onclick="openCardSelectModal(${idx}, '${idolKey}', 'leg')" placeholder="タップして選択"></div>
+            <div class="f-row"><label>アイドル</label><input type="text" value="${selectedName}" readonly onclick="openSelectModal(${idx}, '${idolKey}', 'name')" placeholder="タップして選択"></div>
+            <div class="f-row"><label>衣装</label><input type="text" value="${f[idolKey]?.costume || ''}" readonly onclick="openSelectModal(${idx}, '${idolKey}', 'costume')" placeholder="タップして選択"></div>
+            <div class="f-row"><label>頭アクセ</label><input type="text" value="${f[idolKey]?.head || ''}" readonly onclick="openSelectModal(${idx}, '${idolKey}', 'head')" placeholder="タップして選択"></div>
+            <div class="f-row"><label>顔アクセ</label><input type="text" value="${f[idolKey]?.face || ''}" readonly onclick="openSelectModal(${idx}, '${idolKey}', 'face')" placeholder="タップして選択"></div>
+            <div class="f-row"><label>手アクセ</label><input type="text" value="${f[idolKey]?.hand || ''}" readonly onclick="openSelectModal(${idx}, '${idolKey}', 'hand')" placeholder="タップして選択"></div>
+            <div class="f-row"><label>胴アクセ</label><input type="text" value="${f[idolKey]?.body || ''}" readonly onclick="openSelectModal(${idx}, '${idolKey}', 'body')" placeholder="タップして選択"></div>
+            <div class="f-row"><label>腰アクセ</label><input type="text" value="${f[idolKey]?.waist || ''}" readonly onclick="openSelectModal(${idx}, '${idolKey}', 'waist')" placeholder="タップして選択"></div>
+            <div class="f-row"><label>脚アクセ</label><input type="text" value="${f[idolKey]?.leg || ''}" readonly onclick="openSelectModal(${idx}, '${idolKey}', 'leg')" placeholder="タップして選択"></div>
           </div>
           `;
         };
@@ -1086,25 +1076,25 @@
             <div class="formation-bottom">
               <div class="f-box">
                 <h4>SPアピール配置</h4>
-                <div class="f-row"><label>左 (1)</label><input type="text" value="${f.sp1 || ''}" readonly onclick="openCardSelectModal(${idx}, 'sp1', null)" placeholder="タップして選択"></div>
-                <div class="f-row"><label>中央(2)</label><input type="text" value="${f.sp2 || ''}" readonly onclick="openCardSelectModal(${idx}, 'sp2', null)" placeholder="タップして選択"></div>
-                <div class="f-row"><label>右 (3)</label><input type="text" value="${f.sp3 || ''}" readonly onclick="openCardSelectModal(${idx}, 'sp3', null)" placeholder="タップして選択"></div>
+                <div class="f-row"><label>左 (1)</label><input type="text" value="${f.sp1 || ''}" readonly onclick="openSelectModal(${idx}, 'sp1', null)" placeholder="タップして選択"></div>
+                <div class="f-row"><label>中央(2)</label><input type="text" value="${f.sp2 || ''}" readonly onclick="openSelectModal(${idx}, 'sp2', null)" placeholder="タップして選択"></div>
+                <div class="f-row"><label>右 (3)</label><input type="text" value="${f.sp3 || ''}" readonly onclick="openSelectModal(${idx}, 'sp3', null)" placeholder="タップして選択"></div>
               </div>
               
               <div class="f-box support">
                 <h4>サポートカード配置</h4>
                 <div class="f-row">
-                  <label>左枠</label><input type="text" value="${f.sup1 || ''}" readonly onclick="openCardSelectModal(${idx}, 'sup1', null)" placeholder="タップして選択">
+                  <label>左枠</label><input type="text" value="${f.sup1 || ''}" readonly onclick="openSelectModal(${idx}, 'sup1', null)" placeholder="タップして選択">
                 </div>
                 <span class="f-note">※制限: SR, TSR, CO, R, TR, N</span>
                 
                 <div class="f-row">
-                  <label>中央枠</label><input type="text" value="${f.sup2 || ''}" readonly onclick="openCardSelectModal(${idx}, 'sup2', null)" placeholder="タップして選択">
+                  <label>中央枠</label><input type="text" value="${f.sup2 || ''}" readonly onclick="openSelectModal(${idx}, 'sup2', null)" placeholder="タップして選択">
                 </div>
                 <span class="f-note" style="color:#1a73e8;">※制限なし (全レアリティ可)</span>
                 
                 <div class="f-row">
-                  <label>右枠</label><input type="text" value="${f.sup3 || ''}" readonly onclick="openCardSelectModal(${idx}, 'sup3', null)" placeholder="タップして選択">
+                  <label>右枠</label><input type="text" value="${f.sup3 || ''}" readonly onclick="openSelectModal(${idx}, 'sup3', null)" placeholder="タップして選択">
                 </div>
                 <span class="f-note">※制限: R, TR, N</span>
               </div>
@@ -1121,33 +1111,65 @@
     };
 
     let currentSelectTarget = null;
+    let currentSelectMode = 'card';
 
-    window.renderCardSelectModalList = () => {
+    // ★ アイドルとカードを1つのモーダルで出し分ける描画関数
+    window.renderSelectModalList = () => {
       if(!currentSelectTarget) return;
       const { idx, field, subfield } = currentSelectTarget;
-      
-      let filterType = ""; let filterPart = ""; let filterRarities = null; let title = "";
-      
-      if (subfield === 'costume') { filterType = "コスチューム"; title = "衣装を選択"; }
-      else if (subfield === 'head') { filterType = "アクセサリー"; filterPart = "頭"; title = "頭アクセを選択"; }
-      else if (subfield === 'face') { filterType = "アクセサリー"; filterPart = "顔"; title = "顔アクセを選択"; }
-      else if (subfield === 'hand') { filterType = "アクセサリー"; filterPart = "手"; title = "手アクセを選択"; }
-      else if (subfield === 'body') { filterType = "アクセサリー"; filterPart = "胴"; title = "胴アクセを選択"; }
-      else if (subfield === 'waist') { filterType = "アクセサリー"; filterPart = "腰"; title = "腰アクセを選択"; }
-      else if (subfield === 'leg') { filterType = "アクセサリー"; filterPart = "脚"; title = "脚アクセを選択"; }
-      else if (field.startsWith('sp')) { filterType = "SPアピール"; title = "SPアピールを選択"; }
-      else if (field === 'sup1') { filterType = "サポート"; filterRarities = ["SR", "TSR", "CO", "R", "TR", "N"]; title = "左サポートを選択"; }
-      else if (field === 'sup2') { filterType = "サポート"; title = "中央サポートを選択"; }
-      else if (field === 'sup3') { filterType = "サポート"; filterRarities = ["R", "TR", "N"]; title = "右サポートを選択"; }
-      
-      const st = document.getElementById('cardSelectTitle');
-      if(st) st.innerText = title;
       const list = document.getElementById('cardSelectList');
       if(!list) return;
       list.innerHTML = '';
       
-      const msf = document.getElementById('modalSeriesFilter');
-      const selectedSeries = msf ? msf.value : "all";
+      const msf = document.getElementById('modalFilterSelect');
+      const selectedFilter = msf ? msf.value : "all";
+
+      // ----------------------------------------
+      // ★ アイドル選択モード
+      // ----------------------------------------
+      if (currentSelectMode === 'idol') {
+          const uniqueIdols = Array.from(idolBrandMap.keys());
+          uniqueIdols.forEach(idolName => {
+              const brand = idolBrandMap.get(idolName);
+              if (selectedFilter !== "all" && brand !== selectedFilter) return;
+              
+              const cardDiv = document.createElement('div');
+              cardDiv.className = 'card';
+              cardDiv.style.backgroundColor = '#fff';
+              cardDiv.style.border = '2px solid var(--main-color)';
+              
+              cardDiv.innerHTML = `
+                <div class="card-info" style="border-top:none; display:flex; flex-direction:column; justify-content:center; height:100%; padding:0;">
+                  <p style="margin:0; color:#888; font-size:10px;">${brand}</p>
+                  <h4 style="font-size:16px; margin-top:5px;">${idolName}</h4>
+                </div>`;
+              
+              cardDiv.onclick = () => {
+                  updateFormationData(idx, field, subfield, idolName);
+                  document.getElementById('cardSelectModal')?.classList.remove('open');
+                  renderFormations();
+              };
+              list.appendChild(cardDiv);
+          });
+          return;
+      }
+
+      // ----------------------------------------
+      // ★ カード選択モード
+      // ----------------------------------------
+      let filterType = ""; let filterPart = ""; let filterRarities = null;
+      if (subfield === 'costume') filterType = "コスチューム";
+      else if (subfield === 'head') { filterType = "アクセサリー"; filterPart = "頭"; }
+      else if (subfield === 'face') { filterType = "アクセサリー"; filterPart = "顔"; }
+      else if (subfield === 'hand') { filterType = "アクセサリー"; filterPart = "手"; }
+      else if (subfield === 'body') { filterType = "アクセサリー"; filterPart = "胴"; }
+      else if (subfield === 'waist') { filterType = "アクセサリー"; filterPart = "腰"; }
+      else if (subfield === 'leg') { filterType = "アクセサリー"; filterPart = "脚"; }
+      else if (field.startsWith('sp')) filterType = "SPアピール";
+      else if (field === 'sup1') { filterType = "サポート"; filterRarities = ["SR", "TSR", "CO", "R", "TR", "N"]; }
+      else if (field === 'sup2') { filterType = "サポート"; }
+      else if (field === 'sup3') { filterType = "サポート"; filterRarities = ["R", "TR", "N"]; }
+      
       const nameStyle = localStorage.getItem('tourmas_nameStyle') || 'ellipsis';
       
       cardData.forEach(data => {
@@ -1156,11 +1178,11 @@
         if (filterRarities && !filterRarities.includes(data["レアリティ"])) return;
         
         const s = data["シリーズ"] || data["入手手段"] || "未設定";
-        if (selectedSeries !== "all") {
-           if (selectedSeries === "ツアーズレア") {
+        if (selectedFilter !== "all") {
+           if (selectedFilter === "ツアーズレア") {
              if (!s.includes("ツアーズレア")) return;
            } else {
-             if (s !== selectedSeries) return;
+             if (s !== selectedFilter) return;
            }
         }
         
@@ -1180,9 +1202,14 @@
         }
         
         let h4Class = "";
-        if (mainText.length >= 9) {
+        const len = mainText.length;
+        if (len >= 11) {
             if (nameStyle === 'marquee') h4Class = 'class="marquee-text"';
-            if (nameStyle === 'shrink') h4Class = 'class="shrink-text"';
+            else if (nameStyle === 'shrink') {
+                if (len >= 16) h4Class = 'class="shrink-text-sm"';
+                else if (len >= 13) h4Class = 'class="shrink-text-md"';
+                else h4Class = 'class="shrink-text-lg"';
+            }
         }
         
         cardDiv.innerHTML = `<div class="rarity-badge">${data["レアリティ"]}</div><div class="card-info"><h4 ${h4Class}>${mainText}</h4>${subText}</div>`;
@@ -1197,17 +1224,56 @@
       });
     };
 
-    window.openCardSelectModal = (idx, field, subfield) => {
+    window.openSelectModal = (idx, field, subfield) => {
       currentSelectTarget = { idx, field, subfield };
-      const msf = document.getElementById('modalSeriesFilter');
-      if(msf) msf.value = "all"; 
+      const msf = document.getElementById('modalFilterSelect');
+      const st = document.getElementById('cardSelectTitle');
+
+      // ★ アイドル選択モードへの切り替え
+      if (subfield === 'name') {
+          currentSelectMode = 'idol';
+          if(st) st.innerText = "アイドルを選択";
+          if(msf) {
+              msf.innerHTML = '<option value="all">すべてのブランド</option>';
+              filterConfig.brands.forEach(b => msf.innerHTML += `<option value="${b}">${b}</option>`);
+          }
+      } 
+      // ★ カード選択モードへの切り替え
+      else {
+          currentSelectMode = 'card';
+          let title = "カードを選択";
+          if (subfield === 'costume') title = "衣装を選択";
+          else if (subfield === 'head') title = "頭アクセを選択";
+          else if (subfield === 'face') title = "顔アクセを選択";
+          else if (subfield === 'hand') title = "手アクセを選択";
+          else if (subfield === 'body') title = "胴アクセを選択";
+          else if (subfield === 'waist') title = "腰アクセを選択";
+          else if (subfield === 'leg') title = "脚アクセを選択";
+          else if (field.startsWith('sp')) title = "SPアピールを選択";
+          else if (field === 'sup1') title = "左サポートを選択";
+          else if (field === 'sup2') title = "中央サポートを選択";
+          else if (field === 'sup3') title = "右サポートを選択";
+          
+          if(st) st.innerText = title;
+          if(msf) {
+              msf.innerHTML = '<option value="all">すべての弾</option>';
+              let hasToursRare = false;
+              Array.from(seriesSetForModal).forEach(s => {
+                  if(s.includes("ツアーズレア")) hasToursRare = true;
+                  else msf.innerHTML += `<option value="${s}">${s}</option>`;
+              });
+              if (hasToursRare) msf.innerHTML += `<option value="ツアーズレア">ツアーズレア (全弾一括)</option>`;
+              msf.innerHTML += `<option value="未設定">未設定</option>`;
+          }
+      }
       
-      renderCardSelectModalList();
+      if(msf) msf.value = "all"; 
+      renderSelectModalList();
       document.getElementById('cardSelectModal')?.classList.add('open');
     };
 
-    safeAddListener('modalSeriesFilter', 'change', () => {
-      renderCardSelectModalList();
+    safeAddListener('modalFilterSelect', 'change', () => {
+      renderSelectModalList();
     });
 
     const csCloseBtn = document.getElementById('cardSelectCloseBtn');
