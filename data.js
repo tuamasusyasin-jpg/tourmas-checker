@@ -2,7 +2,7 @@
 
 export const siteConfig = {
   noticeText: "【お知らせ】aaaa",
-  seriesList: ["S1弾", "筐体第一弾", "筐体第二弾"] // S1弾を追加
+  seriesList: ["S1弾", "筐体第1弾", "筐体第2弾"] // S1弾を追加
 };
 
 export const filterConfig = {
