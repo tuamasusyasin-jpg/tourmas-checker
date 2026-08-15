@@ -47,7 +47,6 @@
     .policy-content { background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); line-height: 1.8; color: #444; }
     .policy-content h3 { color: var(--main-color); margin-top: 30px; border-left: 5px solid var(--main-color); padding-left: 10px; }
 
-    /* ▼ 編成メモ用のデザイン */
     .formation-card { background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 20px; border: 2px solid var(--sub-color); }
     .formation-header { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
     .formation-header input { flex: 1; padding: 10px; font-size: 16px; border: 1px solid #ccc; border-radius: 6px; font-weight: bold; }
@@ -165,10 +164,10 @@
   <div id="sidebar">
     <button id="menuCloseBtn">✖</button>
     
+    <!-- サイドバーメニュー -->
     <div class="menu-section">
       <button class="nav-btn" onclick="switchView('collection')">カード一覧に戻る</button>
       <button class="nav-btn" onclick="switchView('formation')" style="border-color: #1a73e8; color: #1a73e8;">マイ編成メモ</button>
-      <button class="nav-btn" onclick="switchView('settings')" style="border-color: #ff9800; color: #e65100;">アプリ設定</button>
     </div>
 
     <div class="menu-section auth-container">
@@ -189,14 +188,14 @@
       </label>
     </div>
 
+    <!-- ここから、アプリ設定 → 弾数 → プライバシー → 笑顔 の順 -->
     <div class="menu-section">
-      <h3>表示する弾数</h3>
-      <div id="seriesFilterContainer"></div>
+      <button class="nav-btn" onclick="switchView('settings')" style="border-color: #ff9800; color: #e65100; background: #fff8e1;">アプリ設定</button>
     </div>
 
     <div class="menu-section">
-      <h3>表示設定</h3>
-      <label class="checkbox-label"><input type="checkbox" id="noticeToggleSidebar" checked> お知らせを表示</label>
+      <h3>表示する弾数</h3>
+      <div id="seriesFilterContainer"></div>
     </div>
     
     <div class="menu-section">
@@ -210,9 +209,16 @@
   </div>
 
   <main>
+    <!-- カード一覧画面 -->
     <div id="view-collection" class="view-section active">
       <div class="controls">
         <h2 id="counterDisplay">所持数: 0 / 0種 (0%) <span id="totalCountDisplay">総枚数: 0枚</span></h2>
+        
+        <!-- ▼「詳細確認モード」についてのご案内 -->
+        <p style="font-size: 12px; color: #d32f2f; margin-top:-10px; font-weight:bold;">
+          ※カードをタップして「所持済み」にするには、サイドメニューから【詳細確認モード】のチェックを外してください！
+        </p>
+
         <div class="search-area">
           <input type="text" id="searchInput" placeholder="検索ワードを入力...">
           <div class="search-toggles">
@@ -417,6 +423,12 @@
     let userFormations = [];
     let hasUnsavedChanges = false; 
 
+    // ★ 絶対にエラーで死なないイベント追加関数
+    const safeAddListener = (id, event, handler) => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener(event, handler);
+    };
+
     const defaultModalItems = [
       { id: 'number', label: '番号', show: true },
       { id: 'rarity', label: 'レアリティ', show: true },
@@ -452,8 +464,10 @@
       if(targetView) targetView.classList.add('active');
       if (viewId === 'formation') renderFormations();
       if (viewId === 'settings') renderModalOrderSettings();
-      document.getElementById('sidebar')?.classList.remove('open'); 
-      document.getElementById('overlay')?.classList.remove('open');
+      const sb = document.getElementById('sidebar');
+      const ov = document.getElementById('overlay');
+      if(sb) sb.classList.remove('open');
+      if(ov) ov.classList.remove('open');
       window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
@@ -461,7 +475,8 @@
       const userInfo = document.getElementById('userInfo');
       if(!userInfo) return;
       if (currentUser) {
-        if (document.getElementById('privacyToggle')?.checked) {
+        const pt = document.getElementById('privacyToggle');
+        if (pt && pt.checked) {
           userInfo.innerText = `プロデューサー さん`;
         } else {
           userInfo.innerText = `${currentUser.displayName} さん`;
@@ -472,24 +487,28 @@
     };
 
     const loadSettings = () => {
-      const savedTheme = localStorage.getItem('tourmas_theme') || 'default';
-      const savedNotice = localStorage.getItem('tourmas_notice') !== 'false';
-      let savedDetailMode = true; 
-      if (localStorage.getItem('tourmas_detailMode') === 'false') { savedDetailMode = false; }
-      const savedCloseOutside = localStorage.getItem('tourmas_closeOutside') !== 'false';
-      const savedPrivacy = localStorage.getItem('tourmas_privacy') === 'true';
-      const savedFreeMemo = localStorage.getItem('tourmas_freeMemo') !== 'false'; 
+      let savedTheme = 'default';
+      let savedNotice = true;
+      let savedDetailMode = true;
+      let savedCloseOutside = true;
+      let savedPrivacy = false;
+      let savedFreeMemo = true;
 
-      const ts1 = document.getElementById('themeSelect');
-      const ts2 = document.getElementById('themeSelectInSettings');
-      if(ts1) ts1.value = savedTheme;
-      if(ts2) ts2.value = savedTheme;
+      try {
+        savedTheme = localStorage.getItem('tourmas_theme') || 'default';
+        savedNotice = localStorage.getItem('tourmas_notice') !== 'false';
+        if (localStorage.getItem('tourmas_detailMode') === 'false') savedDetailMode = false;
+        if (localStorage.getItem('tourmas_closeOutside') === 'false') savedCloseOutside = false;
+        if (localStorage.getItem('tourmas_privacy') === 'true') savedPrivacy = true;
+        if (localStorage.getItem('tourmas_freeMemo') === 'false') savedFreeMemo = false;
+      } catch(e) {}
+
+      const ts = document.getElementById('themeSelectInSettings');
+      if(ts) ts.value = savedTheme;
       applyTheme(savedTheme);
       
-      const nt1 = document.getElementById('noticeToggleSidebar');
-      const nt2 = document.getElementById('noticeToggleSettings');
-      if(nt1) nt1.checked = savedNotice;
-      if(nt2) nt2.checked = savedNotice;
+      const nts = document.getElementById('noticeToggleSettings');
+      if(nts) nts.checked = savedNotice;
       const mc = document.getElementById('marqueeContainer');
       if(mc) mc.style.display = savedNotice ? 'block' : 'none';
       
@@ -522,39 +541,29 @@
     const changeTheme = (e) => {
       localStorage.setItem('tourmas_theme', e.target.value);
       applyTheme(e.target.value);
-      const ts1 = document.getElementById('themeSelect');
-      const ts2 = document.getElementById('themeSelectInSettings');
-      if(ts1) ts1.value = e.target.value;
-      if(ts2) ts2.value = e.target.value;
     };
-    document.getElementById('themeSelect')?.addEventListener('change', changeTheme);
-    document.getElementById('themeSelectInSettings')?.addEventListener('change', changeTheme);
+    safeAddListener('themeSelectInSettings', 'change', changeTheme);
 
     const syncNoticeToggle = (e) => {
       const isChecked = e.target.checked;
       localStorage.setItem('tourmas_notice', isChecked);
       const mc = document.getElementById('marqueeContainer');
       if(mc) mc.style.display = isChecked ? 'block' : 'none';
-      const nt1 = document.getElementById('noticeToggleSidebar');
-      const nt2 = document.getElementById('noticeToggleSettings');
-      if(nt1) nt1.checked = isChecked;
-      if(nt2) nt2.checked = isChecked;
     };
-    document.getElementById('noticeToggleSidebar')?.addEventListener('change', syncNoticeToggle);
-    document.getElementById('noticeToggleSettings')?.addEventListener('change', syncNoticeToggle);
+    safeAddListener('noticeToggleSettings', 'change', syncNoticeToggle);
 
-    document.getElementById('freeMemoToggle')?.addEventListener('change', (e) => {
+    safeAddListener('freeMemoToggle', 'change', (e) => {
       localStorage.setItem('tourmas_freeMemo', e.target.checked);
       renderFormations(); 
     });
     
-    document.getElementById('detailModeToggle')?.addEventListener('change', (e) => {
+    safeAddListener('detailModeToggle', 'change', (e) => {
       localStorage.setItem('tourmas_detailMode', e.target.checked);
     });
-    document.getElementById('closeOutsideToggle')?.addEventListener('change', (e) => {
+    safeAddListener('closeOutsideToggle', 'change', (e) => {
       localStorage.setItem('tourmas_closeOutside', e.target.checked);
     });
-    document.getElementById('privacyToggle')?.addEventListener('change', (e) => {
+    safeAddListener('privacyToggle', 'change', (e) => {
       localStorage.setItem('tourmas_privacy', e.target.checked);
       updateUserInfo();
     });
@@ -565,18 +574,15 @@
       "MISS判定でもコンボが継続する", "コンボ数に応じてスコア獲得", "FEVERゲージ上昇率UP", "判定が長くなる",
       "MISS判定時スコアDOWN", "判定が短くなる", "FEVERゲージを消費する", "SPアピール回数を1回消費"
     ];
-    const egaoBtn = document.getElementById('egaoBtn');
-    if(egaoBtn) {
-      egaoBtn.addEventListener('click', () => {
-        const dai = egaoEffects[Math.floor(Math.random() * egaoEffects.length)];
-        const shou = egaoEffects[Math.floor(Math.random() * egaoEffects.length)];
-        const resDiv = document.getElementById('egaoResult');
-        if(resDiv) {
-          resDiv.innerHTML = `<strong>効果(大)：</strong>${dai}<br><strong>効果(小)：</strong>${shou}<br>`;
-          resDiv.style.display = 'block';
-        }
-      });
-    }
+    safeAddListener('egaoBtn', 'click', () => {
+      const dai = egaoEffects[Math.floor(Math.random() * egaoEffects.length)];
+      const shou = egaoEffects[Math.floor(Math.random() * egaoEffects.length)];
+      const resDiv = document.getElementById('egaoResult');
+      if(resDiv) {
+        resDiv.innerHTML = `<strong>効果(大)：</strong>${dai}<br><strong>効果(小)：</strong>${shou}<br>`;
+        resDiv.style.display = 'block';
+      }
+    });
 
     let bdayMessages = [];
     const today = new Date();
@@ -610,12 +616,17 @@
     createFilterGrid('genreFilters', filterConfig.genres, 'filter-genre');
     createFilterGrid('idolFilters', filterConfig.idols, 'filter-idol');
 
+    // ★ 未設定カード（中身がないカード）も1つのまとまりとして救済する設定
     const setupSeriesFilter = () => {
       const seriesSet = new Set();
       let hasToursRare = false;
+      let hasUnknown = false;
       cardData.forEach(c => {
         let s = c["入手手段"];
-        if (!s || s === "") return;
+        if (!s || s === "") {
+          hasUnknown = true;
+          return;
+        }
         if (s.includes("ツアーズレア")) hasToursRare = true;
         else seriesSet.add(s);
       });
@@ -627,6 +638,9 @@
       });
       if (hasToursRare) {
         seriesContainer.innerHTML += `<label class="checkbox-label" style="font-weight:bold; color:var(--main-color);"><input type="checkbox" class="series-filter" value="ツアーズレア" checked> ツアーズレア (全弾一括)</label>`;
+      }
+      if (hasUnknown) {
+        seriesContainer.innerHTML += `<label class="checkbox-label" style="color:#888;"><input type="checkbox" class="series-filter" value="未設定" checked> 未設定（今後の追加データ）</label>`;
       }
     };
     setupSeriesFilter();
@@ -690,7 +704,8 @@
         cardDiv.dataset.type = data["種類"] || "";
         cardDiv.dataset.brand = data["シリーズブランド名"] || "";
         cardDiv.dataset.idol = data["アイドル名"] || "";
-        cardDiv.dataset.series = data["入手手段"] || "";
+        // ★ 空っぽの場合は「未設定」として裏側に持たせる
+        cardDiv.dataset.series = data["入手手段"] || "未設定";
         cardDiv.dataset.target = data["対象アイドル／サポート効果対象"] || "";
         cardDiv.dataset.part = data["部位"] || "";
         cardDiv.dataset.genre = data["ジャンル"] || ""; 
@@ -1122,10 +1137,11 @@
       };
     }
 
-    document.getElementById('modalCount')?.addEventListener('change', updateLocalMemory);
-    document.getElementById('modalWish')?.addEventListener('change', updateLocalMemory);
+    safeAddListener('modalCount', 'change', updateLocalMemory);
+    safeAddListener('modalWish', 'change', updateLocalMemory);
+    
     let memoTimeout;
-    document.getElementById('modalMemo')?.addEventListener('input', () => {
+    safeAddListener('modalMemo', 'input', () => {
       clearTimeout(memoTimeout);
       memoTimeout = setTimeout(updateLocalMemory, 500); 
     });
@@ -1217,9 +1233,9 @@
       if(cd) cd.innerHTML = `所持数: ${ownedVisibleCount} / ${visibleCount}種 (${percent}%) <span id="totalCountDisplay">総枚数: ${totalCardsCount}枚</span>`;
     }
 
-    document.getElementById('searchInput')?.addEventListener('input', applyFiltersAndSort);
+    safeAddListener('searchInput', 'input', applyFiltersAndSort);
     document.querySelectorAll('input[name="searchMode"]').forEach(radio => radio.addEventListener('change', applyFiltersAndSort));
-    document.getElementById('sortSelect')?.addEventListener('change', applyFiltersAndSort);
+    safeAddListener('sortSelect', 'change', applyFiltersAndSort);
     const sortOrderBtn = document.getElementById('sortOrderBtn');
     if(sortOrderBtn) {
       sortOrderBtn.addEventListener('click', () => {
@@ -1229,7 +1245,7 @@
       });
     }
     document.querySelectorAll('.series-filter').forEach(cb => cb.addEventListener('change', applyFiltersAndSort));
-    document.getElementById('filterPanel')?.addEventListener('change', applyFiltersAndSort);
+    safeAddListener('filterPanel', 'change', applyFiltersAndSort);
 
     const menuOpenBtn = document.getElementById('menuOpenBtn');
     if(menuOpenBtn) menuOpenBtn.onclick = () => { document.getElementById('sidebar')?.classList.add('open'); document.getElementById('overlay')?.classList.add('open'); };
