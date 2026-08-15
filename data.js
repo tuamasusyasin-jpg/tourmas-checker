@@ -1,7 +1,7 @@
 // 【data.js】
 
 export const siteConfig = {
-  noticeText: "【お知らせ】test",
+  noticeText: "【お知らせ】aaaa",
   seriesList: ["S1弾", "筐体第一弾", "筐体第二弾"] // S1弾を追加
 };
 
