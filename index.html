@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
@@ -102,12 +102,22 @@
     .card-list { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; }
     .card { border: 3px solid #ccc; border-radius: 12px; width: 160px; aspect-ratio: 378 / 533; cursor: pointer; transition: all 0.2s ease; background-color: #999; position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; }
     
-    /* ★ 魔法のCSS：絶対に改行させず「...」にする */
+    /* ★ カード名とキャラ名の改行防止・スクロール設定 */
     .card-info { background: rgba(255, 255, 255, 0.95); padding: 10px; text-align: center; border-top: 1px solid #eee; overflow: hidden; }
     .card-info h4, .card-info p { margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
-    .card-info h4 { font-size: 14px; color: #333; line-height: 1.2; }
+    .card-info h4 { font-size: 14px; color: #333; line-height: 1.2; font-weight: bold; }
     .card-info p { margin-top: 5px; font-size: 10px; color: #666; }
     
+    /* 縮小モード（意地でも1行にする） */
+    .shrink-text { font-size: 11px !important; letter-spacing: -1px; transform: scaleX(0.85); transform-origin: center; width: 115% !important; margin-left: -7.5% !important; }
+    
+    /* スクロールモード（マーキーヨーヨー） */
+    .marquee-text { display: inline-block !important; overflow: visible !important; animation: scroll-left 5s linear infinite alternate; }
+    @keyframes scroll-left {
+      0%, 15% { transform: translateX(0); }
+      85%, 100% { transform: translateX(calc(130px - 100%)); }
+    }
+
     .rarity-badge { position: absolute; top: 5px; left: 5px; background-color: #333; color: #fff; padding: 3px 8px; border-radius: 10px; font-size: 11px; font-weight: bold; }
     .card::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); pointer-events: none; transition: 0.2s; }
     .card.owned { border-color: var(--main-color); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
@@ -168,9 +178,12 @@
   <div id="sidebar">
     <button id="menuCloseBtn">✖</button>
     
-    <!-- サイドバーメニュー：ご要望の順番に並び替え -->
+    <!-- サイドバーメニュー：完全ご要望通りの順番 -->
     <div class="menu-section">
       <button class="nav-btn" onclick="switchView('collection')">カード一覧に戻る</button>
+    </div>
+
+    <div class="menu-section">
       <button class="nav-btn" onclick="switchView('formation')" style="border-color: #1a73e8; color: #1a73e8;">マイ編成メモ</button>
     </div>
 
@@ -305,6 +318,15 @@
           </select>
         </div>
 
+        <div style="margin-bottom:15px;">
+          <label style="font-weight:bold; display:block; margin-bottom:5px;">長いカード名の表示方法</label>
+          <select id="nameStyleSelect" style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ccc; font-weight: bold;">
+            <option value="ellipsis">「...」で省略する (デフォルト)</option>
+            <option value="shrink">意地でも1行に縮小して表示する</option>
+            <option value="marquee">自動で横スクロール（ヨーヨー）させる</option>
+          </select>
+        </div>
+
         <label class="checkbox-label" style="font-weight:bold; font-size:15px; margin-bottom:15px;">
           <input type="checkbox" id="noticeToggleSettings" checked style="transform:scale(1.3); margin-right:10px;"> 画面上部にお知らせを表示する
         </label>
@@ -341,7 +363,6 @@
     </div>
   </main>
 
-  <!-- カード詳細モーダル -->
   <div id="detailModal">
     <div class="modal-content" id="modalContentInner">
       <button class="modal-close" id="modalCloseBtn">✖</button>
@@ -382,13 +403,12 @@
     </div>
   </div>
 
-  <!-- 編成用カード選択モーダル -->
   <div id="cardSelectModal">
     <div class="modal-content">
       <button class="modal-close" id="cardSelectCloseBtn">✖</button>
       <h2 id="cardSelectTitle" style="color:var(--main-color); margin-top:0;">カードを選択</h2>
       
-      <!-- ▼ 弾数での絞り込みフィルター -->
+      <!-- ▼ 弾数での絞り込みフィルターを追加！ -->
       <div style="text-align:center; margin-bottom:10px; display:flex; flex-wrap:wrap; gap:10px; justify-content:center;">
         <select id="modalSeriesFilter" style="padding:8px; border-radius:5px; border:1px solid #ccc; font-weight:bold;">
           <!-- JSで自動生成されます -->
@@ -496,6 +516,7 @@
       let savedCloseOutside = true;
       let savedPrivacy = false;
       let savedFreeMemo = true;
+      let savedNameStyle = 'ellipsis';
 
       try {
         savedTheme = localStorage.getItem('tourmas_theme') || 'default';
@@ -504,12 +525,16 @@
         if (localStorage.getItem('tourmas_closeOutside') === 'false') savedCloseOutside = false;
         if (localStorage.getItem('tourmas_privacy') === 'true') savedPrivacy = true;
         if (localStorage.getItem('tourmas_freeMemo') === 'false') savedFreeMemo = false;
+        savedNameStyle = localStorage.getItem('tourmas_nameStyle') || 'ellipsis';
       } catch(e) {}
 
       const ts = document.getElementById('themeSelectInSettings');
       if(ts) ts.value = savedTheme;
       applyTheme(savedTheme);
       
+      const ns = document.getElementById('nameStyleSelect');
+      if(ns) ns.value = savedNameStyle;
+
       const nts = document.getElementById('noticeToggleSettings');
       if(nts) nts.checked = savedNotice;
       const mc = document.getElementById('marqueeContainer');
@@ -546,6 +571,12 @@
       applyTheme(e.target.value);
     };
     safeAddListener('themeSelectInSettings', 'change', changeTheme);
+
+    safeAddListener('nameStyleSelect', 'change', (e) => {
+      localStorage.setItem('tourmas_nameStyle', e.target.value);
+      renderCards();
+      renderCardSelectModalList();
+    });
 
     const syncNoticeToggle = (e) => {
       const isChecked = e.target.checked;
@@ -622,7 +653,7 @@
     createFilterGrid('genreFilters', filterConfig.genres, 'filter-genre');
     createFilterGrid('idolFilters', filterConfig.idols, 'filter-idol');
 
-    // ★ ツアーズレアと、CSVの「シリーズ」列に対応させた完全版フィルター
+    // ★ CSVの「シリーズ」列に対応させた完全版フィルター
     const setupSeriesFilter = () => {
       const seriesSet = new Set();
       let hasToursRare = false;
@@ -698,6 +729,9 @@
     function renderCards() {
       if(!container) return;
       container.innerHTML = '';
+      
+      const nameStyle = localStorage.getItem('tourmas_nameStyle') || 'ellipsis';
+      
       cardData.forEach(data => {
         const cardDiv = document.createElement('div');
         cardDiv.className = 'card';
@@ -724,10 +758,7 @@
         cardDiv.dataset.type = data["種類"] || "";
         cardDiv.dataset.brand = data["シリーズブランド名"] || "";
         cardDiv.dataset.idol = data["アイドル名"] || "";
-        
-        // ★ CSVの「シリーズ」列に対応
         cardDiv.dataset.series = data["シリーズ"] || data["入手手段"] || "未設定";
-        
         cardDiv.dataset.target = data["対象アイドル／サポート効果対象"] || "";
         cardDiv.dataset.part = data["部位"] || "";
         cardDiv.dataset.genre = data["ジャンル"] || ""; 
@@ -743,8 +774,7 @@
         cardDiv.dataset.searchExact = exactKeywords;
         cardDiv.dataset.searchPartial = partialKeywords;
         
-        // ★ 画像のご要望：上がカード名、下がキャラ名（なければブランド、それもなければ空）
-        // さらに、CSSの「text-overflow: ellipsis」で絶対に改行させない魔法をかけています！
+        // ★ 上がカード名、下がキャラ名（名前なしならブランド名）のロジック
         const mainText = data["カード名"] || data["番号"] || "未登録";
         let subText = "";
         if (data["アイドル名"]) {
@@ -753,7 +783,14 @@
             subText = `<p>${data["シリーズブランド名"]}</p>`;
         }
         
-        cardDiv.innerHTML = `${wishStars}<div class="rarity-badge">${data["レアリティ"]}</div><div class="card-info"><h4>${mainText}</h4>${subText}</div>`;
+        // ★ スタイル設定の適用（文字数が多い時だけ）
+        let h4Class = "";
+        if (mainText.length >= 9) {
+            if (nameStyle === 'marquee') h4Class = 'class="marquee-text"';
+            if (nameStyle === 'shrink') h4Class = 'class="shrink-text"';
+        }
+        
+        cardDiv.innerHTML = `${wishStars}<div class="rarity-badge">${data["レアリティ"]}</div><div class="card-info"><h4 ${h4Class}>${mainText}</h4>${subText}</div>`;
         
         cardDiv.onclick = async () => {
           const dmt = document.getElementById('detailModeToggle');
@@ -850,7 +887,6 @@
           else if (item.id === 'note') val = (data["備考"] || "").replace(/,/g, '<br>');
           else if (item.id === 'relax') val = data["制限緩和"];
           else if (item.id === 'comment') val = data["キャラコメント"] || data["コメント"];
-          // ★ シリーズ列に対応
           else if (item.id === 'series') val = data["シリーズ"] || data["入手手段"];
           else if (item.id === 'bonus') {
             if (data["セットボーナス"]) val = `<button class="card-link-btn set-bonus-link" data-bonus="${data["セットボーナス"]}">${data["セットボーナス"]}</button>`;
@@ -999,7 +1035,6 @@
         const div = document.createElement('div');
         div.className = 'formation-card';
         
-        // ★ アイドル名をデータからプルダウン選択
         const createIdolCol = (idolKey, title) => {
           const selectedName = f[idolKey]?.name || '';
           let selectHtml = `<select onchange="updateFormationData(${idx}, '${idolKey}', 'name', this.value)">`;
@@ -1113,6 +1148,7 @@
       
       const msf = document.getElementById('modalSeriesFilter');
       const selectedSeries = msf ? msf.value : "all";
+      const nameStyle = localStorage.getItem('tourmas_nameStyle') || 'ellipsis';
       
       cardData.forEach(data => {
         if (filterType && data["種類"] !== filterType) return;
@@ -1143,7 +1179,13 @@
             subText = `<p>${data["シリーズブランド名"]}</p>`;
         }
         
-        cardDiv.innerHTML = `<div class="rarity-badge">${data["レアリティ"]}</div><div class="card-info"><h4>${mainText}</h4>${subText}</div>`;
+        let h4Class = "";
+        if (mainText.length >= 9) {
+            if (nameStyle === 'marquee') h4Class = 'class="marquee-text"';
+            if (nameStyle === 'shrink') h4Class = 'class="shrink-text"';
+        }
+        
+        cardDiv.innerHTML = `<div class="rarity-badge">${data["レアリティ"]}</div><div class="card-info"><h4 ${h4Class}>${mainText}</h4>${subText}</div>`;
         
         cardDiv.onclick = () => {
           const val = `[${data["レアリティ"]}] ${mainText}`;
