@@ -436,31 +436,32 @@
       { id: 'utsurikomi', label: '写り込み', show: true }
     ];
 
-    // ★ 爆弾撤去：設定データの読み込みを安全に保護
     let modalConfig;
     try {
       const savedConfig = localStorage.getItem('tourmas_modalConfig');
       modalConfig = savedConfig ? JSON.parse(savedConfig) : defaultModalItems;
       if (!Array.isArray(modalConfig)) modalConfig = defaultModalItems;
     } catch (e) {
-      console.warn("設定データが壊れていたため初期化しました", e);
+      console.warn("設定データ初期化", e);
       modalConfig = defaultModalItems;
     }
 
     window.switchView = (viewId) => {
       document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
-      document.getElementById('view-' + viewId).classList.add('active');
+      const targetView = document.getElementById('view-' + viewId);
+      if(targetView) targetView.classList.add('active');
       if (viewId === 'formation') renderFormations();
       if (viewId === 'settings') renderModalOrderSettings();
-      document.getElementById('sidebar').classList.remove('open'); 
-      document.getElementById('overlay').classList.remove('open');
+      document.getElementById('sidebar')?.classList.remove('open'); 
+      document.getElementById('overlay')?.classList.remove('open');
       window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
     const updateUserInfo = () => {
       const userInfo = document.getElementById('userInfo');
+      if(!userInfo) return;
       if (currentUser) {
-        if (document.getElementById('privacyToggle').checked) {
+        if (document.getElementById('privacyToggle')?.checked) {
           userInfo.innerText = `プロデューサー さん`;
         } else {
           userInfo.innerText = `${currentUser.displayName} さん`;
@@ -479,18 +480,27 @@
       const savedPrivacy = localStorage.getItem('tourmas_privacy') === 'true';
       const savedFreeMemo = localStorage.getItem('tourmas_freeMemo') !== 'false'; 
 
-      document.getElementById('themeSelect').value = savedTheme;
-      document.getElementById('themeSelectInSettings').value = savedTheme;
+      const ts1 = document.getElementById('themeSelect');
+      const ts2 = document.getElementById('themeSelectInSettings');
+      if(ts1) ts1.value = savedTheme;
+      if(ts2) ts2.value = savedTheme;
       applyTheme(savedTheme);
       
-      document.getElementById('noticeToggleSidebar').checked = savedNotice;
-      document.getElementById('noticeToggleSettings').checked = savedNotice;
-      document.getElementById('marqueeContainer').style.display = savedNotice ? 'block' : 'none';
+      const nt1 = document.getElementById('noticeToggleSidebar');
+      const nt2 = document.getElementById('noticeToggleSettings');
+      if(nt1) nt1.checked = savedNotice;
+      if(nt2) nt2.checked = savedNotice;
+      const mc = document.getElementById('marqueeContainer');
+      if(mc) mc.style.display = savedNotice ? 'block' : 'none';
       
-      document.getElementById('detailModeToggle').checked = savedDetailMode;
-      document.getElementById('closeOutsideToggle').checked = savedCloseOutside;
-      document.getElementById('privacyToggle').checked = savedPrivacy;
-      document.getElementById('freeMemoToggle').checked = savedFreeMemo;
+      const dm = document.getElementById('detailModeToggle');
+      if(dm) dm.checked = savedDetailMode;
+      const co = document.getElementById('closeOutsideToggle');
+      if(co) co.checked = savedCloseOutside;
+      const pt = document.getElementById('privacyToggle');
+      if(pt) pt.checked = savedPrivacy;
+      const fm = document.getElementById('freeMemoToggle');
+      if(fm) fm.checked = savedFreeMemo;
       updateUserInfo();
     };
 
@@ -512,35 +522,39 @@
     const changeTheme = (e) => {
       localStorage.setItem('tourmas_theme', e.target.value);
       applyTheme(e.target.value);
-      document.getElementById('themeSelect').value = e.target.value;
-      document.getElementById('themeSelectInSettings').value = e.target.value;
+      const ts1 = document.getElementById('themeSelect');
+      const ts2 = document.getElementById('themeSelectInSettings');
+      if(ts1) ts1.value = e.target.value;
+      if(ts2) ts2.value = e.target.value;
     };
-    document.getElementById('themeSelect').addEventListener('change', changeTheme);
-    document.getElementById('themeSelectInSettings').addEventListener('change', changeTheme);
+    document.getElementById('themeSelect')?.addEventListener('change', changeTheme);
+    document.getElementById('themeSelectInSettings')?.addEventListener('change', changeTheme);
 
-    // ★ お知らせ設定の同期処理
     const syncNoticeToggle = (e) => {
       const isChecked = e.target.checked;
       localStorage.setItem('tourmas_notice', isChecked);
-      document.getElementById('marqueeContainer').style.display = isChecked ? 'block' : 'none';
-      document.getElementById('noticeToggleSidebar').checked = isChecked;
-      document.getElementById('noticeToggleSettings').checked = isChecked;
+      const mc = document.getElementById('marqueeContainer');
+      if(mc) mc.style.display = isChecked ? 'block' : 'none';
+      const nt1 = document.getElementById('noticeToggleSidebar');
+      const nt2 = document.getElementById('noticeToggleSettings');
+      if(nt1) nt1.checked = isChecked;
+      if(nt2) nt2.checked = isChecked;
     };
-    document.getElementById('noticeToggleSidebar').addEventListener('change', syncNoticeToggle);
-    document.getElementById('noticeToggleSettings').addEventListener('change', syncNoticeToggle);
+    document.getElementById('noticeToggleSidebar')?.addEventListener('change', syncNoticeToggle);
+    document.getElementById('noticeToggleSettings')?.addEventListener('change', syncNoticeToggle);
 
-    document.getElementById('freeMemoToggle').addEventListener('change', (e) => {
+    document.getElementById('freeMemoToggle')?.addEventListener('change', (e) => {
       localStorage.setItem('tourmas_freeMemo', e.target.checked);
       renderFormations(); 
     });
     
-    document.getElementById('detailModeToggle').addEventListener('change', (e) => {
+    document.getElementById('detailModeToggle')?.addEventListener('change', (e) => {
       localStorage.setItem('tourmas_detailMode', e.target.checked);
     });
-    document.getElementById('closeOutsideToggle').addEventListener('change', (e) => {
+    document.getElementById('closeOutsideToggle')?.addEventListener('change', (e) => {
       localStorage.setItem('tourmas_closeOutside', e.target.checked);
     });
-    document.getElementById('privacyToggle').addEventListener('change', (e) => {
+    document.getElementById('privacyToggle')?.addEventListener('change', (e) => {
       localStorage.setItem('tourmas_privacy', e.target.checked);
       updateUserInfo();
     });
@@ -551,13 +565,18 @@
       "MISS判定でもコンボが継続する", "コンボ数に応じてスコア獲得", "FEVERゲージ上昇率UP", "判定が長くなる",
       "MISS判定時スコアDOWN", "判定が短くなる", "FEVERゲージを消費する", "SPアピール回数を1回消費"
     ];
-    document.getElementById('egaoBtn').onclick = () => {
-      const dai = egaoEffects[Math.floor(Math.random() * egaoEffects.length)];
-      const shou = egaoEffects[Math.floor(Math.random() * egaoEffects.length)];
-      const resDiv = document.getElementById('egaoResult');
-      resDiv.innerHTML = `<strong>効果(大)：</strong>${dai}<br><strong>効果(小)：</strong>${shou}<br>`;
-      resDiv.style.display = 'block';
-    };
+    const egaoBtn = document.getElementById('egaoBtn');
+    if(egaoBtn) {
+      egaoBtn.addEventListener('click', () => {
+        const dai = egaoEffects[Math.floor(Math.random() * egaoEffects.length)];
+        const shou = egaoEffects[Math.floor(Math.random() * egaoEffects.length)];
+        const resDiv = document.getElementById('egaoResult');
+        if(resDiv) {
+          resDiv.innerHTML = `<strong>効果(大)：</strong>${dai}<br><strong>効果(小)：</strong>${shou}<br>`;
+          resDiv.style.display = 'block';
+        }
+      });
+    }
 
     let bdayMessages = [];
     const today = new Date();
@@ -572,10 +591,12 @@
     });
     let finalNotice = siteConfig.noticeText;
     if (bdayMessages.length > 0) finalNotice += " ｜ " + bdayMessages.join(" ｜ ");
-    document.getElementById('marqueeText').innerText = finalNotice;
+    const mt = document.getElementById('marqueeText');
+    if(mt) mt.innerText = finalNotice;
 
     function createFilterGrid(containerId, dataArray, filterClass) {
       const container = document.getElementById(containerId);
+      if(!container) return;
       dataArray.forEach(item => {
         const value = typeof item === 'object' ? item.name : item;
         container.innerHTML += `<label class="filter-btn-label"><input type="checkbox" class="advanced-filter ${filterClass}" value="${value}"> ${value}</label>`;
@@ -599,6 +620,7 @@
         else seriesSet.add(s);
       });
       const seriesContainer = document.getElementById('seriesFilterContainer');
+      if(!seriesContainer) return;
       seriesContainer.innerHTML = '';
       Array.from(seriesSet).forEach(s => {
         seriesContainer.innerHTML += `<label class="checkbox-label"><input type="checkbox" class="series-filter" value="${s}" checked> ${s}</label>`;
@@ -611,11 +633,15 @@
 
     const filterPanel = document.getElementById('filterPanel');
     const toggleBtn = document.getElementById('toggleFilterBtn');
-    toggleBtn.onclick = () => { filterPanel.classList.toggle('open'); toggleBtn.innerText = filterPanel.classList.contains('open') ? "▲ 詳細な絞り込みを閉じる" : "▼ 詳細な絞り込みを開く"; };
+    if(toggleBtn && filterPanel) {
+      toggleBtn.onclick = () => { filterPanel.classList.toggle('open'); toggleBtn.innerText = filterPanel.classList.contains('open') ? "▲ 詳細な絞り込みを閉じる" : "▼ 詳細な絞り込みを開く"; };
+    }
     window.resetFilters = () => {
       document.querySelectorAll('.advanced-filter').forEach(cb => cb.checked = false);
-      document.querySelector('input[name="filterOwned"][value="all"]').checked = true;
-      document.querySelector('input[name="filterWish"][value="0"]').checked = true;
+      const f1 = document.querySelector('input[name="filterOwned"][value="all"]');
+      if(f1) f1.checked = true;
+      const f2 = document.querySelector('input[name="filterWish"][value="0"]');
+      if(f2) f2.checked = true;
       applyFiltersAndSort();
     };
 
@@ -627,13 +653,16 @@
     const markAsUnsaved = () => {
       hasUnsavedChanges = true;
       const btn = document.getElementById('cloudSaveBtn');
-      btn.style.display = 'inline-block';
-      btn.classList.add('unsaved');
-      btn.innerText = "セーブ(未保存)";
+      if(btn) {
+        btn.style.display = 'inline-block';
+        btn.classList.add('unsaved');
+        btn.innerText = "セーブ(未保存)";
+      }
     };
     window.markAsUnsaved = markAsUnsaved;
 
     function renderCards() {
+      if(!container) return;
       container.innerHTML = '';
       cardData.forEach(data => {
         const cardDiv = document.createElement('div');
@@ -680,7 +709,8 @@
         cardDiv.innerHTML = `${wishStars}<div class="rarity-badge">${data["レアリティ"]}</div><div class="card-info"><h4>${data["アイドル名"] || '-'}</h4><p>${data["カード名"] || data["番号"]}</p></div>`;
         
         cardDiv.onclick = async () => {
-          const isDetailMode = document.getElementById('detailModeToggle').checked;
+          const dmt = document.getElementById('detailModeToggle');
+          const isDetailMode = dmt ? dmt.checked : true;
           if (isDetailMode) {
             openModal(data);
           } else {
@@ -705,9 +735,13 @@
 
     const updateLocalMemory = () => {
       if (!currentModalCardData) return;
-      const countVal = parseInt(document.getElementById('modalCount').value) || 0;
-      const wishVal = parseInt(document.getElementById('modalWish').value) || 0;
-      const memoVal = document.getElementById('modalMemo').value;
+      const countEl = document.getElementById('modalCount');
+      const wishEl = document.getElementById('modalWish');
+      const memoEl = document.getElementById('modalMemo');
+      
+      const countVal = countEl ? parseInt(countEl.value) || 0 : 0;
+      const wishVal = wishEl ? parseInt(wishEl.value) || 0 : 0;
+      const memoVal = memoEl ? memoEl.value : "";
       const cardId = currentModalCardData["番号"];
       
       if (countVal > 0) ownedCardIds.add(cardId);
@@ -722,14 +756,16 @@
       currentModalCardData = data;
       const imgFront = document.getElementById('modalImgFront');
       const imgBack = document.getElementById('modalImgBack');
-      if (data["カード表"]) { imgFront.src = `images/${data["カード表"]}`; imgFront.style.display = 'block'; } else { imgFront.style.display = 'none'; }
-      if (data["カード裏"]) { imgBack.src = `images/${data["カード裏"]}`; imgBack.style.display = 'block'; } else { imgBack.style.display = 'none'; }
+      if (data["カード表"] && imgFront) { imgFront.src = `images/${data["カード表"]}`; imgFront.style.display = 'block'; } else if(imgFront) { imgFront.style.display = 'none'; }
+      if (data["カード裏"] && imgBack) { imgBack.src = `images/${data["カード裏"]}`; imgBack.style.display = 'block'; } else if(imgBack) { imgBack.style.display = 'none'; }
       
-      document.getElementById('modalCardName').innerText = data["カード名"] || data["番号"] || "名称不明";
-      document.getElementById('modalCardIdol').innerText = `${data["シリーズブランド名"]} / ${data["アイドル名"]}`;
+      const nameEl = document.getElementById('modalCardName');
+      const idolEl = document.getElementById('modalCardIdol');
+      if(nameEl) nameEl.innerText = data["カード名"] || data["番号"] || "名称不明";
+      if(idolEl) idolEl.innerText = `${data["シリーズブランド名"]} / ${data["アイドル名"]}`;
       
       const table = document.getElementById('modalTable');
-      table.innerHTML = '';
+      if(table) table.innerHTML = '';
       
       const createCardLinks = (idsString, displayType) => {
         if (!idsString) return '';
@@ -748,78 +784,92 @@
         return html;
       };
 
-      modalConfig.forEach(item => {
-        if (!item.show) return;
-        
-        let val = "";
-        if (item.id === 'number') val = data["番号"];
-        else if (item.id === 'rarity') val = data["レアリティ"];
-        else if (item.id === 'type') val = data["種類"];
-        else if (item.id === 'genre') val = data["ジャンル"];
-        else if (item.id === 'appeal') {
-          const v = data["アピール値（Vocal)"] || 0; const d = data["アピール値（Dance）"] || 0; const vi = data["アピール値（Visual）"] || 0;
-          if (v||d||vi) val = `<span style="color:#e91e63">Vo: ${v}</span> / <span style="color:#2196f3">Da: ${d}</span> / <span style="color:#ffc107">Vi: ${vi}</span>`;
-        }
-        else if (item.id === 'target') val = data["対象アイドル／サポート効果対象"];
-        else if (item.id === 'part') val = data["部位"];
-        else if (item.id === 'effect') val = data["サポート効果／リズムライブ効果"];
-        else if (item.id === 'note') val = (data["備考"] || "").replace(/,/g, '<br>');
-        else if (item.id === 'relax') val = data["制限緩和"];
-        else if (item.id === 'comment') val = data["キャラコメント"] || data["コメント"];
-        else if (item.id === 'series') val = data["入手手段"];
-        else if (item.id === 'bonus') {
-          if (data["セットボーナス"]) val = `<button class="card-link-btn set-bonus-link" data-bonus="${data["セットボーナス"]}">${data["セットボーナス"]}</button>`;
-        }
-        else if (item.id === 'altcard') val = createCardLinks(data["別カード"] || data["別イラスト"], 'id');
-        else if (item.id === 'color') val = createCardLinks(data["色違い"], 'name');
-        else if (item.id === 'utsurikomi') val = (data["写り込み"] || "").replace(/,/g, '、');
+      if(table) {
+        modalConfig.forEach(item => {
+          if (!item.show) return;
+          
+          let val = "";
+          if (item.id === 'number') val = data["番号"];
+          else if (item.id === 'rarity') val = data["レアリティ"];
+          else if (item.id === 'type') val = data["種類"];
+          else if (item.id === 'genre') val = data["ジャンル"];
+          else if (item.id === 'appeal') {
+            const v = data["アピール値（Vocal)"] || 0; const d = data["アピール値（Dance）"] || 0; const vi = data["アピール値（Visual）"] || 0;
+            if (v||d||vi) val = `<span style="color:#e91e63">Vo: ${v}</span> / <span style="color:#2196f3">Da: ${d}</span> / <span style="color:#ffc107">Vi: ${vi}</span>`;
+          }
+          else if (item.id === 'target') val = data["対象アイドル／サポート効果対象"];
+          else if (item.id === 'part') val = data["部位"];
+          else if (item.id === 'effect') val = data["サポート効果／リズムライブ効果"];
+          else if (item.id === 'note') val = (data["備考"] || "").replace(/,/g, '<br>');
+          else if (item.id === 'relax') val = data["制限緩和"];
+          else if (item.id === 'comment') val = data["キャラコメント"] || data["コメント"];
+          else if (item.id === 'series') val = data["入手手段"];
+          else if (item.id === 'bonus') {
+            if (data["セットボーナス"]) val = `<button class="card-link-btn set-bonus-link" data-bonus="${data["セットボーナス"]}">${data["セットボーナス"]}</button>`;
+          }
+          else if (item.id === 'altcard') val = createCardLinks(data["別カード"] || data["別イラスト"], 'id');
+          else if (item.id === 'color') val = createCardLinks(data["色違い"], 'name');
+          else if (item.id === 'utsurikomi') val = (data["写り込み"] || "").replace(/,/g, '、');
 
-        if (val && val !== "") {
-          table.innerHTML += `<tr><th>${item.label}</th><td>${val}</td></tr>`;
-        }
-      });
+          if (val && val !== "") {
+            table.innerHTML += `<tr><th>${item.label}</th><td>${val}</td></tr>`;
+          }
+        });
+      }
       
       const userDetail = userCardDetails[data["番号"]] || { count: (ownedCardIds.has(data["番号"]) ? 1 : 0), memo: "", wish: 0 };
-      document.getElementById('modalCount').value = userDetail.count;
-      document.getElementById('modalWish').value = userDetail.wish;
-      document.getElementById('modalMemo').value = userDetail.memo;
+      const mCount = document.getElementById('modalCount');
+      const mWish = document.getElementById('modalWish');
+      const mMemo = document.getElementById('modalMemo');
+      if(mCount) mCount.value = userDetail.count;
+      if(mWish) mWish.value = userDetail.wish;
+      if(mMemo) mMemo.value = userDetail.memo;
       
-      detailModal.classList.add('open');
+      if(detailModal) detailModal.classList.add('open');
 
-      const linkBtns = table.querySelectorAll('.card-link-btn:not(.disabled):not(.set-bonus-link)');
-      linkBtns.forEach(btn => {
-        btn.onclick = () => {
-          const targetId = btn.dataset.targetId;
-          const targetData = cardData.find(c => c["番号"] === targetId);
-          if (targetData) {
-            updateLocalMemory(); 
-            openModal(targetData); 
-          }
-        };
-      });
+      if(table) {
+        const linkBtns = table.querySelectorAll('.card-link-btn:not(.disabled):not(.set-bonus-link)');
+        linkBtns.forEach(btn => {
+          btn.onclick = () => {
+            const targetId = btn.dataset.targetId;
+            const targetData = cardData.find(c => c["番号"] === targetId);
+            if (targetData) {
+              updateLocalMemory(); 
+              openModal(targetData); 
+            }
+          };
+        });
 
-      const bonusBtns = table.querySelectorAll('.set-bonus-link');
-      bonusBtns.forEach(btn => {
-        btn.onclick = () => {
-          updateLocalMemory();
+        const bonusBtns = table.querySelectorAll('.set-bonus-link');
+        bonusBtns.forEach(btn => {
+          btn.onclick = () => {
+            updateLocalMemory();
+            if(detailModal) detailModal.classList.remove('open');
+            window.switchView('collection');
+            const sm = document.querySelector('input[name="searchMode"][value="partial"]');
+            if(sm) sm.checked = true;
+            const si = document.getElementById('searchInput');
+            if(si) si.value = btn.dataset.bonus;
+            applyFiltersAndSort();
+          };
+        });
+      }
+    }
+
+    const modalCloseBtn = document.getElementById('modalCloseBtn');
+    if(modalCloseBtn) modalCloseBtn.onclick = () => detailModal?.classList.remove('open');
+    if(detailModal) {
+      detailModal.addEventListener('click', (e) => {
+        const co = document.getElementById('closeOutsideToggle');
+        if (e.target === detailModal && co && co.checked) {
           detailModal.classList.remove('open');
-          window.switchView('collection');
-          document.querySelector('input[name="searchMode"][value="partial"]').checked = true;
-          document.getElementById('searchInput').value = btn.dataset.bonus;
-          applyFiltersAndSort();
-        };
+        }
       });
     }
 
-    document.getElementById('modalCloseBtn').onclick = () => detailModal.classList.remove('open');
-    detailModal.addEventListener('click', (e) => {
-      if (e.target === detailModal && document.getElementById('closeOutsideToggle').checked) {
-        detailModal.classList.remove('open');
-      }
-    });
-
     window.renderModalOrderSettings = () => {
       const container = document.getElementById('modalOrderSettingsContainer');
+      if(!container) return;
       container.innerHTML = '';
       modalConfig.forEach((item, index) => {
         container.innerHTML += `
@@ -885,6 +935,7 @@
 
     const renderFormations = () => {
       const container = document.getElementById('formationListContainer');
+      if(!container) return;
       container.innerHTML = '';
       
       if(userFormations.length === 0) {
@@ -892,7 +943,8 @@
         return;
       }
 
-      const showMemo = document.getElementById('freeMemoToggle').checked;
+      const fmToggle = document.getElementById('freeMemoToggle');
+      const showMemo = fmToggle ? fmToggle.checked : true;
 
       userFormations.forEach((f, idx) => {
         const isOpen = f.isOpen !== false; 
@@ -993,8 +1045,10 @@
       else if (field === 'sup2') { filterType = "サポート"; title = "中央サポートを選択"; }
       else if (field === 'sup3') { filterType = "サポート"; filterRarities = ["R", "TR", "N"]; title = "右サポートを選択"; }
       
-      document.getElementById('cardSelectTitle').innerText = title;
+      const st = document.getElementById('cardSelectTitle');
+      if(st) st.innerText = title;
       const list = document.getElementById('cardSelectList');
+      if(!list) return;
       list.innerHTML = '';
       
       cardData.forEach(data => {
@@ -1015,63 +1069,77 @@
         cardDiv.onclick = () => {
           const val = `[${data["レアリティ"]}] ${displayName}`;
           updateFormationData(currentSelectTarget.idx, currentSelectTarget.field, currentSelectTarget.subfield, val);
-          document.getElementById('cardSelectModal').classList.remove('open');
+          document.getElementById('cardSelectModal')?.classList.remove('open');
           renderFormations();
         };
         list.appendChild(cardDiv);
       });
-      document.getElementById('cardSelectModal').classList.add('open');
+      document.getElementById('cardSelectModal')?.classList.add('open');
     };
 
-    document.getElementById('cardSelectCloseBtn').onclick = () => {
-      document.getElementById('cardSelectModal').classList.remove('open');
-    };
+    const csCloseBtn = document.getElementById('cardSelectCloseBtn');
+    if(csCloseBtn) {
+      csCloseBtn.onclick = () => {
+        document.getElementById('cardSelectModal')?.classList.remove('open');
+      };
+    }
 
-    document.getElementById('cardSelectClearBtn').onclick = () => {
-      if (currentSelectTarget) {
-        updateFormationData(currentSelectTarget.idx, currentSelectTarget.field, currentSelectTarget.subfield, "");
-        renderFormations();
-      }
-      document.getElementById('cardSelectModal').classList.remove('open');
-    };
+    const csClearBtn = document.getElementById('cardSelectClearBtn');
+    if(csClearBtn) {
+      csClearBtn.onclick = () => {
+        if (currentSelectTarget) {
+          updateFormationData(currentSelectTarget.idx, currentSelectTarget.field, currentSelectTarget.subfield, "");
+          renderFormations();
+        }
+        document.getElementById('cardSelectModal')?.classList.remove('open');
+      };
+    }
 
     const showToast = (msg) => {
       const toast = document.getElementById('toast');
+      if(!toast) return;
       toast.innerText = msg;
       toast.classList.add('show');
       setTimeout(() => toast.classList.remove('show'), 2000);
     };
 
-    document.getElementById('cloudSaveBtn').onclick = async () => {
-      if (!currentUser) return alert("セーブするにはログインしてください。");
-      if (detailModal.classList.contains('open')) updateLocalMemory();
+    const cloudSaveBtn = document.getElementById('cloudSaveBtn');
+    if(cloudSaveBtn) {
+      cloudSaveBtn.onclick = async () => {
+        if (!currentUser) return alert("セーブするにはログインしてください。");
+        if (detailModal && detailModal.classList.contains('open')) updateLocalMemory();
 
-      await setDoc(doc(db, "users", currentUser.uid), { 
-        ownedCards: Array.from(ownedCardIds), 
-        cardDetails: userCardDetails,
-        formations: userFormations 
-      }, { merge: true });
-      
-      hasUnsavedChanges = false;
-      const btn = document.getElementById('cloudSaveBtn');
-      btn.classList.remove('unsaved');
-      btn.innerText = "クラウドにセーブ済";
-      showToast("クラウドに一括保存しました！");
-    };
+        await setDoc(doc(db, "users", currentUser.uid), { 
+          ownedCards: Array.from(ownedCardIds), 
+          cardDetails: userCardDetails,
+          formations: userFormations 
+        }, { merge: true });
+        
+        hasUnsavedChanges = false;
+        cloudSaveBtn.classList.remove('unsaved');
+        cloudSaveBtn.innerText = "クラウドにセーブ済";
+        showToast("クラウドに一括保存しました！");
+      };
+    }
 
-    document.getElementById('modalCount').addEventListener('change', updateLocalMemory);
-    document.getElementById('modalWish').addEventListener('change', updateLocalMemory);
+    document.getElementById('modalCount')?.addEventListener('change', updateLocalMemory);
+    document.getElementById('modalWish')?.addEventListener('change', updateLocalMemory);
     let memoTimeout;
-    document.getElementById('modalMemo').addEventListener('input', () => {
+    document.getElementById('modalMemo')?.addEventListener('input', () => {
       clearTimeout(memoTimeout);
       memoTimeout = setTimeout(updateLocalMemory, 500); 
     });
 
     function applyFiltersAndSort() {
-      const text = document.getElementById('searchInput').value.toLowerCase();
-      const searchMode = document.querySelector('input[name="searchMode"]:checked').value;
-      const filterOwned = document.querySelector('input[name="filterOwned"]:checked').value;
-      const filterWish = parseInt(document.querySelector('input[name="filterWish"]:checked').value);
+      const si = document.getElementById('searchInput');
+      const text = si ? si.value.toLowerCase() : "";
+      const sm = document.querySelector('input[name="searchMode"]:checked');
+      const searchMode = sm ? sm.value : "exact";
+      
+      const fo = document.querySelector('input[name="filterOwned"]:checked');
+      const filterOwned = fo ? fo.value : "all";
+      const fw = document.querySelector('input[name="filterWish"]:checked');
+      const filterWish = fw ? parseInt(fw.value) : 0;
       
       const getChecked = (className) => {
         const checked = Array.from(document.querySelectorAll(`.${className}:checked`)).map(cb => cb.value);
@@ -1128,8 +1196,10 @@
         }
       });
       
-      const sortKey = document.getElementById('sortSelect').value;
-      const isAsc = document.getElementById('sortOrderBtn').dataset.order === 'asc';
+      const ss = document.getElementById('sortSelect');
+      const sortKey = ss ? ss.value : 'number';
+      const sob = document.getElementById('sortOrderBtn');
+      const isAsc = sob ? sob.dataset.order === 'asc' : true;
 
       cardsArray.sort((a, b) => {
         let valA, valB;
@@ -1140,41 +1210,48 @@
         return isAsc ? valA - valB : valB - valA;
       });
 
-      cardsArray.forEach(card => container.appendChild(card));
+      if(container) cardsArray.forEach(card => container.appendChild(card));
       const percent = visibleCount === 0 ? 0 : Math.floor((ownedVisibleCount / visibleCount) * 100);
       
-      document.getElementById('counterDisplay').innerHTML = `所持数: ${ownedVisibleCount} / ${visibleCount}種 (${percent}%) <span id="totalCountDisplay">総枚数: ${totalCardsCount}枚</span>`;
+      const cd = document.getElementById('counterDisplay');
+      if(cd) cd.innerHTML = `所持数: ${ownedVisibleCount} / ${visibleCount}種 (${percent}%) <span id="totalCountDisplay">総枚数: ${totalCardsCount}枚</span>`;
     }
 
-    document.getElementById('searchInput').addEventListener('input', applyFiltersAndSort);
+    document.getElementById('searchInput')?.addEventListener('input', applyFiltersAndSort);
     document.querySelectorAll('input[name="searchMode"]').forEach(radio => radio.addEventListener('change', applyFiltersAndSort));
-    document.getElementById('sortSelect').addEventListener('change', applyFiltersAndSort);
+    document.getElementById('sortSelect')?.addEventListener('change', applyFiltersAndSort);
     const sortOrderBtn = document.getElementById('sortOrderBtn');
-    sortOrderBtn.addEventListener('click', () => {
-      if (sortOrderBtn.dataset.order === 'asc') { sortOrderBtn.dataset.order = 'desc'; sortOrderBtn.innerText = "降順 ▼"; } 
-      else { sortOrderBtn.dataset.order = 'asc'; sortOrderBtn.innerText = "昇順 ▲"; }
-      applyFiltersAndSort();
-    });
+    if(sortOrderBtn) {
+      sortOrderBtn.addEventListener('click', () => {
+        if (sortOrderBtn.dataset.order === 'asc') { sortOrderBtn.dataset.order = 'desc'; sortOrderBtn.innerText = "降順 ▼"; } 
+        else { sortOrderBtn.dataset.order = 'asc'; sortOrderBtn.innerText = "昇順 ▲"; }
+        applyFiltersAndSort();
+      });
+    }
     document.querySelectorAll('.series-filter').forEach(cb => cb.addEventListener('change', applyFiltersAndSort));
-    document.getElementById('filterPanel').addEventListener('change', applyFiltersAndSort);
+    document.getElementById('filterPanel')?.addEventListener('change', applyFiltersAndSort);
 
-    document.getElementById('menuOpenBtn').onclick = () => { document.getElementById('sidebar').classList.add('open'); document.getElementById('overlay').classList.add('open'); };
-    const closeMenu = () => { document.getElementById('sidebar').classList.remove('open'); document.getElementById('overlay').classList.remove('open'); };
-    document.getElementById('menuCloseBtn').onclick = closeMenu;
-    document.getElementById('overlay').onclick = closeMenu;
+    const menuOpenBtn = document.getElementById('menuOpenBtn');
+    if(menuOpenBtn) menuOpenBtn.onclick = () => { document.getElementById('sidebar')?.classList.add('open'); document.getElementById('overlay')?.classList.add('open'); };
+    const closeMenu = () => { document.getElementById('sidebar')?.classList.remove('open'); document.getElementById('overlay')?.classList.remove('open'); };
+    const menuCloseBtn = document.getElementById('menuCloseBtn');
+    if(menuCloseBtn) menuCloseBtn.onclick = closeMenu;
+    const overlay = document.getElementById('overlay');
+    if(overlay) overlay.onclick = closeMenu;
 
     const loginBtn = document.getElementById('loginBtn');
     const logoutBtn = document.getElementById('logoutBtn');
 
-    loginBtn.addEventListener('click', () => signInWithPopup(auth, provider));
-    logoutBtn.addEventListener('click', () => signOut(auth));
+    loginBtn?.addEventListener('click', () => signInWithPopup(auth, provider));
+    logoutBtn?.addEventListener('click', () => signOut(auth));
 
     onAuthStateChanged(auth, async (user) => {
       if (user) {
         currentUser = user;
-        loginBtn.style.display = 'none';
-        logoutBtn.style.display = 'block';
-        document.getElementById('cloudSaveBtn').style.display = 'inline-block'; 
+        if(loginBtn) loginBtn.style.display = 'none';
+        if(logoutBtn) logoutBtn.style.display = 'block';
+        const csb = document.getElementById('cloudSaveBtn');
+        if(csb) csb.style.display = 'inline-block'; 
         
         const docRef = doc(db, "users", user.uid);
         const docSnap = await getDoc(docRef);
@@ -1192,9 +1269,10 @@
         ownedCardIds = new Set();
         userCardDetails = {};
         userFormations = [];
-        loginBtn.style.display = 'block';
-        logoutBtn.style.display = 'none';
-        document.getElementById('cloudSaveBtn').style.display = 'none';
+        if(loginBtn) loginBtn.style.display = 'block';
+        if(logoutBtn) logoutBtn.style.display = 'none';
+        const csb = document.getElementById('cloudSaveBtn');
+        if(csb) csb.style.display = 'none';
       }
       
       loadSettings(); 
