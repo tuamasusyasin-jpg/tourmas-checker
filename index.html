@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>ツアマス所持率チェッカー</title>
-  <meta name="description" content="アーケードゲーム「アイドルマスター TOURS」のカード所持率を管理できる非公式チェッカーです。">
+  <meta name="description" content="アーケードゲーム「アイドルマスター TOURS（ツアマス）」のカード所持率を管理できる非公式チェッカーです。">
   <style>
     :root {
       --main-color: #ff66a3;
@@ -189,7 +189,6 @@
       </label>
     </div>
 
-    <!-- ご要望の並び順（表示する弾数 → お知らせ → プライバシーポリシー → 笑顔満点） -->
     <div class="menu-section">
       <h3>表示する弾数</h3>
       <div id="seriesFilterContainer"></div>
@@ -413,7 +412,6 @@
     let userFormations = [];
     let hasUnsavedChanges = false; 
 
-    // ★ 詳細画面の表示項目のデフォルト順
     const defaultModalItems = [
       { id: 'number', label: '番号', show: true },
       { id: 'rarity', label: 'レアリティ', show: true },
@@ -464,7 +462,7 @@
       if (localStorage.getItem('tourmas_detailMode') === 'false') { savedDetailMode = false; }
       const savedCloseOutside = localStorage.getItem('tourmas_closeOutside') !== 'false';
       const savedPrivacy = localStorage.getItem('tourmas_privacy') === 'true';
-      const savedFreeMemo = localStorage.getItem('tourmas_freeMemo') !== 'false'; // デフォルトtrue
+      const savedFreeMemo = localStorage.getItem('tourmas_freeMemo') !== 'false'; 
 
       document.getElementById('themeSelect').value = savedTheme;
       document.getElementById('themeSelectInSettings').value = savedTheme;
@@ -494,7 +492,6 @@
       document.documentElement.style.setProperty('--sub-color', t.sub);
     };
 
-    // 設定画面とサイドバーのテーマ選択を連動
     const changeTheme = (e) => {
       localStorage.setItem('tourmas_theme', e.target.value);
       applyTheme(e.target.value);
@@ -510,7 +507,7 @@
     });
     document.getElementById('freeMemoToggle').addEventListener('change', (e) => {
       localStorage.setItem('tourmas_freeMemo', e.target.checked);
-      renderFormations(); // メモ欄の表示切替を即反映
+      renderFormations(); 
     });
     
     document.getElementById('detailModeToggle').addEventListener('change', (e) => {
@@ -568,7 +565,6 @@
     createFilterGrid('genreFilters', filterConfig.genres, 'filter-genre');
     createFilterGrid('idolFilters', filterConfig.idols, 'filter-idol');
 
-    // ★ ツアーズレアを含む弾数フィルターの完全自動生成！
     const setupSeriesFilter = () => {
       const seriesSet = new Set();
       let hasToursRare = false;
@@ -584,7 +580,6 @@
         seriesContainer.innerHTML += `<label class="checkbox-label"><input type="checkbox" class="series-filter" value="${s}" checked> ${s}</label>`;
       });
       if (hasToursRare) {
-        // 全部のツアーズレアを1つのチェックボックスで制御
         seriesContainer.innerHTML += `<label class="checkbox-label" style="font-weight:bold; color:var(--main-color);"><input type="checkbox" class="series-filter" value="ツアーズレア" checked> ツアーズレア (全弾一括)</label>`;
       }
     };
@@ -729,9 +724,8 @@
         return html;
       };
 
-      // ★ カスタマイズされた順番で表示するロジック
       modalConfig.forEach(item => {
-        if (!item.show) return; // 非表示ならスキップ
+        if (!item.show) return;
         
         let val = "";
         if (item.id === 'number') val = data["番号"];
@@ -801,7 +795,7 @@
     });
 
     /* =======================================
-       ★ アプリ設定画面のロジック（表示順変更など）
+       ★ アプリ設定画面のロジック
        ======================================= */
     window.renderModalOrderSettings = () => {
       const container = document.getElementById('modalOrderSettingsContainer');
@@ -891,14 +885,14 @@
         const createIdolCol = (idolKey, title) => `
           <div class="formation-col">
             <h4>${title}</h4>
-            <div class="f-row"><label>ｱｲﾄﾞル</label><input type="text" value="${f[idolKey]?.name || ''}" oninput="updateFormationData(${idx}, '${idolKey}', 'name', this.value)" placeholder="手入力"></div>
+            <div class="f-row"><label>アイドル</label><input type="text" value="${f[idolKey]?.name || ''}" oninput="updateFormationData(${idx}, '${idolKey}', 'name', this.value)" placeholder="手入力"></div>
             <div class="f-row"><label>衣装</label><input type="text" value="${f[idolKey]?.costume || ''}" readonly onclick="openCardSelectModal(${idx}, '${idolKey}', 'costume')" placeholder="タップして選択"></div>
-            <div class="f-row"><label>頭ｱｸｾ</label><input type="text" value="${f[idolKey]?.head || ''}" readonly onclick="openCardSelectModal(${idx}, '${idolKey}', 'head')" placeholder="タップして選択"></div>
-            <div class="f-row"><label>顔ｱｸｾ</label><input type="text" value="${f[idolKey]?.face || ''}" readonly onclick="openCardSelectModal(${idx}, '${idolKey}', 'face')" placeholder="タップして選択"></div>
-            <div class="f-row"><label>手ｱｸｾ</label><input type="text" value="${f[idolKey]?.hand || ''}" readonly onclick="openCardSelectModal(${idx}, '${idolKey}', 'hand')" placeholder="タップして選択"></div>
-            <div class="f-row"><label>胴ｱｸｾ</label><input type="text" value="${f[idolKey]?.body || ''}" readonly onclick="openCardSelectModal(${idx}, '${idolKey}', 'body')" placeholder="タップして選択"></div>
-            <div class="f-row"><label>腰ｱｸｾ</label><input type="text" value="${f[idolKey]?.waist || ''}" readonly onclick="openCardSelectModal(${idx}, '${idolKey}', 'waist')" placeholder="タップして選択"></div>
-            <div class="f-row"><label>脚ｱｸｾ</label><input type="text" value="${f[idolKey]?.leg || ''}" readonly onclick="openCardSelectModal(${idx}, '${idolKey}', 'leg')" placeholder="タップして選択"></div>
+            <div class="f-row"><label>頭アクセ</label><input type="text" value="${f[idolKey]?.head || ''}" readonly onclick="openCardSelectModal(${idx}, '${idolKey}', 'head')" placeholder="タップして選択"></div>
+            <div class="f-row"><label>顔アクセ</label><input type="text" value="${f[idolKey]?.face || ''}" readonly onclick="openCardSelectModal(${idx}, '${idolKey}', 'face')" placeholder="タップして選択"></div>
+            <div class="f-row"><label>手アクセ</label><input type="text" value="${f[idolKey]?.hand || ''}" readonly onclick="openCardSelectModal(${idx}, '${idolKey}', 'hand')" placeholder="タップして選択"></div>
+            <div class="f-row"><label>胴アクセ</label><input type="text" value="${f[idolKey]?.body || ''}" readonly onclick="openCardSelectModal(${idx}, '${idolKey}', 'body')" placeholder="タップして選択"></div>
+            <div class="f-row"><label>腰アクセ</label><input type="text" value="${f[idolKey]?.waist || ''}" readonly onclick="openCardSelectModal(${idx}, '${idolKey}', 'waist')" placeholder="タップして選択"></div>
+            <div class="f-row"><label>脚アクセ</label><input type="text" value="${f[idolKey]?.leg || ''}" readonly onclick="openCardSelectModal(${idx}, '${idolKey}', 'leg')" placeholder="タップして選択"></div>
           </div>
         `;
 
@@ -1050,7 +1044,7 @@
       const btn = document.getElementById('cloudSaveBtn');
       btn.classList.remove('unsaved');
       btn.innerText = "クラウドにセーブ済";
-      showToast("クラウドに保存しました！");
+      showToast("クラウドに一括保存しました！");
     };
 
     document.getElementById('modalCount').addEventListener('change', updateLocalMemory);
@@ -1090,7 +1084,6 @@
         const searchTarget = (searchMode === 'partial') ? card.dataset.searchPartial : card.dataset.searchExact;
         const matchText = searchTarget.includes(text);
         
-        // ★ ツアーズレア用の特別な判定ロジック
         const matchSeries = checkedSeries.some(s => {
            if (s === "ツアーズレア") return card.dataset.series.includes("ツアーズレア");
            return card.dataset.series === s;
