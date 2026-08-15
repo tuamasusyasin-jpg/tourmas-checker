@@ -61,6 +61,7 @@
     .f-row label { width: 60px; font-size: 12px; font-weight: bold; color: #777; }
     .f-row input { flex: 1; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px; cursor: pointer; background: #fff; }
     .f-row input:hover { border-color: var(--main-color); }
+    .f-row select { flex: 1; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px; cursor: pointer; background: #fff; }
     
     .formation-bottom { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; }
     .f-box { background: #fff8e1; padding: 15px; border-radius: 8px; border: 1px solid #ffe082; }
@@ -101,8 +102,8 @@
     .card-list { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; }
     .card { border: 3px solid #ccc; border-radius: 12px; width: 160px; aspect-ratio: 378 / 533; cursor: pointer; transition: all 0.2s ease; background-color: #999; position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; }
     .card-info { background: rgba(255, 255, 255, 0.95); padding: 10px; text-align: center; border-top: 1px solid #eee; }
-    .card-info h4 { margin: 0; font-size: 14px; color: #333; }
-    .card-info p { margin: 3px 0 0; font-size: 10px; color: #666; }
+    .card-info h4 { margin: 0; font-size: 14px; color: #333; line-height: 1.2; }
+    .card-info p { margin: 5px 0 0; font-size: 10px; color: #666; }
     .rarity-badge { position: absolute; top: 5px; left: 5px; background-color: #333; color: #fff; padding: 3px 8px; border-radius: 10px; font-size: 11px; font-weight: bold; }
     .card::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); pointer-events: none; transition: 0.2s; }
     .card.owned { border-color: var(--main-color); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
@@ -164,12 +165,13 @@
   <div id="sidebar">
     <button id="menuCloseBtn">✖</button>
     
-    <!-- サイドバーメニュー -->
+    <!-- ▼ 1. カード一覧に戻る / マイ編成メモ -->
     <div class="menu-section">
       <button class="nav-btn" onclick="switchView('collection')">カード一覧に戻る</button>
       <button class="nav-btn" onclick="switchView('formation')" style="border-color: #1a73e8; color: #1a73e8;">マイ編成メモ</button>
     </div>
 
+    <!-- ▼ 2. Googleログイン -->
     <div class="menu-section auth-container">
       <span id="userInfo">未ログイン</span>
       <label class="checkbox-label" style="justify-content: center; font-size: 11px; margin-top: 5px;">
@@ -179,6 +181,7 @@
       <button id="logoutBtn" class="logout-btn" style="display:none;">ログアウト</button>
     </div>
     
+    <!-- ▼ 3. 詳細確認モード -->
     <div class="menu-section mode-switch">
       <label class="checkbox-label" style="margin: 0;">
         <input type="checkbox" id="detailModeToggle"> 詳細確認モード
@@ -188,20 +191,23 @@
       </label>
     </div>
 
-    <!-- ここから、アプリ設定 → 弾数 → プライバシー → 笑顔 の順 -->
-    <div class="menu-section">
-      <button class="nav-btn" onclick="switchView('settings')" style="border-color: #ff9800; color: #e65100; background: #fff8e1;">アプリ設定</button>
-    </div>
-
+    <!-- ▼ 4. 表示する弾数 -->
     <div class="menu-section">
       <h3>表示する弾数</h3>
       <div id="seriesFilterContainer"></div>
     </div>
+
+    <!-- ▼ 5. アプリ設定 -->
+    <div class="menu-section">
+      <button class="nav-btn" onclick="switchView('settings')" style="border-color: #ff9800; color: #e65100; background: #fff8e1;">アプリ設定</button>
+    </div>
     
+    <!-- ▼ 6. プライバシーポリシー -->
     <div class="menu-section">
       <button class="nav-btn" onclick="switchView('privacy')" style="border-color: #999; color: #777; background: #f0f0f0;">プライバシーポリシー</button>
     </div>
     
+    <!-- ▼ 7. 笑顔満点 -->
     <div class="menu-section" style="border-bottom: none;">
       <button id="egaoBtn">笑顔満点ですっ</button>
       <div id="egaoResult"></div>
@@ -213,11 +219,6 @@
     <div id="view-collection" class="view-section active">
       <div class="controls">
         <h2 id="counterDisplay">所持数: 0 / 0種 (0%) <span id="totalCountDisplay">総枚数: 0枚</span></h2>
-        
-        <!-- ▼「詳細確認モード」についてのご案内 -->
-        <p style="font-size: 12px; color: #d32f2f; margin-top:-10px; font-weight:bold;">
-          ※カードをタップして「所持済み」にするには、サイドメニューから【詳細確認モード】のチェックを外してください！
-        </p>
 
         <div class="search-area">
           <input type="text" id="searchInput" placeholder="検索ワードを入力...">
@@ -388,9 +389,15 @@
     <div class="modal-content">
       <button class="modal-close" id="cardSelectCloseBtn">✖</button>
       <h2 id="cardSelectTitle" style="color:var(--main-color); margin-top:0;">カードを選択</h2>
-      <div style="text-align:center; margin-bottom:10px;">
-        <button id="cardSelectClearBtn" style="padding:10px 20px; background:#f44336; color:white; font-weight:bold; border:none; border-radius:8px; cursor:pointer;">この枠を「未設定」にする</button>
+      
+      <!-- ▼ 弾数での絞り込みフィルターを追加！ -->
+      <div style="text-align:center; margin-bottom:10px; display:flex; flex-wrap:wrap; gap:10px; justify-content:center;">
+        <select id="modalSeriesFilter" style="padding:8px; border-radius:5px; border:1px solid #ccc; font-weight:bold;">
+          <!-- JSで自動生成されます -->
+        </select>
+        <button id="cardSelectClearBtn" style="padding:8px 20px; background:#f44336; color:white; font-weight:bold; border:none; border-radius:8px; cursor:pointer;">この枠を「未設定」にする</button>
       </div>
+      
       <div class="card-list" id="cardSelectList"></div>
     </div>
   </div>
@@ -423,7 +430,6 @@
     let userFormations = [];
     let hasUnsavedChanges = false; 
 
-    // ★ 絶対にエラーで死なないイベント追加関数
     const safeAddListener = (id, event, handler) => {
       const el = document.getElementById(id);
       if (el) el.addEventListener(event, handler);
@@ -454,7 +460,6 @@
       modalConfig = savedConfig ? JSON.parse(savedConfig) : defaultModalItems;
       if (!Array.isArray(modalConfig)) modalConfig = defaultModalItems;
     } catch (e) {
-      console.warn("設定データ初期化", e);
       modalConfig = defaultModalItems;
     }
 
@@ -574,15 +579,18 @@
       "MISS判定でもコンボが継続する", "コンボ数に応じてスコア獲得", "FEVERゲージ上昇率UP", "判定が長くなる",
       "MISS判定時スコアDOWN", "判定が短くなる", "FEVERゲージを消費する", "SPアピール回数を1回消費"
     ];
-    safeAddListener('egaoBtn', 'click', () => {
-      const dai = egaoEffects[Math.floor(Math.random() * egaoEffects.length)];
-      const shou = egaoEffects[Math.floor(Math.random() * egaoEffects.length)];
-      const resDiv = document.getElementById('egaoResult');
-      if(resDiv) {
-        resDiv.innerHTML = `<strong>効果(大)：</strong>${dai}<br><strong>効果(小)：</strong>${shou}<br>`;
-        resDiv.style.display = 'block';
-      }
-    });
+    const egaoBtn = document.getElementById('egaoBtn');
+    if(egaoBtn) {
+      egaoBtn.addEventListener('click', () => {
+        const dai = egaoEffects[Math.floor(Math.random() * egaoEffects.length)];
+        const shou = egaoEffects[Math.floor(Math.random() * egaoEffects.length)];
+        const resDiv = document.getElementById('egaoResult');
+        if(resDiv) {
+          resDiv.innerHTML = `<strong>効果(大)：</strong>${dai}<br><strong>効果(小)：</strong>${shou}<br>`;
+          resDiv.style.display = 'block';
+        }
+      });
+    }
 
     let bdayMessages = [];
     const today = new Date();
@@ -616,7 +624,6 @@
     createFilterGrid('genreFilters', filterConfig.genres, 'filter-genre');
     createFilterGrid('idolFilters', filterConfig.idols, 'filter-idol');
 
-    // ★ 未設定カード（中身がないカード）も1つのまとまりとして救済する設定
     const setupSeriesFilter = () => {
       const seriesSet = new Set();
       let hasToursRare = false;
@@ -630,17 +637,31 @@
         if (s.includes("ツアーズレア")) hasToursRare = true;
         else seriesSet.add(s);
       });
+      
+      // サイドメニュー用
       const seriesContainer = document.getElementById('seriesFilterContainer');
-      if(!seriesContainer) return;
-      seriesContainer.innerHTML = '';
-      Array.from(seriesSet).forEach(s => {
-        seriesContainer.innerHTML += `<label class="checkbox-label"><input type="checkbox" class="series-filter" value="${s}" checked> ${s}</label>`;
-      });
-      if (hasToursRare) {
-        seriesContainer.innerHTML += `<label class="checkbox-label" style="font-weight:bold; color:var(--main-color);"><input type="checkbox" class="series-filter" value="ツアーズレア" checked> ツアーズレア (全弾一括)</label>`;
+      if(seriesContainer) {
+          seriesContainer.innerHTML = '';
+          Array.from(seriesSet).forEach(s => {
+            seriesContainer.innerHTML += `<label class="checkbox-label"><input type="checkbox" class="series-filter" value="${s}" checked> ${s}</label>`;
+          });
+          if (hasToursRare) {
+            seriesContainer.innerHTML += `<label class="checkbox-label" style="font-weight:bold; color:var(--main-color);"><input type="checkbox" class="series-filter" value="ツアーズレア" checked> ツアーズレア (全弾一括)</label>`;
+          }
+          if (hasUnknown) {
+            seriesContainer.innerHTML += `<label class="checkbox-label" style="color:#888;"><input type="checkbox" class="series-filter" value="未設定" checked> 未設定（今後の追加データ）</label>`;
+          }
       }
-      if (hasUnknown) {
-        seriesContainer.innerHTML += `<label class="checkbox-label" style="color:#888;"><input type="checkbox" class="series-filter" value="未設定" checked> 未設定（今後の追加データ）</label>`;
+
+      // ★ 編成のカード選択モーダルの「弾絞り込み用」
+      const msf = document.getElementById('modalSeriesFilter');
+      if(msf) {
+          msf.innerHTML = '<option value="all">すべての弾</option>';
+          Array.from(seriesSet).forEach(s => {
+            msf.innerHTML += `<option value="${s}">${s}</option>`;
+          });
+          if (hasToursRare) msf.innerHTML += `<option value="ツアーズレア">ツアーズレア (全弾一括)</option>`;
+          if (hasUnknown) msf.innerHTML += `<option value="未設定">未設定</option>`;
       }
     };
     setupSeriesFilter();
@@ -704,7 +725,6 @@
         cardDiv.dataset.type = data["種類"] || "";
         cardDiv.dataset.brand = data["シリーズブランド名"] || "";
         cardDiv.dataset.idol = data["アイドル名"] || "";
-        // ★ 空っぽの場合は「未設定」として裏側に持たせる
         cardDiv.dataset.series = data["入手手段"] || "未設定";
         cardDiv.dataset.target = data["対象アイドル／サポート効果対象"] || "";
         cardDiv.dataset.part = data["部位"] || "";
@@ -721,7 +741,16 @@
         cardDiv.dataset.searchExact = exactKeywords;
         cardDiv.dataset.searchPartial = partialKeywords;
         
-        cardDiv.innerHTML = `${wishStars}<div class="rarity-badge">${data["レアリティ"]}</div><div class="card-info"><h4>${data["アイドル名"] || '-'}</h4><p>${data["カード名"] || data["番号"]}</p></div>`;
+        // ★ 画像のご要望：上がカード名、下がキャラ名（なければブランド、それもなければ空）
+        const mainText = data["カード名"] || data["番号"] || "未登録";
+        let subText = "";
+        if (data["アイドル名"]) {
+            subText = `<p>${data["アイドル名"]}</p>`;
+        } else if (data["シリーズブランド名"]) {
+            subText = `<p>${data["シリーズブランド名"]}</p>`;
+        }
+        
+        cardDiv.innerHTML = `${wishStars}<div class="rarity-badge">${data["レアリティ"]}</div><div class="card-info"><h4>${mainText}</h4>${subText}</div>`;
         
         cardDiv.onclick = async () => {
           const dmt = document.getElementById('detailModeToggle');
@@ -966,10 +995,20 @@
         const div = document.createElement('div');
         div.className = 'formation-card';
         
-        const createIdolCol = (idolKey, title) => `
+        // ★ アイドル名を data.js の名簿から選べるように変更
+        const createIdolCol = (idolKey, title) => {
+          const selectedName = f[idolKey]?.name || '';
+          let selectHtml = `<select onchange="updateFormationData(${idx}, '${idolKey}', 'name', this.value)">`;
+          selectHtml += `<option value="">未選択</option>`;
+          filterConfig.idols.forEach(i => {
+              selectHtml += `<option value="${i.name}" ${selectedName === i.name ? 'selected' : ''}>${i.name}</option>`;
+          });
+          selectHtml += `</select>`;
+
+          return `
           <div class="formation-col">
             <h4>${title}</h4>
-            <div class="f-row"><label>アイドル</label><input type="text" value="${f[idolKey]?.name || ''}" oninput="updateFormationData(${idx}, '${idolKey}', 'name', this.value)" placeholder="手入力"></div>
+            <div class="f-row"><label>アイドル</label>${selectHtml}</div>
             <div class="f-row"><label>衣装</label><input type="text" value="${f[idolKey]?.costume || ''}" readonly onclick="openCardSelectModal(${idx}, '${idolKey}', 'costume')" placeholder="タップして選択"></div>
             <div class="f-row"><label>頭アクセ</label><input type="text" value="${f[idolKey]?.head || ''}" readonly onclick="openCardSelectModal(${idx}, '${idolKey}', 'head')" placeholder="タップして選択"></div>
             <div class="f-row"><label>顔アクセ</label><input type="text" value="${f[idolKey]?.face || ''}" readonly onclick="openCardSelectModal(${idx}, '${idolKey}', 'face')" placeholder="タップして選択"></div>
@@ -978,7 +1017,8 @@
             <div class="f-row"><label>腰アクセ</label><input type="text" value="${f[idolKey]?.waist || ''}" readonly onclick="openCardSelectModal(${idx}, '${idolKey}', 'waist')" placeholder="タップして選択"></div>
             <div class="f-row"><label>脚アクセ</label><input type="text" value="${f[idolKey]?.leg || ''}" readonly onclick="openCardSelectModal(${idx}, '${idolKey}', 'leg')" placeholder="タップして選択"></div>
           </div>
-        `;
+          `;
+        };
 
         div.innerHTML = `
           <div class="formation-header">
@@ -1043,8 +1083,10 @@
 
     let currentSelectTarget = null;
 
-    window.openCardSelectModal = (idx, field, subfield) => {
-      currentSelectTarget = { idx, field, subfield };
+    // ★ カード選択モーダルを描画する処理（弾数フィルターで再描画するため分離）
+    window.renderCardSelectModalList = () => {
+      if(!currentSelectTarget) return;
+      const { idx, field, subfield } = currentSelectTarget;
       
       let filterType = ""; let filterPart = ""; let filterRarities = null; let title = "";
       
@@ -1066,10 +1108,22 @@
       if(!list) return;
       list.innerHTML = '';
       
+      const msf = document.getElementById('modalSeriesFilter');
+      const selectedSeries = msf ? msf.value : "all";
+      
       cardData.forEach(data => {
         if (filterType && data["種類"] !== filterType) return;
         if (filterPart && data["部位"] !== filterPart) return;
         if (filterRarities && !filterRarities.includes(data["レアリティ"])) return;
+        
+        const s = data["入手手段"] || "未設定";
+        if (selectedSeries !== "all") {
+           if (selectedSeries === "ツアーズレア") {
+             if (!s.includes("ツアーズレア")) return;
+           } else {
+             if (s !== selectedSeries) return;
+           }
+        }
         
         const cardDiv = document.createElement('div');
         cardDiv.className = 'card';
@@ -1078,19 +1132,38 @@
           cardDiv.style.backgroundSize = 'cover';
         }
         
-        const displayName = data["カード名"] || data["番号"] || "未登録";
-        cardDiv.innerHTML = `<div class="rarity-badge">${data["レアリティ"]}</div><div class="card-info"><h4>${data["アイドル名"] || '-'}</h4><p>${displayName}</p></div>`;
+        const mainText = data["カード名"] || data["番号"] || "未登録";
+        let subText = "";
+        if (data["アイドル名"]) {
+            subText = `<p>${data["アイドル名"]}</p>`;
+        } else if (data["シリーズブランド名"]) {
+            subText = `<p>${data["シリーズブランド名"]}</p>`;
+        }
+        
+        cardDiv.innerHTML = `<div class="rarity-badge">${data["レアリティ"]}</div><div class="card-info"><h4>${mainText}</h4>${subText}</div>`;
         
         cardDiv.onclick = () => {
-          const val = `[${data["レアリティ"]}] ${displayName}`;
-          updateFormationData(currentSelectTarget.idx, currentSelectTarget.field, currentSelectTarget.subfield, val);
+          const val = `[${data["レアリティ"]}] ${mainText}`;
+          updateFormationData(idx, field, subfield, val);
           document.getElementById('cardSelectModal')?.classList.remove('open');
           renderFormations();
         };
         list.appendChild(cardDiv);
       });
+    };
+
+    window.openCardSelectModal = (idx, field, subfield) => {
+      currentSelectTarget = { idx, field, subfield };
+      const msf = document.getElementById('modalSeriesFilter');
+      if(msf) msf.value = "all"; // 開くたびに全弾に戻す
+      
+      renderCardSelectModalList();
       document.getElementById('cardSelectModal')?.classList.add('open');
     };
+
+    safeAddListener('modalSeriesFilter', 'change', () => {
+      renderCardSelectModalList();
+    });
 
     const csCloseBtn = document.getElementById('cardSelectCloseBtn');
     if(csCloseBtn) {
