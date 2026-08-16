@@ -61,6 +61,7 @@
     .f-row label { width: 60px; font-size: 12px; font-weight: bold; color: #777; }
     .f-row input { flex: 1; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px; cursor: pointer; background: #fff; }
     .f-row input:hover { border-color: var(--main-color); }
+    .f-row select { flex: 1; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px; cursor: pointer; background: #fff; }
     
     .formation-bottom { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; }
     .f-box { background: #fff8e1; padding: 15px; border-radius: 8px; border: 1px solid #ffe082; }
@@ -101,7 +102,6 @@
     .card-list { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; }
     .card { border: 3px solid #ccc; border-radius: 12px; width: 160px; aspect-ratio: 378 / 533; cursor: pointer; transition: all 0.2s ease; background-color: #999; position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; }
     
-    /* ★ 改行防止 ＆ 新・縮小魔法（段階的な文字詰め） */
     .card-info { background: rgba(255, 255, 255, 0.95); padding: 10px; text-align: center; border-top: 1px solid #eee; overflow: hidden; }
     .card-info h4, .card-info p { margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
     .card-info h4 { font-size: 14px; color: #333; line-height: 1.2; font-weight: bold; }
@@ -122,6 +122,12 @@
     .card.owned { border-color: var(--main-color); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
     .card.owned::after { background-color: rgba(0, 0, 0, 0); }
     .wish-star { position: absolute; top: 5px; right: 5px; color: #ffeb3b; text-shadow: 0 0 3px #000; font-size: 16px; z-index: 10; font-weight: bold; }
+
+    /* ★ アイドル選択用コンパクトバッジのCSS */
+    .idol-badge { background: #fff; border: 2px solid #ccc; border-radius: 8px; width: 140px; padding: 12px 10px; cursor: pointer; transition: 0.2s; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+    .idol-badge:hover { border-color: var(--main-color); transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+    .idol-badge p { margin: 0; font-size: 10px; color: #888; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .idol-badge h4 { margin: 5px 0 0 0; font-size: 16px; color: #333; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
     #detailModal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; display: none; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; }
     #detailModal.open { display: flex; }
@@ -179,6 +185,9 @@
     
     <div class="menu-section">
       <button class="nav-btn" onclick="switchView('collection')">カード一覧に戻る</button>
+    </div>
+
+    <div class="menu-section">
       <button class="nav-btn" onclick="switchView('formation')" style="border-color: #1a73e8; color: #1a73e8;">マイ編成メモ</button>
     </div>
 
@@ -280,7 +289,6 @@
       <div class="card-list" id="cardList"></div>
     </div>
 
-    <!-- マイ編成メモ画面 -->
     <div id="view-formation" class="view-section">
       <h2 class="page-title">マイ編成メモ</h2>
       <p style="color: #666; font-size: 14px; margin-bottom: 20px;">
@@ -290,7 +298,6 @@
       <button id="addFormationBtn" onclick="addFormation()">＋ 新しい編成を記録する</button>
     </div>
 
-    <!-- アプリ設定画面 -->
     <div id="view-settings" class="view-section">
       <h2 class="page-title">チェッカー設定</h2>
       <p style="color: #666; font-size: 14px; margin-bottom: 20px;">
@@ -341,7 +348,6 @@
       </div>
     </div>
 
-    <!-- プライバシーポリシー画面 -->
     <div id="view-privacy" class="view-section">
       <h2 class="page-title">プライバシーポリシー</h2>
       <div class="policy-content">
@@ -403,7 +409,6 @@
       <button class="modal-close" id="cardSelectCloseBtn">✖</button>
       <h2 id="cardSelectTitle" style="color:var(--main-color); margin-top:0;">選択してください</h2>
       
-      <!-- ▼ 動的に切り替わる絞り込みフィルター -->
       <div style="text-align:center; margin-bottom:10px; display:flex; flex-wrap:wrap; gap:10px; justify-content:center;">
         <select id="modalFilterSelect" style="padding:8px; border-radius:5px; border:1px solid #ccc; font-weight:bold;">
           <!-- JSで自動生成されます -->
@@ -442,9 +447,8 @@
     let userCardDetails = {}; 
     let userFormations = [];
     let hasUnsavedChanges = false; 
-    let seriesSetForModal = new Set(); // モーダル用の弾数リスト
+    let seriesSetForModal = new Set(); 
     
-    // ★ アイドルのブランドをカードデータから自動推測して辞書を作る
     const idolBrandMap = new Map();
     cardData.forEach(c => {
         if (c["アイドル名"] && c["シリーズブランド名"]) {
@@ -765,7 +769,6 @@
         cardDiv.dataset.searchExact = exactKeywords;
         cardDiv.dataset.searchPartial = partialKeywords;
         
-        // ★ 画像のご要望：上がカード名、下がキャラ名（なければブランド、それもなければ空）
         const mainText = data["カード名"] || data["番号"] || "未登録";
         let subText = "";
         if (data["アイドル名"]) {
@@ -774,7 +777,6 @@
             subText = `<p>${data["シリーズブランド名"]}</p>`;
         }
         
-        // ★ 新・縮小魔法（段階的な文字詰め）
         let h4Class = "";
         const len = mainText.length;
         if (len >= 11) {
@@ -1128,21 +1130,35 @@
       // ★ アイドル選択モード
       // ----------------------------------------
       if (currentSelectMode === 'idol') {
-          const uniqueIdols = Array.from(idolBrandMap.keys());
-          uniqueIdols.forEach(idolName => {
-              const brand = idolBrandMap.get(idolName);
+          // ブランド順 ＞ 名簿順 にソートする
+          let idolArray = Array.from(idolBrandMap.keys()).map(name => ({
+              name: name,
+              brand: idolBrandMap.get(name)
+          }));
+          
+          idolArray.sort((a, b) => {
+              let aBrandIdx = filterConfig.brands.indexOf(a.brand);
+              let bBrandIdx = filterConfig.brands.indexOf(b.brand);
+              if (aBrandIdx === -1) aBrandIdx = 999;
+              if (bBrandIdx === -1) bBrandIdx = 999;
+              if (aBrandIdx !== bBrandIdx) return aBrandIdx - bBrandIdx;
+              
+              let aIdolIdx = filterConfig.idols.findIndex(i => i.name === a.name);
+              let bIdolIdx = filterConfig.idols.findIndex(i => i.name === b.name);
+              if (aIdolIdx === -1) aIdolIdx = 999;
+              if (bIdolIdx === -1) bIdolIdx = 999;
+              return aIdolIdx - bIdolIdx;
+          });
+
+          idolArray.forEach(idol => {
+              const brand = idol.brand;
+              const idolName = idol.name;
               if (selectedFilter !== "all" && brand !== selectedFilter) return;
               
               const cardDiv = document.createElement('div');
-              cardDiv.className = 'card';
-              cardDiv.style.backgroundColor = '#fff';
-              cardDiv.style.border = '2px solid var(--main-color)';
+              cardDiv.className = 'idol-badge';
               
-              cardDiv.innerHTML = `
-                <div class="card-info" style="border-top:none; display:flex; flex-direction:column; justify-content:center; height:100%; padding:0;">
-                  <p style="margin:0; color:#888; font-size:10px;">${brand}</p>
-                  <h4 style="font-size:16px; margin-top:5px;">${idolName}</h4>
-                </div>`;
+              cardDiv.innerHTML = `<p>${brand}</p><h4>${idolName}</h4>`;
               
               cardDiv.onclick = () => {
                   updateFormationData(idx, field, subfield, idolName);
