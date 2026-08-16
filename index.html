@@ -12,8 +12,9 @@
 
     body { font-family: sans-serif; padding: 0; margin: 0; background-color: #f0f0f0; }
     #marqueeContainer { background: #333; color: #fff; padding: 8px 0; font-size: 14px; font-weight: bold; }
-    header { background: #fff; padding: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex; align-items: center; }
-    #menuOpenBtn { font-size: 24px; background: none; border: none; cursor: pointer; margin-right: 15px; color: #555; }
+    header { background: #fff; padding: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: space-between; }
+    #menuOpenBtn { font-size: 24px; background: none; border: none; cursor: pointer; color: #555; }
+    .header-left { display: flex; align-items: center; gap: 15px; }
     header h1 { margin: 0; font-size: 18px; color: #333; }
 
     #sidebar { position: fixed; top: 0; left: -300px; width: 300px; height: 100%; background: #fff; box-shadow: 2px 0 10px rgba(0,0,0,0.2); transition: left 0.3s ease; z-index: 1000; padding: 20px; box-sizing: border-box; overflow-y: auto; display: flex; flex-direction: column; }
@@ -42,11 +43,15 @@
     
     .view-section { display: none; padding: 20px; max-width: 1200px; margin: 0 auto; }
     .view-section.active { display: block; }
-    .page-title { color: var(--main-color); border-bottom: 3px solid var(--sub-color); padding-bottom: 10px; margin-top: 0; }
+    .page-title { color: var(--main-color); border-bottom: 3px solid var(--sub-color); padding-bottom: 10px; margin-top: 0; display: flex; justify-content: space-between; align-items: center;}
 
     .policy-content { background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); line-height: 1.8; color: #444; }
-    .policy-content h3 { color: var(--main-color); margin-top: 30px; border-left: 5px solid var(--main-color); padding-left: 10px; }
+    .policy-content h3 { color: var(--main-color); margin-top: 0px; border-left: 5px solid var(--main-color); padding-left: 10px; }
+    .setting-header-wrap { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; margin-bottom: 15px; padding-bottom: 10px; }
+    .reset-btn { background: #f44336; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; }
+    .reset-btn:hover { background: #d32f2f; }
 
+    /* ▼ 編成メモ用のデザイン */
     .formation-card { background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 20px; border: 2px solid var(--sub-color); }
     .formation-header { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
     .formation-header input { flex: 1; padding: 10px; font-size: 16px; border: 1px solid #ccc; border-radius: 6px; font-weight: bold; }
@@ -84,17 +89,23 @@
     .sort-controls select, .sort-controls button { padding: 8px 12px; font-size: 14px; border-radius: 20px; border: 1px solid #ccc; outline: none; cursor: pointer; background: #fff; }
     .sort-controls button { background: #555; color: white; font-weight: bold; border: none; transition: 0.2s; }
     
-    #cloudSaveBtn { background: #1a73e8; margin-left: 10px; box-shadow: 0 2px 5px rgba(26,115,232,0.3); }
-    #cloudSaveBtn:hover { background: #1557b0; transform: scale(1.05); }
-    #cloudSaveBtn.unsaved { animation: pulse 1.5s infinite; background: #e91e63; box-shadow: 0 2px 5px rgba(233,30,99,0.3); }
+    .cloud-save-btn { background: #1a73e8; color:white; border:none; padding:8px 12px; font-size:14px; font-weight:bold; border-radius:20px; cursor:pointer; box-shadow: 0 2px 5px rgba(26,115,232,0.3); transition:0.2s; display:none; }
+    .cloud-save-btn:hover { background: #1557b0; transform: scale(1.05); }
+    .cloud-save-btn.unsaved { animation: pulse 1.5s infinite; background: #e91e63; box-shadow: 0 2px 5px rgba(233,30,99,0.3); }
     @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
     
     #toggleFilterBtn { padding: 8px 20px; border-radius: 30px; border: none; background: #555; color: white; font-weight: bold; cursor: pointer; transition: 0.2s; margin-top: 10px; }
     #filterPanel { max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out; background: #fff; border-radius: 15px; text-align: left; margin: 15px auto 20px auto; max-width: 800px; padding: 0 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-    #filterPanel.open { max-height: 2500px; padding: 20px; }
-    .filter-group { margin-bottom: 15px; }
-    .filter-group h4 { margin: 0 0 10px 0; color: var(--main-color); border-bottom: 2px solid var(--sub-color); padding-bottom: 5px; font-size: 15px; transition: 0.3s;}
-    .filter-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+    #filterPanel.open { max-height: 5000px; padding: 20px; }
+    
+    /* アコーディオンフィルター用 */
+    details.filter-group { margin-bottom: 10px; border: 1px solid #eee; border-radius: 8px; background: #fafafa; }
+    details.filter-group summary { padding: 10px; cursor: pointer; font-weight: bold; color: var(--main-color); list-style: none; display: flex; align-items: center; user-select: none; }
+    details.filter-group summary::-webkit-details-marker { display: none; }
+    details.filter-group summary::before { content: '▶'; display: inline-block; margin-right: 8px; font-size: 12px; transition: 0.2s; }
+    details.filter-group[open] summary::before { transform: rotate(90deg); }
+    .filter-grid { display: flex; flex-wrap: wrap; gap: 8px; padding: 10px; background: #fff; border-top: 1px solid #eee; border-radius: 0 0 8px 8px; }
+
     .filter-btn-label { display: inline-block; padding: 6px 12px; border-radius: 20px; border: 1px solid #ccc; background: #fafafa; font-size: 13px; cursor: pointer; transition: 0.2s; user-select: none; }
     .filter-btn-label input { display: none; }
     .filter-btn-label:has(input:checked) { background: var(--main-color); color: white; border-color: var(--main-color); font-weight: bold; }
@@ -174,59 +185,19 @@
   <div id="marqueeContainer"><marquee id="marqueeText" scrollamount="5"></marquee></div>
 
   <header>
-    <button id="menuOpenBtn">☰</button>
-    <h1>ツアマス所持率チェッカー</h1>
+    <div class="header-left">
+        <button id="menuOpenBtn">☰</button>
+        <h1>ツアマス所持率チェッカー</h1>
+    </div>
+    <!-- ヘッダーにもセーブボタンを配置 -->
+    <button class="cloud-save-btn" onclick="triggerCloudSave()">クラウドにセーブ</button>
   </header>
 
   <div id="overlay"></div>
   
-  <!-- ▼ サイドバー（中身はJSで自動生成＆並べ替えられます） -->
   <div id="sidebar">
     <button id="menuCloseBtn">✖</button>
-    
-    <div id="menu-collection" class="menu-section">
-      <button class="nav-btn" onclick="switchView('collection')">カード一覧に戻る</button>
-    </div>
-
-    <div id="menu-formation" class="menu-section">
-      <button class="nav-btn" onclick="switchView('formation')" style="border-color: #1a73e8; color: #1a73e8;">マイ編成メモ</button>
-    </div>
-
-    <div id="menu-auth" class="menu-section auth-container">
-      <span id="userInfo">未ログイン</span>
-      <label class="checkbox-label" style="justify-content: center; font-size: 11px; margin-top: 5px;">
-        <input type="checkbox" id="privacyToggle"> 名前を隠す
-      </label>
-      <button id="loginBtn">Googleでログイン</button>
-      <button id="logoutBtn" class="logout-btn" style="display:none;">ログアウト</button>
-    </div>
-    
-    <div id="menu-mode" class="menu-section mode-switch">
-      <label class="checkbox-label" style="margin: 0;">
-        <input type="checkbox" id="detailModeToggle"> 詳細確認モード
-      </label>
-      <label class="checkbox-label" style="margin: 10px 0 0 0; font-size: 12px; font-weight: normal; color: #555;">
-        <input type="checkbox" id="closeOutsideToggle" checked> 外枠をタップして閉じる
-      </label>
-    </div>
-
-    <div id="menu-series" class="menu-section">
-      <h3>表示する弾数</h3>
-      <div id="seriesFilterContainer"></div>
-    </div>
-
-    <div id="menu-settings" class="menu-section">
-      <button class="nav-btn" onclick="switchView('settings')" style="border-color: #ff9800; color: #e65100; background: #fff8e1;">チェッカー設定</button>
-    </div>
-    
-    <div id="menu-privacy" class="menu-section">
-      <button class="nav-btn" onclick="switchView('privacy')" style="border-color: #999; color: #777; background: #f0f0f0;">プライバシーポリシー</button>
-    </div>
-    
-    <div id="menu-egao" class="menu-section" style="border-bottom: none;">
-      <button id="egaoBtn">笑顔満点ですっ</button>
-      <div id="egaoResult"></div>
-    </div>
+    <!-- メニュー項目はJSで完全動的生成 -->
   </div>
 
   <main>
@@ -252,46 +223,26 @@
             <option value="wish">欲しい度順</option>
           </select>
           <button id="sortOrderBtn" data-order="asc">昇順 ▲</button>
-          <button id="cloudSaveBtn" style="display:none;">クラウドにセーブ</button>
         </div>
         
         <button id="toggleFilterBtn">▼ 詳細な絞り込みを開く</button>
         
         <div id="filterPanel">
           <div style="text-align: right; margin-bottom: 10px;"><button onclick="resetFilters()" style="padding:5px 10px; cursor:pointer;">✖ 全てクリア</button></div>
-          <div class="filter-group">
-            <h4>所持状況</h4>
-            <div class="filter-grid">
-              <label class="filter-btn-label"><input type="radio" name="filterOwned" value="all" checked> すべて表示</label>
-              <label class="filter-btn-label"><input type="radio" name="filterOwned" value="owned"> 持っている</label>
-              <label class="filter-btn-label"><input type="radio" name="filterOwned" value="unowned"> 持っていない</label>
-            </div>
+          <div id="filterPanelBody">
+              <!-- JSでアコーディオンフィルターが生成されます -->
           </div>
-          <div class="filter-group">
-            <h4>欲しいリスト</h4>
-            <div class="filter-grid">
-              <label class="filter-btn-label"><input type="radio" name="filterWish" value="0" checked> 指定なし</label>
-              <label class="filter-btn-label"><input type="radio" name="filterWish" value="1"> ★1以上</label>
-              <label class="filter-btn-label"><input type="radio" name="filterWish" value="2"> ★2以上</label>
-              <label class="filter-btn-label"><input type="radio" name="filterWish" value="3"> ★3以上</label>
-              <label class="filter-btn-label"><input type="radio" name="filterWish" value="4"> ★4以上</label>
-              <label class="filter-btn-label"><input type="radio" name="filterWish" value="5"> ★5のみ</label>
-            </div>
-          </div>
-          <div class="filter-group"><h4>レアリティ</h4><div class="filter-grid" id="rarityFilters"></div></div>
-          <div class="filter-group"><h4>カード種類</h4><div class="filter-grid" id="typeFilters"></div></div>
-          <div class="filter-group"><h4>ブランド</h4><div class="filter-grid" id="brandFilters"></div></div>
-          <div class="filter-group"><h4>対象・効果</h4><div class="filter-grid" id="targetFilters"></div></div>
-          <div class="filter-group"><h4>部位</h4><div class="filter-grid" id="partFilters"></div></div>
-          <div class="filter-group"><h4>ジャンル</h4><div class="filter-grid" id="genreFilters"></div></div>
-          <div class="filter-group"><h4>アイドル</h4><div class="filter-grid" id="idolFilters"></div></div>
         </div>
       </div>
       <div class="card-list" id="cardList"></div>
     </div>
 
+    <!-- マイ編成メモ画面 -->
     <div id="view-formation" class="view-section">
-      <h2 class="page-title">マイ編成メモ</h2>
+      <div class="page-title">
+          <h2>マイ編成メモ</h2>
+          <button class="cloud-save-btn" onclick="triggerCloudSave()">クラウドにセーブ</button>
+      </div>
       <p style="color: #666; font-size: 14px; margin-bottom: 20px;">
         スコアアタック用の理想の編成を記録できます。枠をタップすると所持・未所持に関わらず全てのデータから検索・選択できます。
       </p>
@@ -299,8 +250,12 @@
       <button id="addFormationBtn" onclick="addFormation()">＋ 新しい編成を記録する</button>
     </div>
 
+    <!-- チェッカー設定画面 -->
     <div id="view-settings" class="view-section">
-      <h2 class="page-title">チェッカー設定</h2>
+      <div class="page-title">
+          <h2>チェッカー設定</h2>
+          <button class="cloud-save-btn" onclick="triggerCloudSave()">クラウドにセーブ</button>
+      </div>
       <p style="color: #666; font-size: 14px; margin-bottom: 20px;">
         自分好みにカスタマイズできます。設定は自動でブラウザに保存されます。
       </p>
@@ -330,6 +285,14 @@
           </select>
         </div>
 
+        <div style="margin-bottom:15px;">
+          <label style="font-weight:bold; display:block; margin-bottom:5px;">ログイン直後のカードタップの挙動</label>
+          <select id="defaultModeSelect" style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ccc; font-weight: bold;">
+            <option value="on">詳細確認モード (ON: カードの詳細を見る)</option>
+            <option value="off">所持チェックモード (OFF: 所持/未所持を切り替える)</option>
+          </select>
+        </div>
+
         <label class="checkbox-label" style="font-weight:bold; font-size:15px; margin-bottom:15px;">
           <input type="checkbox" id="noticeToggleSettings" checked style="transform:scale(1.3); margin-right:10px;"> 画面上部にお知らせを表示する
         </label>
@@ -340,20 +303,36 @@
       </div>
 
       <div class="policy-content" style="padding:20px; margin-bottom:20px;">
-        <h3 style="margin-top:0;">2. 詳細画面の表示順・ON/OFF設定</h3>
+        <div class="setting-header-wrap">
+            <h3 style="margin:0;">2. 詳細画面の表示順・ON/OFF設定</h3>
+            <button class="reset-btn" onclick="resetModalSettings()">デフォルトに戻す</button>
+        </div>
         <p style="font-size:12px; color:#666; margin-bottom:15px;">
           カードをタップしたときに出る表の項目を、好きな順番に入れ替えたり、不要なものを非表示にできます。
         </p>
         <div id="modalOrderSettingsContainer"></div>
       </div>
       
-      <!-- ▼ メニュー並べ替え設定を追加 -->
-      <div class="policy-content" style="padding:20px;">
-        <h3 style="margin-top:0;">3. サイドメニューの並び替え</h3>
+      <div class="policy-content" style="padding:20px; margin-bottom:20px;">
+        <div class="setting-header-wrap">
+            <h3 style="margin:0;">3. サイドメニューの並び替え</h3>
+            <button class="reset-btn" onclick="resetMenuSettings()">デフォルトに戻す</button>
+        </div>
         <p style="font-size:12px; color:#666; margin-bottom:15px;">
           左から出てくるメニューの順番を、使いやすいように並び替えられます。
         </p>
         <div id="menuOrderSettingsContainer"></div>
+      </div>
+
+      <div class="policy-content" style="padding:20px;">
+        <div class="setting-header-wrap">
+            <h3 style="margin:0;">4. 絞り込み項目の並び替え・開閉設定</h3>
+            <button class="reset-btn" onclick="resetFilterSettings()">デフォルトに戻す</button>
+        </div>
+        <p style="font-size:12px; color:#666; margin-bottom:15px;">
+          「詳細な絞り込みを開く」を押した時の項目の順番と、最初から開いておくかどうか（個別）を設定できます。
+        </p>
+        <div id="filterOrderSettingsContainer"></div>
       </div>
     </div>
 
@@ -420,7 +399,6 @@
       
       <div style="text-align:center; margin-bottom:10px; display:flex; flex-wrap:wrap; gap:10px; justify-content:center;">
         <select id="modalFilterSelect" style="padding:8px; border-radius:5px; border:1px solid #ccc; font-weight:bold;">
-          <!-- JSで自動生成されます -->
         </select>
         <button id="cardSelectClearBtn" style="padding:8px 20px; background:#f44336; color:white; font-weight:bold; border:none; border-radius:8px; cursor:pointer;">この枠を「未設定」にする</button>
       </div>
@@ -458,17 +436,21 @@
     let hasUnsavedChanges = false; 
     let seriesSetForModal = new Set(); 
     
-    // ★ アイドルのブランドを「完全」に補完する神機能
+    // ★ 究極のアイドルブランドマッピング
     const idolBrandMap = new Map();
+    // 1. data.jsの名簿に brand プロパティがあれば最優先
+    filterConfig.idols.forEach(idol => {
+        if (idol.brand) idolBrandMap.set(idol.name, idol.brand);
+    });
+    // 2. data.jsにbrandが書いていない場合は、カードデータから自動推測（旧魔法）
     cardData.forEach(c => {
-        if (c["アイドル名"] && c["シリーズブランド名"]) {
+        if (c["アイドル名"] && c["シリーズブランド名"] && !idolBrandMap.has(c["アイドル名"])) {
             idolBrandMap.set(c["アイドル名"], c["シリーズブランド名"]);
         }
     });
-    // ★ カード化されていない「雪歩」や「真」などのデータも名簿から拾って補完！
+    // 3. それでもブランドが不明なアイドル（カード化されていない初期ASなど）は「アイドルマスター」に仮置き
     filterConfig.idols.forEach(idol => {
         if (!idolBrandMap.has(idol.name)) {
-            // 現状カードが無いのはASメンバーなので、アイドルマスターブランドに分類
             idolBrandMap.set(idol.name, "アイドルマスター");
         }
     });
@@ -478,6 +460,7 @@
       if (el) el.addEventListener(event, handler);
     };
 
+    // --- 詳細モーダルの項目設定 ---
     const defaultModalItems = [
       { id: 'number', label: '番号', show: true },
       { id: 'rarity', label: 'レアリティ', show: true },
@@ -496,17 +479,14 @@
       { id: 'color', label: '色違い', show: true },
       { id: 'utsurikomi', label: '写り込み', show: true }
     ];
-
     let modalConfig;
     try {
       const savedConfig = localStorage.getItem('tourmas_modalConfig');
-      modalConfig = savedConfig ? JSON.parse(savedConfig) : defaultModalItems;
-      if (!Array.isArray(modalConfig)) modalConfig = defaultModalItems;
-    } catch (e) {
-      modalConfig = defaultModalItems;
-    }
+      modalConfig = savedConfig ? JSON.parse(savedConfig) : JSON.parse(JSON.stringify(defaultModalItems));
+      if (!Array.isArray(modalConfig)) modalConfig = JSON.parse(JSON.stringify(defaultModalItems));
+    } catch (e) { modalConfig = JSON.parse(JSON.stringify(defaultModalItems)); }
 
-    // ★ サイドメニューの順番設定
+    // --- メニューの順番設定 ---
     const defaultMenuItems = [
       { id: 'collection', label: 'カード一覧に戻る' },
       { id: 'formation', label: 'マイ編成メモ' },
@@ -520,34 +500,134 @@
     let menuConfig;
     try {
       const savedMenu = localStorage.getItem('tourmas_menuConfig');
-      menuConfig = savedMenu ? JSON.parse(savedMenu) : defaultMenuItems;
-      if (!Array.isArray(menuConfig)) menuConfig = defaultMenuItems;
-    } catch (e) {
-      menuConfig = defaultMenuItems;
-    }
+      menuConfig = savedMenu ? JSON.parse(savedMenu) : JSON.parse(JSON.stringify(defaultMenuItems));
+      if (!Array.isArray(menuConfig)) menuConfig = JSON.parse(JSON.stringify(defaultMenuItems));
+    } catch (e) { menuConfig = JSON.parse(JSON.stringify(defaultMenuItems)); }
 
-    // ★ メニューを描画する関数
+    // --- 絞り込みアコーディオンの設定 ---
+    const defaultFilterGroups = [
+      { id: 'owned', label: '所持状況', open: true },
+      { id: 'wish', label: '欲しいリスト', open: true },
+      { id: 'rarity', label: 'レアリティ', open: true },
+      { id: 'type', label: 'カード種類', open: true },
+      { id: 'brand', label: 'ブランド', open: true },
+      { id: 'target', label: '対象・効果', open: true },
+      { id: 'part', label: '部位', open: true },
+      { id: 'genre', label: 'ジャンル', open: true },
+      { id: 'idol', label: 'アイドル', open: false }
+    ];
+    let filterConfigGroups;
+    try {
+      const savedFilter = localStorage.getItem('tourmas_filterConfig');
+      filterConfigGroups = savedFilter ? JSON.parse(savedFilter) : JSON.parse(JSON.stringify(defaultFilterGroups));
+      if (!Array.isArray(filterConfigGroups)) filterConfigGroups = JSON.parse(JSON.stringify(defaultFilterGroups));
+    } catch (e) { filterConfigGroups = JSON.parse(JSON.stringify(defaultFilterGroups)); }
+
+
+    // ★ 動的生成系の初期化
     window.renderSidebarMenu = () => {
       const sidebar = document.getElementById('sidebar');
       if(!sidebar) return;
       
       const sections = {
-        'collection': document.getElementById('menu-collection'),
-        'formation': document.getElementById('menu-formation'),
-        'auth': document.getElementById('menu-auth'),
-        'mode': document.getElementById('menu-mode'),
-        'series': document.getElementById('menu-series'),
-        'settings': document.getElementById('menu-settings'),
-        'privacy': document.getElementById('menu-privacy'),
-        'egao': document.getElementById('menu-egao')
+        'collection': `<div id="menu-collection" class="menu-section"><button class="nav-btn" onclick="switchView('collection')">カード一覧に戻る</button></div>`,
+        'formation': `<div id="menu-formation" class="menu-section"><button class="nav-btn" onclick="switchView('formation')" style="border-color: #1a73e8; color: #1a73e8;">マイ編成メモ</button></div>`,
+        'auth': `<div id="menu-auth" class="menu-section auth-container"><span id="userInfo">未ログイン</span><label class="checkbox-label" style="justify-content: center; font-size: 11px; margin-top: 5px;"><input type="checkbox" id="privacyToggle"> 名前を隠す</label><button id="loginBtn">Googleでログイン</button><button id="logoutBtn" class="logout-btn" style="display:none;">ログアウト</button></div>`,
+        'mode': `<div id="menu-mode" class="menu-section mode-switch"><label class="checkbox-label" style="margin: 0;"><input type="checkbox" id="detailModeToggle"> 詳細確認モード</label><label class="checkbox-label" style="margin: 10px 0 0 0; font-size: 12px; font-weight: normal; color: #555;"><input type="checkbox" id="closeOutsideToggle" checked> 外枠をタップして閉じる</label></div>`,
+        'series': `<div id="menu-series" class="menu-section"><h3>表示する弾数</h3><div id="seriesFilterContainer"></div></div>`,
+        'settings': `<div id="menu-settings" class="menu-section"><button class="nav-btn" onclick="switchView('settings')" style="border-color: #ff9800; color: #e65100; background: #fff8e1;">チェッカー設定</button></div>`,
+        'privacy': `<div id="menu-privacy" class="menu-section"><button class="nav-btn" onclick="switchView('privacy')" style="border-color: #999; color: #777; background: #f0f0f0;">プライバシーポリシー</button></div>`,
+        'egao': `<div id="menu-egao" class="menu-section" style="border-bottom: none;"><button id="egaoBtn">笑顔満点ですっ</button><div id="egaoResult"></div></div>`
       };
 
+      // ボタン等以外の要素を一旦退避してクリア
+      const closeBtn = document.getElementById('menuCloseBtn');
+      sidebar.innerHTML = '';
+      if(closeBtn) sidebar.appendChild(closeBtn);
+
+      let html = "";
       menuConfig.forEach(item => {
-        if(sections[item.id]) {
-          sidebar.appendChild(sections[item.id]);
-        }
+        if(sections[item.id]) html += sections[item.id];
       });
+      sidebar.insertAdjacentHTML('beforeend', html);
+
+      // 生成した要素にイベントを再設定
+      safeAddListener('detailModeToggle', 'change', (e) => localStorage.setItem('tourmas_detailMode', e.target.checked));
+      safeAddListener('closeOutsideToggle', 'change', (e) => localStorage.setItem('tourmas_closeOutside', e.target.checked));
+      safeAddListener('privacyToggle', 'change', (e) => { localStorage.setItem('tourmas_privacy', e.target.checked); updateUserInfo(); });
+      safeAddListener('loginBtn', 'click', () => signInWithPopup(auth, provider));
+      safeAddListener('logoutBtn', 'click', () => signOut(auth));
+      
+      const egaoBtn = document.getElementById('egaoBtn');
+      if(egaoBtn) egaoBtn.addEventListener('click', () => {
+        const dai = egaoEffects[Math.floor(Math.random() * egaoEffects.length)];
+        const shou = egaoEffects[Math.floor(Math.random() * egaoEffects.length)];
+        const resDiv = document.getElementById('egaoResult');
+        if(resDiv) { resDiv.innerHTML = `<strong>効果(大)：</strong>${dai}<br><strong>効果(小)：</strong>${shou}<br>`; resDiv.style.display = 'block'; }
+      });
+
+      setupSeriesFilter();
+      loadSettings();
     };
+
+    const getFilterGridHtml = (id) => {
+        let html = "";
+        let dataArray = [];
+        if(id === 'rarity') dataArray = filterConfig.rarities;
+        if(id === 'type') dataArray = filterConfig.types;
+        if(id === 'brand') dataArray = filterConfig.brands;
+        if(id === 'target') dataArray = filterConfig.targets;
+        if(id === 'part') dataArray = filterConfig.parts;
+        if(id === 'genre') dataArray = filterConfig.genres;
+        if(id === 'idol') dataArray = filterConfig.idols;
+
+        dataArray.forEach(item => {
+            const value = typeof item === 'object' ? item.name : item;
+            html += `<label class="filter-btn-label"><input type="checkbox" class="advanced-filter filter-${id}" value="${value}"> ${value}</label>`;
+        });
+        return html;
+    };
+
+    window.renderAdvancedFilters = () => {
+        const panel = document.getElementById('filterPanelBody');
+        if(!panel) return;
+        panel.innerHTML = '';
+        
+        filterConfigGroups.forEach(group => {
+            let inner = "";
+            if (group.id === 'owned') {
+                inner = `
+                  <label class="filter-btn-label"><input type="radio" name="filterOwned" value="all" checked> すべて表示</label>
+                  <label class="filter-btn-label"><input type="radio" name="filterOwned" value="owned"> 持っている</label>
+                  <label class="filter-btn-label"><input type="radio" name="filterOwned" value="unowned"> 持っていない</label>
+                `;
+            } else if (group.id === 'wish') {
+                inner = `
+                  <label class="filter-btn-label"><input type="radio" name="filterWish" value="0" checked> 指定なし</label>
+                  <label class="filter-btn-label"><input type="radio" name="filterWish" value="1"> ★1以上</label>
+                  <label class="filter-btn-label"><input type="radio" name="filterWish" value="2"> ★2以上</label>
+                  <label class="filter-btn-label"><input type="radio" name="filterWish" value="3"> ★3以上</label>
+                  <label class="filter-btn-label"><input type="radio" name="filterWish" value="4"> ★4以上</label>
+                  <label class="filter-btn-label"><input type="radio" name="filterWish" value="5"> ★5のみ</label>
+                `;
+            } else {
+                inner = getFilterGridHtml(group.id);
+            }
+            
+            panel.innerHTML += `
+              <details class="filter-group" ${group.open ? 'open' : ''}>
+                <summary><h4>${group.label}</h4></summary>
+                <div class="filter-grid" id="${group.id}Filters">${inner}</div>
+              </details>
+            `;
+        });
+        
+        // 再バインド
+        document.querySelectorAll('input[name="filterOwned"]').forEach(r => r.addEventListener('change', applyFiltersAndSort));
+        document.querySelectorAll('input[name="filterWish"]').forEach(r => r.addEventListener('change', applyFiltersAndSort));
+        document.querySelectorAll('.advanced-filter').forEach(cb => cb.addEventListener('change', applyFiltersAndSort));
+    };
+
 
     window.switchView = (viewId) => {
       document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
@@ -556,7 +636,8 @@
       if (viewId === 'formation') renderFormations();
       if (viewId === 'settings') {
           renderModalOrderSettings();
-          renderMenuOrderSettings(); // メニュー設定も描画
+          renderMenuOrderSettings();
+          renderFilterOrderSettings();
       }
       const sb = document.getElementById('sidebar');
       const ov = document.getElementById('overlay');
@@ -588,6 +669,7 @@
       let savedPrivacy = false;
       let savedFreeMemo = true;
       let savedNameStyle = 'ellipsis';
+      let defaultMode = 'on';
 
       try {
         savedTheme = localStorage.getItem('tourmas_theme') || 'default';
@@ -597,6 +679,7 @@
         if (localStorage.getItem('tourmas_privacy') === 'true') savedPrivacy = true;
         if (localStorage.getItem('tourmas_freeMemo') === 'false') savedFreeMemo = false;
         savedNameStyle = localStorage.getItem('tourmas_nameStyle') || 'ellipsis';
+        defaultMode = localStorage.getItem('tourmas_defaultMode') || 'on';
       } catch(e) {}
 
       const ts = document.getElementById('themeSelectInSettings');
@@ -606,13 +689,27 @@
       const ns = document.getElementById('nameStyleSelect');
       if(ns) ns.value = savedNameStyle;
 
+      const dms = document.getElementById('defaultModeSelect');
+      if(dms) dms.value = defaultMode;
+
       const nts = document.getElementById('noticeToggleSettings');
       if(nts) nts.checked = savedNotice;
       const mc = document.getElementById('marqueeContainer');
       if(mc) mc.style.display = savedNotice ? 'block' : 'none';
       
       const dm = document.getElementById('detailModeToggle');
-      if(dm) dm.checked = savedDetailMode;
+      if(dm) {
+         // ★ ログイン・ロード直後に「初期モード」を反映させる
+         if (defaultMode === 'on') {
+             dm.checked = true;
+             savedDetailMode = true;
+         } else if (defaultMode === 'off') {
+             dm.checked = false;
+             savedDetailMode = false;
+         }
+         localStorage.setItem('tourmas_detailMode', savedDetailMode);
+      }
+      
       const co = document.getElementById('closeOutsideToggle');
       if(co) co.checked = savedCloseOutside;
       const pt = document.getElementById('privacyToggle');
@@ -622,26 +719,16 @@
       updateUserInfo();
     };
 
-    const themes = {
-      default: { main: '#ff66a3', sub: '#ffebf0' },
-      as: { main: '#f34f6d', sub: '#fce4e8' },
-      cg: { main: '#2681c8', sub: '#e4f0f9' },
-      ml: { main: '#ffc30b', sub: '#fff8e1' },
-      sidem: { main: '#0fbe94', sub: '#e0f7f1' },
-      sc: { main: '#8dbbff', sub: '#eef4ff' },
-      gakumas: { main: '#f39800', sub: '#feeee0' }
-    };
     const applyTheme = (themeKey) => {
       const t = themes[themeKey] || themes['default'];
       document.documentElement.style.setProperty('--main-color', t.main);
       document.documentElement.style.setProperty('--sub-color', t.sub);
     };
 
-    const changeTheme = (e) => {
+    safeAddListener('themeSelectInSettings', 'change', (e) => {
       localStorage.setItem('tourmas_theme', e.target.value);
       applyTheme(e.target.value);
-    };
-    safeAddListener('themeSelectInSettings', 'change', changeTheme);
+    });
 
     safeAddListener('nameStyleSelect', 'change', (e) => {
       localStorage.setItem('tourmas_nameStyle', e.target.value);
@@ -649,80 +736,26 @@
       renderSelectModalList();
     });
 
-    const syncNoticeToggle = (e) => {
+    safeAddListener('defaultModeSelect', 'change', (e) => {
+      localStorage.setItem('tourmas_defaultMode', e.target.value);
+      const dm = document.getElementById('detailModeToggle');
+      if (dm) {
+          dm.checked = (e.target.value === 'on');
+          localStorage.setItem('tourmas_detailMode', dm.checked);
+      }
+    });
+
+    safeAddListener('noticeToggleSettings', 'change', (e) => {
       const isChecked = e.target.checked;
       localStorage.setItem('tourmas_notice', isChecked);
       const mc = document.getElementById('marqueeContainer');
       if(mc) mc.style.display = isChecked ? 'block' : 'none';
-    };
-    safeAddListener('noticeToggleSettings', 'change', syncNoticeToggle);
+    });
 
     safeAddListener('freeMemoToggle', 'change', (e) => {
       localStorage.setItem('tourmas_freeMemo', e.target.checked);
       renderFormations(); 
     });
-    
-    safeAddListener('detailModeToggle', 'change', (e) => {
-      localStorage.setItem('tourmas_detailMode', e.target.checked);
-    });
-    safeAddListener('closeOutsideToggle', 'change', (e) => {
-      localStorage.setItem('tourmas_closeOutside', e.target.checked);
-    });
-    safeAddListener('privacyToggle', 'change', (e) => {
-      localStorage.setItem('tourmas_privacy', e.target.checked);
-      updateUserInfo();
-    });
-
-    const egaoEffects = [
-      "コンボ時のスコアUP", "GOOD以上判定時のスコアUP", "GREAT以上判定時のスコアUP", "PERFECT判定時のスコアUP",
-      "成功判定のコンボ数UP", "すべての判定がPERFECTになる", "GOOD以上判定がPERFECTになる", "GREAT判定がPERFECTになる",
-      "MISS判定でもコンボが継続する", "コンボ数に応じてスコア獲得", "FEVERゲージ上昇率UP", "判定が長くなる",
-      "MISS判定時スコアDOWN", "判定が短くなる", "FEVERゲージを消費する", "SPアピール回数を1回消費"
-    ];
-    const egaoBtn = document.getElementById('egaoBtn');
-    if(egaoBtn) {
-      egaoBtn.addEventListener('click', () => {
-        const dai = egaoEffects[Math.floor(Math.random() * egaoEffects.length)];
-        const shou = egaoEffects[Math.floor(Math.random() * egaoEffects.length)];
-        const resDiv = document.getElementById('egaoResult');
-        if(resDiv) {
-          resDiv.innerHTML = `<strong>効果(大)：</strong>${dai}<br><strong>効果(小)：</strong>${shou}<br>`;
-          resDiv.style.display = 'block';
-        }
-      });
-    }
-
-    let bdayMessages = [];
-    const today = new Date();
-    today.setHours(0,0,0,0);
-    filterConfig.idols.forEach(idol => {
-      const [month, day] = idol.birthday.split('-');
-      let bdayDate = new Date(today.getFullYear(), parseInt(month) - 1, parseInt(day));
-      let diffDays = (today - bdayDate) / (1000 * 60 * 60 * 24);
-      if (diffDays >= 0 && diffDays <= 2) {
-        bdayMessages.push(`${idol.name} のバースデーライブ期間！`);
-      }
-    });
-    let finalNotice = siteConfig.noticeText;
-    if (bdayMessages.length > 0) finalNotice += " ｜ " + bdayMessages.join(" ｜ ");
-    const mt = document.getElementById('marqueeText');
-    if(mt) mt.innerText = finalNotice;
-
-    function createFilterGrid(containerId, dataArray, filterClass) {
-      const container = document.getElementById(containerId);
-      if(!container) return;
-      dataArray.forEach(item => {
-        const value = typeof item === 'object' ? item.name : item;
-        container.innerHTML += `<label class="filter-btn-label"><input type="checkbox" class="advanced-filter ${filterClass}" value="${value}"> ${value}</label>`;
-      });
-    }
-    createFilterGrid('rarityFilters', filterConfig.rarities, 'filter-rarity');
-    createFilterGrid('typeFilters', filterConfig.types, 'filter-type');
-    createFilterGrid('brandFilters', filterConfig.brands, 'filter-brand');
-    createFilterGrid('targetFilters', filterConfig.targets, 'filter-target');
-    createFilterGrid('partFilters', filterConfig.parts, 'filter-part');
-    createFilterGrid('genreFilters', filterConfig.genres, 'filter-genre');
-    createFilterGrid('idolFilters', filterConfig.idols, 'filter-idol');
 
     const setupSeriesFilter = () => {
       seriesSetForModal.clear();
@@ -750,9 +783,19 @@
           if (hasUnknown) {
             seriesContainer.innerHTML += `<label class="checkbox-label" style="color:#888;"><input type="checkbox" class="series-filter" value="未設定" checked> 未設定（追加予定）</label>`;
           }
+          document.querySelectorAll('.series-filter').forEach(cb => cb.addEventListener('change', applyFiltersAndSort));
+      }
+
+      const msf = document.getElementById('modalSeriesFilter');
+      if(msf) {
+          msf.innerHTML = '<option value="all">すべての弾</option>';
+          Array.from(seriesSetForModal).forEach(s => {
+            msf.innerHTML += `<option value="${s}">${s}</option>`;
+          });
+          if (hasToursRare) msf.innerHTML += `<option value="ツアーズレア">ツアーズレア (全弾一括)</option>`;
+          if (hasUnknown) msf.innerHTML += `<option value="未設定">未設定</option>`;
       }
     };
-    setupSeriesFilter();
 
     const filterPanel = document.getElementById('filterPanel');
     const toggleBtn = document.getElementById('toggleFilterBtn');
@@ -773,14 +816,31 @@
     const detailModal = document.getElementById('detailModal');
     let currentModalCardData = null; 
 
+    window.triggerCloudSave = async () => {
+      if (!currentUser) return alert("セーブするにはGoogleログインしてください。");
+      if (detailModal && detailModal.classList.contains('open')) updateLocalMemory();
+
+      await setDoc(doc(db, "users", currentUser.uid), { 
+        ownedCards: Array.from(ownedCardIds), 
+        cardDetails: userCardDetails,
+        formations: userFormations 
+      }, { merge: true });
+      
+      hasUnsavedChanges = false;
+      document.querySelectorAll('.cloud-save-btn').forEach(btn => {
+          btn.classList.remove('unsaved');
+          btn.innerText = "クラウドにセーブ済";
+      });
+      showToast("クラウドに一括保存しました！");
+    };
+
     const markAsUnsaved = () => {
       hasUnsavedChanges = true;
-      const btn = document.getElementById('cloudSaveBtn');
-      if(btn) {
+      document.querySelectorAll('.cloud-save-btn').forEach(btn => {
         btn.style.display = 'inline-block';
         btn.classList.add('unsaved');
         btn.innerText = "セーブ(未保存)";
-      }
+      });
     };
     window.markAsUnsaved = markAsUnsaved;
 
@@ -1012,6 +1072,14 @@
       });
     }
 
+    // --- 各種設定画面のレンダリング ---
+
+    window.resetModalSettings = () => {
+        modalConfig = JSON.parse(JSON.stringify(defaultModalItems));
+        localStorage.setItem('tourmas_modalConfig', JSON.stringify(modalConfig));
+        renderModalOrderSettings();
+    };
+
     window.renderModalOrderSettings = () => {
       const container = document.getElementById('modalOrderSettingsContainer');
       if(!container) return;
@@ -1043,7 +1111,13 @@
       localStorage.setItem('tourmas_modalConfig', JSON.stringify(modalConfig));
     };
 
-    // ★ メニュー並べ替え用の設定
+    window.resetMenuSettings = () => {
+        menuConfig = JSON.parse(JSON.stringify(defaultMenuItems));
+        localStorage.setItem('tourmas_menuConfig', JSON.stringify(menuConfig));
+        renderMenuOrderSettings();
+        renderSidebarMenu();
+    };
+
     window.renderMenuOrderSettings = () => {
       const container = document.getElementById('menuOrderSettingsContainer');
       if(!container) return;
@@ -1065,7 +1139,47 @@
       menuConfig[index + dir] = temp;
       localStorage.setItem('tourmas_menuConfig', JSON.stringify(menuConfig));
       renderMenuOrderSettings();
-      renderSidebarMenu(); // すぐにサイドバーにも反映
+      renderSidebarMenu();
+    };
+
+    window.resetFilterSettings = () => {
+        filterConfigGroups = JSON.parse(JSON.stringify(defaultFilterGroups));
+        localStorage.setItem('tourmas_filterConfig', JSON.stringify(filterConfigGroups));
+        renderFilterOrderSettings();
+        renderAdvancedFilters();
+    };
+
+    window.renderFilterOrderSettings = () => {
+      const container = document.getElementById('filterOrderSettingsContainer');
+      if(!container) return;
+      container.innerHTML = '';
+      filterConfigGroups.forEach((group, index) => {
+        container.innerHTML += `
+          <div class="settings-list-item">
+            <button onclick="moveFilterItem(${index}, -1)" style="margin-right:5px;" ${index === 0 ? 'disabled' : ''}>▲</button>
+            <button onclick="moveFilterItem(${index}, 1)" style="margin-right:15px;" ${index === filterConfigGroups.length - 1 ? 'disabled' : ''}>▼</button>
+            <label style="flex:1; cursor:pointer; font-size:14px; font-weight:bold; color:#333;">
+              <input type="checkbox" style="transform:scale(1.2); margin-right:8px;" onchange="toggleFilterOpen(${index}, this.checked)" ${group.open ? 'checked' : ''}>
+              ${group.label} (最初から開く)
+            </label>
+          </div>
+        `;
+      });
+    };
+
+    window.moveFilterItem = (index, dir) => {
+      const temp = filterConfigGroups[index];
+      filterConfigGroups[index] = filterConfigGroups[index + dir];
+      filterConfigGroups[index + dir] = temp;
+      localStorage.setItem('tourmas_filterConfig', JSON.stringify(filterConfigGroups));
+      renderFilterOrderSettings();
+      renderAdvancedFilters();
+    };
+
+    window.toggleFilterOpen = (index, openStatus) => {
+      filterConfigGroups[index].open = openStatus;
+      localStorage.setItem('tourmas_filterConfig', JSON.stringify(filterConfigGroups));
+      renderAdvancedFilters();
     };
 
     window.updateFormationData = (index, field, subfield, value) => {
@@ -1212,11 +1326,7 @@
       const msf = document.getElementById('modalFilterSelect');
       const selectedFilter = msf ? msf.value : "all";
 
-      // ----------------------------------------
-      // ★ アイドル選択モード
-      // ----------------------------------------
       if (currentSelectMode === 'idol') {
-          // ブランド順 ＞ 名簿順 にソートする
           let idolArray = Array.from(idolBrandMap.keys()).map(name => ({
               name: name,
               brand: idolBrandMap.get(name)
@@ -1256,9 +1366,6 @@
           return;
       }
 
-      // ----------------------------------------
-      // ★ カード選択モード
-      // ----------------------------------------
       let filterType = ""; let filterPart = ""; let filterRarities = null;
       if (subfield === 'costume') filterType = "コスチューム";
       else if (subfield === 'head') { filterType = "アクセサリー"; filterPart = "頭"; }
@@ -1402,25 +1509,6 @@
       setTimeout(() => toast.classList.remove('show'), 2000);
     };
 
-    const cloudSaveBtn = document.getElementById('cloudSaveBtn');
-    if(cloudSaveBtn) {
-      cloudSaveBtn.onclick = async () => {
-        if (!currentUser) return alert("セーブするにはログインしてください。");
-        if (detailModal && detailModal.classList.contains('open')) updateLocalMemory();
-
-        await setDoc(doc(db, "users", currentUser.uid), { 
-          ownedCards: Array.from(ownedCardIds), 
-          cardDetails: userCardDetails,
-          formations: userFormations 
-        }, { merge: true });
-        
-        hasUnsavedChanges = false;
-        cloudSaveBtn.classList.remove('unsaved');
-        cloudSaveBtn.innerText = "クラウドにセーブ済";
-        showToast("クラウドに一括保存しました！");
-      };
-    }
-
     safeAddListener('modalCount', 'change', updateLocalMemory);
     safeAddListener('modalWish', 'change', updateLocalMemory);
     
@@ -1518,7 +1606,6 @@
     }
 
     safeAddListener('searchInput', 'input', applyFiltersAndSort);
-    document.querySelectorAll('input[name="searchMode"]').forEach(radio => radio.addEventListener('change', applyFiltersAndSort));
     safeAddListener('sortSelect', 'change', applyFiltersAndSort);
     const sortOrderBtn = document.getElementById('sortOrderBtn');
     if(sortOrderBtn) {
@@ -1528,8 +1615,6 @@
         applyFiltersAndSort();
       });
     }
-    document.querySelectorAll('.series-filter').forEach(cb => cb.addEventListener('change', applyFiltersAndSort));
-    safeAddListener('filterPanel', 'change', applyFiltersAndSort);
 
     const menuOpenBtn = document.getElementById('menuOpenBtn');
     if(menuOpenBtn) menuOpenBtn.onclick = () => { document.getElementById('sidebar')?.classList.add('open'); document.getElementById('overlay')?.classList.add('open'); };
@@ -1539,9 +1624,6 @@
     const overlay = document.getElementById('overlay');
     if(overlay) overlay.onclick = closeMenu;
 
-    const loginBtn = document.getElementById('loginBtn');
-    const logoutBtn = document.getElementById('logoutBtn');
-
     loginBtn?.addEventListener('click', () => signInWithPopup(auth, provider));
     logoutBtn?.addEventListener('click', () => signOut(auth));
 
@@ -1550,8 +1632,6 @@
         currentUser = user;
         if(loginBtn) loginBtn.style.display = 'none';
         if(logoutBtn) logoutBtn.style.display = 'block';
-        const csb = document.getElementById('cloudSaveBtn');
-        if(csb) csb.style.display = 'inline-block'; 
         
         const docRef = doc(db, "users", user.uid);
         const docSnap = await getDoc(docRef);
@@ -1571,14 +1651,19 @@
         userFormations = [];
         if(loginBtn) loginBtn.style.display = 'block';
         if(logoutBtn) logoutBtn.style.display = 'none';
-        const csb = document.getElementById('cloudSaveBtn');
-        if(csb) csb.style.display = 'none';
       }
       
-      loadSettings(); 
-      renderCards();
-      renderFormations(); 
-      renderSidebarMenu(); // ★ 初期化時にサイドバーを構築
+      // ★ 初期化フローの順序を最適化
+      renderSidebarMenu(); // まずメニュー構築
+      renderAdvancedFilters(); // 絞り込みアコーディオン構築
+      loadSettings(); // 設定ロード（ここで詳細モード等適用）
+      renderCards(); // カード表示
+      renderFormations(); // 編成表示
+      
+      // ボタン同期
+      document.querySelectorAll('.cloud-save-btn').forEach(btn => {
+         btn.style.display = currentUser ? 'inline-block' : 'none';
+      });
     });
   </script>
 </body>
