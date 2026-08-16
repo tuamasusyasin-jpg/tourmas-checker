@@ -16,13 +16,13 @@
     #menuOpenBtn { font-size: 24px; background: none; border: none; cursor: pointer; margin-right: 15px; color: #555; }
     header h1 { margin: 0; font-size: 18px; color: #333; }
 
-    #sidebar { position: fixed; top: 0; left: -300px; width: 300px; height: 100%; background: #fff; box-shadow: 2px 0 10px rgba(0,0,0,0.2); transition: left 0.3s ease; z-index: 1000; padding: 20px; box-sizing: border-box; overflow-y: auto; }
+    #sidebar { position: fixed; top: 0; left: -300px; width: 300px; height: 100%; background: #fff; box-shadow: 2px 0 10px rgba(0,0,0,0.2); transition: left 0.3s ease; z-index: 1000; padding: 20px; box-sizing: border-box; overflow-y: auto; display: flex; flex-direction: column; }
     #sidebar.open { left: 0; }
-    #menuCloseBtn { font-size: 24px; background: none; border: none; cursor: pointer; color: #999; display: block; text-align: right; width: 100%; margin-bottom: 20px; }
+    #menuCloseBtn { font-size: 24px; background: none; border: none; cursor: pointer; color: #999; display: block; text-align: right; width: 100%; margin-bottom: 20px; flex-shrink: 0; }
     #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); opacity: 0; pointer-events: none; transition: opacity 0.3s ease; z-index: 999; }
     #overlay.open { opacity: 1; pointer-events: auto; }
     
-    .menu-section { margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid #eee; }
+    .menu-section { margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid #eee; width: 100%; box-sizing: border-box; }
     .menu-section h3 { margin: 0 0 10px 0; font-size: 15px; color: #555; }
     
     .nav-btn { display: block; width: 100%; padding: 12px; margin-bottom: 10px; background: var(--sub-color); border: 2px solid var(--main-color); color: #333; font-weight: bold; border-radius: 8px; cursor: pointer; transition: 0.2s; text-align: center; }
@@ -123,7 +123,6 @@
     .card.owned::after { background-color: rgba(0, 0, 0, 0); }
     .wish-star { position: absolute; top: 5px; right: 5px; color: #ffeb3b; text-shadow: 0 0 3px #000; font-size: 16px; z-index: 10; font-weight: bold; }
 
-    /* ★ アイドル選択用コンパクトバッジのCSS */
     .idol-badge { background: #fff; border: 2px solid #ccc; border-radius: 8px; width: 140px; padding: 12px 10px; cursor: pointer; transition: 0.2s; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
     .idol-badge:hover { border-color: var(--main-color); transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
     .idol-badge p { margin: 0; font-size: 10px; color: #888; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -162,7 +161,7 @@
     #cardSelectModal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2100; display: none; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; }
     #cardSelectModal.open { display: flex; }
     #cardSelectModal .modal-content { display: flex; flex-direction: column; max-height: 90vh; }
-    #cardSelectList { overflow-y: auto; padding: 10px; flex: 1; }
+    #cardSelectList { overflow-y: auto; padding: 10px; flex: 1; display:flex; flex-wrap:wrap; gap:10px; justify-content:center; }
 
     .settings-list-item { display:flex; align-items:center; background:#fafafa; padding:10px; margin-bottom:8px; border:1px solid #ddd; border-radius:6px; }
     .settings-list-item button { background:#ccc; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-weight:bold; }
@@ -180,18 +179,20 @@
   </header>
 
   <div id="overlay"></div>
+  
+  <!-- ▼ サイドバー（中身はJSで自動生成＆並べ替えられます） -->
   <div id="sidebar">
     <button id="menuCloseBtn">✖</button>
     
-    <div class="menu-section">
+    <div id="menu-collection" class="menu-section">
       <button class="nav-btn" onclick="switchView('collection')">カード一覧に戻る</button>
     </div>
 
-    <div class="menu-section">
+    <div id="menu-formation" class="menu-section">
       <button class="nav-btn" onclick="switchView('formation')" style="border-color: #1a73e8; color: #1a73e8;">マイ編成メモ</button>
     </div>
 
-    <div class="menu-section auth-container">
+    <div id="menu-auth" class="menu-section auth-container">
       <span id="userInfo">未ログイン</span>
       <label class="checkbox-label" style="justify-content: center; font-size: 11px; margin-top: 5px;">
         <input type="checkbox" id="privacyToggle"> 名前を隠す
@@ -200,7 +201,7 @@
       <button id="logoutBtn" class="logout-btn" style="display:none;">ログアウト</button>
     </div>
     
-    <div class="menu-section mode-switch">
+    <div id="menu-mode" class="menu-section mode-switch">
       <label class="checkbox-label" style="margin: 0;">
         <input type="checkbox" id="detailModeToggle"> 詳細確認モード
       </label>
@@ -209,20 +210,20 @@
       </label>
     </div>
 
-    <div class="menu-section">
+    <div id="menu-series" class="menu-section">
       <h3>表示する弾数</h3>
       <div id="seriesFilterContainer"></div>
     </div>
 
-    <div class="menu-section">
+    <div id="menu-settings" class="menu-section">
       <button class="nav-btn" onclick="switchView('settings')" style="border-color: #ff9800; color: #e65100; background: #fff8e1;">チェッカー設定</button>
     </div>
     
-    <div class="menu-section">
+    <div id="menu-privacy" class="menu-section">
       <button class="nav-btn" onclick="switchView('privacy')" style="border-color: #999; color: #777; background: #f0f0f0;">プライバシーポリシー</button>
     </div>
     
-    <div class="menu-section" style="border-bottom: none;">
+    <div id="menu-egao" class="menu-section" style="border-bottom: none;">
       <button id="egaoBtn">笑顔満点ですっ</button>
       <div id="egaoResult"></div>
     </div>
@@ -336,15 +337,23 @@
         <label class="checkbox-label" style="font-weight:bold; font-size:15px;">
           <input type="checkbox" id="freeMemoToggle" checked style="transform:scale(1.3); margin-right:10px;"> 編成メモに「自由メモ欄」を表示する
         </label>
-        <span style="font-size:11px; color:#888; display:block; margin-left:25px;">※非表示にしても入力済みのメモデータは消えません。</span>
       </div>
 
-      <div class="policy-content" style="padding:20px;">
+      <div class="policy-content" style="padding:20px; margin-bottom:20px;">
         <h3 style="margin-top:0;">2. 詳細画面の表示順・ON/OFF設定</h3>
         <p style="font-size:12px; color:#666; margin-bottom:15px;">
           カードをタップしたときに出る表の項目を、好きな順番に入れ替えたり、不要なものを非表示にできます。
         </p>
         <div id="modalOrderSettingsContainer"></div>
+      </div>
+      
+      <!-- ▼ メニュー並べ替え設定を追加 -->
+      <div class="policy-content" style="padding:20px;">
+        <h3 style="margin-top:0;">3. サイドメニューの並び替え</h3>
+        <p style="font-size:12px; color:#666; margin-bottom:15px;">
+          左から出てくるメニューの順番を、使いやすいように並び替えられます。
+        </p>
+        <div id="menuOrderSettingsContainer"></div>
       </div>
     </div>
 
@@ -449,10 +458,18 @@
     let hasUnsavedChanges = false; 
     let seriesSetForModal = new Set(); 
     
+    // ★ アイドルのブランドを「完全」に補完する神機能
     const idolBrandMap = new Map();
     cardData.forEach(c => {
         if (c["アイドル名"] && c["シリーズブランド名"]) {
             idolBrandMap.set(c["アイドル名"], c["シリーズブランド名"]);
+        }
+    });
+    // ★ カード化されていない「雪歩」や「真」などのデータも名簿から拾って補完！
+    filterConfig.idols.forEach(idol => {
+        if (!idolBrandMap.has(idol.name)) {
+            // 現状カードが無いのはASメンバーなので、アイドルマスターブランドに分類
+            idolBrandMap.set(idol.name, "アイドルマスター");
         }
     });
 
@@ -489,12 +506,58 @@
       modalConfig = defaultModalItems;
     }
 
+    // ★ サイドメニューの順番設定
+    const defaultMenuItems = [
+      { id: 'collection', label: 'カード一覧に戻る' },
+      { id: 'formation', label: 'マイ編成メモ' },
+      { id: 'auth', label: 'アカウント・ログイン' },
+      { id: 'mode', label: '詳細モード・挙動設定' },
+      { id: 'series', label: '表示する弾数' },
+      { id: 'settings', label: 'チェッカー設定' },
+      { id: 'privacy', label: 'プライバシーポリシー' },
+      { id: 'egao', label: '笑顔満点ですっ占い' }
+    ];
+    let menuConfig;
+    try {
+      const savedMenu = localStorage.getItem('tourmas_menuConfig');
+      menuConfig = savedMenu ? JSON.parse(savedMenu) : defaultMenuItems;
+      if (!Array.isArray(menuConfig)) menuConfig = defaultMenuItems;
+    } catch (e) {
+      menuConfig = defaultMenuItems;
+    }
+
+    // ★ メニューを描画する関数
+    window.renderSidebarMenu = () => {
+      const sidebar = document.getElementById('sidebar');
+      if(!sidebar) return;
+      
+      const sections = {
+        'collection': document.getElementById('menu-collection'),
+        'formation': document.getElementById('menu-formation'),
+        'auth': document.getElementById('menu-auth'),
+        'mode': document.getElementById('menu-mode'),
+        'series': document.getElementById('menu-series'),
+        'settings': document.getElementById('menu-settings'),
+        'privacy': document.getElementById('menu-privacy'),
+        'egao': document.getElementById('menu-egao')
+      };
+
+      menuConfig.forEach(item => {
+        if(sections[item.id]) {
+          sidebar.appendChild(sections[item.id]);
+        }
+      });
+    };
+
     window.switchView = (viewId) => {
       document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
       const targetView = document.getElementById('view-' + viewId);
       if(targetView) targetView.classList.add('active');
       if (viewId === 'formation') renderFormations();
-      if (viewId === 'settings') renderModalOrderSettings();
+      if (viewId === 'settings') {
+          renderModalOrderSettings();
+          renderMenuOrderSettings(); // メニュー設定も描画
+      }
       const sb = document.getElementById('sidebar');
       const ov = document.getElementById('overlay');
       if(sb) sb.classList.remove('open');
@@ -980,6 +1043,31 @@
       localStorage.setItem('tourmas_modalConfig', JSON.stringify(modalConfig));
     };
 
+    // ★ メニュー並べ替え用の設定
+    window.renderMenuOrderSettings = () => {
+      const container = document.getElementById('menuOrderSettingsContainer');
+      if(!container) return;
+      container.innerHTML = '';
+      menuConfig.forEach((item, index) => {
+        container.innerHTML += `
+          <div class="settings-list-item">
+            <button onclick="moveMenuItem(${index}, -1)" style="margin-right:5px;" ${index === 0 ? 'disabled' : ''}>▲</button>
+            <button onclick="moveMenuItem(${index}, 1)" style="margin-right:15px;" ${index === menuConfig.length - 1 ? 'disabled' : ''}>▼</button>
+            <span style="flex:1; font-size:14px; font-weight:bold; color:#333;">${item.label}</span>
+          </div>
+        `;
+      });
+    };
+
+    window.moveMenuItem = (index, dir) => {
+      const temp = menuConfig[index];
+      menuConfig[index] = menuConfig[index + dir];
+      menuConfig[index + dir] = temp;
+      localStorage.setItem('tourmas_menuConfig', JSON.stringify(menuConfig));
+      renderMenuOrderSettings();
+      renderSidebarMenu(); // すぐにサイドバーにも反映
+    };
+
     window.updateFormationData = (index, field, subfield, value) => {
       if (subfield) {
         if (!userFormations[index][field]) userFormations[index][field] = {};
@@ -1033,7 +1121,6 @@
         const div = document.createElement('div');
         div.className = 'formation-card';
         
-        // ★ アイドル名をモーダル選択に変更
         const createIdolCol = (idolKey, title) => {
           const selectedName = f[idolKey]?.name || '';
           return `
@@ -1115,7 +1202,6 @@
     let currentSelectTarget = null;
     let currentSelectMode = 'card';
 
-    // ★ アイドルとカードを1つのモーダルで出し分ける描画関数
     window.renderSelectModalList = () => {
       if(!currentSelectTarget) return;
       const { idx, field, subfield } = currentSelectTarget;
@@ -1245,7 +1331,6 @@
       const msf = document.getElementById('modalFilterSelect');
       const st = document.getElementById('cardSelectTitle');
 
-      // ★ アイドル選択モードへの切り替え
       if (subfield === 'name') {
           currentSelectMode = 'idol';
           if(st) st.innerText = "アイドルを選択";
@@ -1254,7 +1339,6 @@
               filterConfig.brands.forEach(b => msf.innerHTML += `<option value="${b}">${b}</option>`);
           }
       } 
-      // ★ カード選択モードへの切り替え
       else {
           currentSelectMode = 'card';
           let title = "カードを選択";
@@ -1494,6 +1578,7 @@
       loadSettings(); 
       renderCards();
       renderFormations(); 
+      renderSidebarMenu(); // ★ 初期化時にサイドバーを構築
     });
   </script>
 </body>
