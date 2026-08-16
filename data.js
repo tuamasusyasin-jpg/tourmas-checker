@@ -32,7 +32,7 @@ export const filterConfig = {
     { name: "柏木 翼", birthday: "06-02" },
     { name: "櫻木 真乃", birthday: "04-25" },
     { name: "風野 灯織", birthday: "03-04" },
-    { name: "八宮 めぐる", birthday: "07-22" }
+    { name: "八宮 めぐる", birthday: "07-22", brand: "シャイニーカラーズ" }
   ]
 };
 // ▼ 3. スプレッドシートから変換したカードデータ
