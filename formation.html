@@ -209,7 +209,7 @@
         'auth': `<div id="menu-auth" class="menu-section auth-container"><span id="userInfo">未ログイン</span><label class="checkbox-label" style="justify-content: center; font-size: 11px; margin-top: 5px;"><input type="checkbox" id="privacyToggle"> 名前を隠す</label><button id="loginBtn">Googleでログイン</button><button id="logoutBtn" class="logout-btn" style="display:none;">ログアウト</button></div>`,
         'mode': `<div id="menu-mode" style="display:none;"></div>`,
         'series': `<div id="menu-series" style="display:none;"></div>`,
-        'settings': `<div id="menu-settings" class="menu-section"><a href="index.html" class="nav-btn" style="border-color: #ff9800; color: #e65100; background: #fff8e1; text-decoration:none;">チェッカー設定 (一覧へ)</a></div>`,
+'settings': `<div id="menu-settings" class="menu-section"><a href="index.html#settings" class="nav-btn" style="border-color: #ff9800; color: #e65100; background: #fff8e1; text-decoration:none;">チェッカー設定 (一覧へ)</a></div>`,
         'privacy': `<div id="menu-privacy" class="menu-section"><a href="privacy.html" class="nav-btn" style="border-color: #999; color: #777; background: #f0f0f0; text-decoration:none;">プライバシーポリシー</a></div>`,
         'egao': `<div id="menu-egao" class="menu-section" style="border-bottom: none;"><button id="egaoBtn">笑顔満点ですっ</button><div id="egaoResult"></div></div>`
       };
@@ -498,6 +498,17 @@
         
         const cardDiv = document.createElement('div');
         cardDiv.className = 'card';
+        // ▼追加：持っているカードを分かりやすく光らせる▼
+        let isOwned = false;
+        try {
+          const localData = JSON.parse(localStorage.getItem('tourmas_cardDetails') || '{}');
+          if (localData[data["番号"]] && localData[data["番号"]].count > 0) isOwned = true;
+        } catch(e) {}
+        if (isOwned) {
+          cardDiv.style.border = "3px solid var(--main-color)";
+          cardDiv.style.boxShadow = "0 0 12px var(--main-color)";
+        }
+        // ▲追加ここまで▲
         if (data["カード表"]) { cardDiv.style.backgroundImage = `url('images/${data["カード表"]}')`; cardDiv.style.backgroundSize = 'cover'; }
         
         const mainText = data["カード名"] || data["番号"] || "未登録";

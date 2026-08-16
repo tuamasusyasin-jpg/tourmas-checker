@@ -24,7 +24,7 @@
     
     /* ★ メニューボタンを落ち着いたデザインに */
     .nav-btn { display: block; width: 100%; padding: 12px; margin-bottom: 10px; background: #fff; border: 2px solid #ddd; color: #555; font-weight: bold; border-radius: 8px; cursor: pointer; transition: 0.2s; text-align: center; box-sizing: border-box; }
-    .nav-btn:hover { background: #f9f9f9; }
+    /* .nav-btn:hover { background: #f9f9f9; } は削除しました */
     .nav-btn.active { background: var(--sub-color); border-color: var(--main-color); color: var(--main-color); }
 
     .auth-container { text-align: center; background: #e3f2fd; padding: 15px; border-radius: 10px; }
@@ -95,8 +95,7 @@
     details.filter-group summary::before { content: '▶'; display: inline-block; margin-right: 8px; font-size: 10px; transition: 0.2s; }
     details.filter-group[open] summary::before { transform: rotate(90deg); }
     .filter-grid { display: flex; flex-wrap: wrap; gap: 6px; padding: 4px 12px 10px; background: #fff; border-top: 1px solid #eee; border-radius: 0 0 6px 6px; }
-
-    .filter-btn-label { display: inline-block; padding: 4px 10px; border-radius: 20px; border: 1px solid #ccc; background: #fafafa; font-size: 11px; cursor: pointer; transition: 0.2s; user-select: none; }
+.filter-btn-label { display: inline-block; padding: 2px 8px; border-radius: 20px; border: 1px solid #ccc; background: #fafafa; font-size: 10px; cursor: pointer; transition: 0.2s; user-select: none; }
     .filter-btn-label input { display: none; }
     .filter-btn-label:has(input:checked) { background: var(--main-color); color: white; border-color: var(--main-color); font-weight: bold; }
 
@@ -353,6 +352,27 @@
     
     // --- 初期設定適用 ---
     document.documentElement.style.setProperty('--main-color', themes[savedTheme].main); document.documentElement.style.setProperty('--sub-color', themes[savedTheme].sub);
+    // ▼ここから追加：お知らせテキストの生成と流し込み＆画面遷移処理▼
+    let bdayMessages = [];
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    filterConfig.idols.forEach(idol => {
+      if(idol.birthday) {
+        const [month, day] = idol.birthday.split('-');
+        let bdayDate = new Date(today.getFullYear(), parseInt(month) - 1, parseInt(day));
+        let diffDays = (today - bdayDate) / (1000 * 60 * 60 * 24);
+        if (diffDays >= 0 && diffDays <= 2) bdayMessages.push(`${idol.name} のバースデーライブ期間！`);
+      }
+    });
+    let finalNotice = siteConfig.noticeText;
+    if (bdayMessages.length > 0) finalNotice += " ｜ " + bdayMessages.join(" ｜ ");
+    const mt = document.getElementById('marqueeText');
+    if(mt) mt.innerText = finalNotice;
+    window.addEventListener('DOMContentLoaded', () => {
+      if (window.location.hash === '#settings' && typeof switchView === 'function') switchView('settings');
+      else if (window.location.hash === '#formation' && typeof switchView === 'function') switchView('formation');
+    });
+    // ▲追加ここまで▲
     $('marqueeContainer').style.display = savedNotice ? 'block' : 'none';
     $('themeSelectInSettings').value = savedTheme; $('nameStyleSelect').value = savedNameStyle; $('defaultModeSelect').value = savedDefaultMode;
     $('noticeToggleSettings').checked = savedNotice; $('freeMemoToggle').checked = savedFreeMemo;
