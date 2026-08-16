@@ -5,11 +5,7 @@
   <title>ツアマス所持率チェッカー</title>
   <meta name="description" content="アーケードゲーム「アイドルマスター TOURS（ツアマス）」のカード所持率を管理できる非公式チェッカーです。">
   <style>
-    :root {
-      --main-color: #ff66a3;
-      --sub-color: #ffebf0;
-    }
-
+    :root { --main-color: #ff66a3; --sub-color: #ffebf0; }
     body { font-family: sans-serif; padding: 0; margin: 0; background-color: #f0f0f0; }
     #marqueeContainer { background: #333; color: #fff; padding: 8px 0; font-size: 14px; font-weight: bold; }
     header { background: #fff; padding: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: space-between; }
@@ -24,11 +20,11 @@
     #overlay.open { opacity: 1; pointer-events: auto; }
     
     .menu-section { margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid #eee; width: 100%; box-sizing: border-box; }
-    .menu-section h3 { margin: 0 0 10px 0; font-size: 15px; color: #555; }
     
-    /* リンクボタン用のスタイル */
-    .nav-btn { display: block; width: 100%; padding: 12px; margin-bottom: 10px; background: var(--sub-color); border: 2px solid var(--main-color); color: #333; font-weight: bold; border-radius: 8px; cursor: pointer; transition: 0.2s; text-align: center; text-decoration: none; box-sizing: border-box; }
-    .nav-btn:hover { background: var(--main-color); color: #fff; }
+    /* ★ ボタンのスタイル修正（ピンク同化バグを完全に防ぐ） */
+    .nav-btn { display: block; width: 100%; padding: 12px; margin-bottom: 10px; background: #fff; border: 2px solid #ccc; color: #555; font-weight: bold; border-radius: 8px; cursor: pointer; transition: 0.2s; text-align: center; text-decoration: none; box-sizing: border-box; }
+    .nav-btn:hover { background: var(--main-color); border-color: var(--main-color); color: #fff !important; }
+    .nav-btn.active { background: var(--sub-color); border-color: var(--main-color); color: var(--main-color); }
 
     .auth-container { text-align: center; background: #e3f2fd; padding: 15px; border-radius: 10px; }
     .auth-container button { padding: 8px; width: 100%; font-weight: bold; cursor: pointer; border-radius: 5px; border: none; background: #1a73e8; color: white; transition: 0.2s; margin-top: 10px; }
@@ -36,22 +32,13 @@
     #userInfo { font-size: 12px; font-weight: bold; color: #333; display: block; margin-bottom: 5px; }
     .checkbox-label { display: flex; align-items: center; margin-bottom: 8px; font-size: 14px; cursor: pointer; }
     
-    .mode-switch { background: var(--sub-color); padding: 10px; border-radius: 8px; border: 2px solid var(--main-color); font-weight: bold; color: #333; margin-bottom: 15px; transition: 0.3s;}
+    .mode-switch { background: var(--sub-color); padding: 10px; border-radius: 8px; border: 2px solid var(--main-color); font-weight: bold; color: #333; margin-bottom: 15px; }
 
     #egaoBtn { background: linear-gradient(45deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%); border: 2px solid #ff66a3; border-radius: 8px; padding: 10px; width: 100%; font-weight: bold; color: #d81b60; cursor: pointer; margin-top: 10px; transition: 0.2s; }
     #egaoBtn:hover { filter: brightness(0.95); transform: scale(0.98); }
-    #egaoResult { display: none; margin-top: 10px; padding: 12px; border-radius: 8px; background: #fff; border: 2px dashed var(--main-color); font-size: 13px; color: #333; line-height: 1.6; text-align: left; transition: 0.3s; }
+    #egaoResult { display: none; margin-top: 10px; padding: 12px; border-radius: 8px; background: #fff; border: 2px dashed var(--main-color); font-size: 13px; color: #333; line-height: 1.6; text-align: left; }
     
-    .view-section { display: none; padding: 20px; max-width: 1200px; margin: 0 auto; }
-    .view-section.active { display: block; }
-    .page-title { color: var(--main-color); border-bottom: 3px solid var(--sub-color); padding-bottom: 10px; margin-top: 0; display: flex; justify-content: space-between; align-items: center;}
-
-    .policy-content { background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); line-height: 1.8; color: #444; }
-    .policy-content h3 { color: var(--main-color); margin-top: 0px; border-left: 5px solid var(--main-color); padding-left: 10px; }
-    .setting-header-wrap { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; margin-bottom: 15px; padding-bottom: 10px; }
-    .reset-btn { background: #f44336; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; transition: 0.2s;}
-    .reset-btn:hover { background: #d32f2f; }
-
+    .view-section { padding: 20px; max-width: 1200px; margin: 0 auto; }
     .controls { text-align: center; margin-bottom: 20px; }
     #counterDisplay { color: var(--main-color); font-size: 22px; margin-top: 0; transition: color 0.3s;}
     #totalCountDisplay { font-size: 16px; color: #666; margin-left: 15px; display: inline-block; }
@@ -70,7 +57,6 @@
     @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
     
     #toggleFilterBtn { padding: 8px 20px; border-radius: 30px; border: none; background: #555; color: white; font-weight: bold; cursor: pointer; transition: 0.2s; margin-top: 10px; }
-    
     #filterPanel { max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out; background: #fff; border-radius: 15px; text-align: left; margin: 15px auto 20px auto; max-width: 600px; padding: 0 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
     #filterPanel.open { max-height: 5000px; padding: 20px; }
     #filterPanelBody { display: flex; flex-direction: column; }
@@ -99,10 +85,7 @@
     .shrink-text-sm { font-size: 10px !important; letter-spacing: -1.5px; transform: scaleX(0.95); transform-origin: left center; width: 105% !important; }
     
     .marquee-text { display: inline-block !important; overflow: visible !important; animation: scroll-left 5s linear infinite alternate; }
-    @keyframes scroll-left {
-      0%, 15% { transform: translateX(0); }
-      85%, 100% { transform: translateX(calc(130px - 100%)); }
-    }
+    @keyframes scroll-left { 0%, 15% { transform: translateX(0); } 85%, 100% { transform: translateX(calc(130px - 100%)); } }
 
     .rarity-badge { position: absolute; top: 5px; left: 5px; background-color: #333; color: #fff; padding: 3px 8px; border-radius: 10px; font-size: 11px; font-weight: bold; }
     .card::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); pointer-events: none; transition: 0.2s; }
@@ -139,11 +122,6 @@
     
     #toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 10px 20px; border-radius: 30px; z-index: 3000; font-weight: bold; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
     #toast.show { opacity: 1; }
-
-    .settings-list-item { display:flex; align-items:center; background:#fafafa; padding:10px; margin-bottom:8px; border:1px solid #ddd; border-radius:6px; }
-    .settings-list-item button { background:#ccc; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-weight:bold; }
-    .settings-list-item button:hover { background:#bbb; }
-    .settings-list-item button:disabled { opacity: 0.3; cursor:not-allowed; }
   </style>
 </head>
 <body>
@@ -155,63 +133,16 @@
         <button id="menuOpenBtn">☰</button>
         <h1>ツアマス所持率チェッカー</h1>
     </div>
-    <button class="cloud-save-btn" onclick="triggerCloudSave()">クラウドにセーブ</button>
+    <button class="cloud-save-btn" id="cloudSaveBtnMain" style="display:none;">クラウドにセーブ</button>
   </header>
 
   <div id="overlay"></div>
-  
   <div id="sidebar">
-    <button id="menuCloseBtn">✖</button>
-    
-    <div id="menu-collection" class="menu-section">
-      <button class="nav-btn" onclick="switchView('collection')" style="border-color: #ff66a3; color: #ff66a3;">カード一覧</button>
-    </div>
-
-    <!-- ★ 他ページへのリンクに変更！ -->
-    <div id="menu-formation" class="menu-section">
-      <a href="formation.html" class="nav-btn" style="border-color: #1a73e8; color: #1a73e8;">マイ編成メモ</a>
-    </div>
-
-    <div id="menu-auth" class="menu-section auth-container">
-      <span id="userInfo">未ログイン</span>
-      <label class="checkbox-label" style="justify-content: center; font-size: 11px; margin-top: 5px;">
-        <input type="checkbox" id="privacyToggle"> 名前を隠す
-      </label>
-      <button id="loginBtn">Googleでログイン</button>
-      <button id="logoutBtn" class="logout-btn" style="display:none;">ログアウト</button>
-    </div>
-    
-    <div id="menu-mode" class="menu-section mode-switch">
-      <label class="checkbox-label" style="margin: 0;">
-        <input type="checkbox" id="detailModeToggle"> 詳細確認モード
-      </label>
-      <label class="checkbox-label" style="margin: 10px 0 0 0; font-size: 12px; font-weight: normal; color: #555;">
-        <input type="checkbox" id="closeOutsideToggle" checked> 外枠をタップして閉じる
-      </label>
-    </div>
-
-    <div id="menu-series" class="menu-section">
-      <h3>表示する弾数</h3>
-      <div id="seriesFilterContainer"></div>
-    </div>
-
-    <div id="menu-settings" class="menu-section">
-      <button class="nav-btn" onclick="switchView('settings')" style="border-color: #ff9800; color: #e65100; background: #fff8e1;">チェッカー設定</button>
-    </div>
-    
-    <!-- ★ 他ページへのリンクに変更！ -->
-    <div id="menu-privacy" class="menu-section">
-      <a href="privacy.html" class="nav-btn" style="border-color: #999; color: #777; background: #f0f0f0;">プライバシーポリシー</a>
-    </div>
-    
-    <div id="menu-egao" class="menu-section" style="border-bottom: none;">
-      <button id="egaoBtn">笑顔満点ですっ</button>
-      <div id="egaoResult"></div>
-    </div>
+    <!-- JSでメニューが生成されます -->
   </div>
 
   <main>
-    <div id="view-collection" class="view-section active">
+    <div class="view-section active">
       <div class="controls">
         <h2 id="counterDisplay">所持数: 0 / 0種 (0%) <span id="totalCountDisplay">総枚数: 0枚</span></h2>
 
@@ -235,97 +166,16 @@
           <button id="sortOrderBtn" data-order="asc">昇順 ▲</button>
         </div>
         
-        <button id="toggleFilterBtn" onclick="toggleFilterPanel()">▼ 詳細な絞り込みを開く</button>
+        <button id="toggleFilterBtn">▼ 詳細な絞り込みを開く</button>
         
         <div id="filterPanel">
-          <div style="text-align: right; margin-bottom: 10px;"><button onclick="resetFilters()" style="padding:5px 10px; cursor:pointer;">✖ 全てクリア</button></div>
+          <div style="text-align: right; margin-bottom: 10px;"><button id="resetFiltersBtn" style="padding:5px 10px; cursor:pointer;">✖ 全てクリア</button></div>
           <div id="filterPanelBody">
-              <!-- JSで構築されます -->
+              <!-- JSでアコーディオンフィルターが生成されます -->
           </div>
         </div>
       </div>
       <div class="card-list" id="cardList"></div>
-    </div>
-
-    <!-- チェッカー設定画面 -->
-    <div id="view-settings" class="view-section">
-      <div class="page-title">
-          <h2>チェッカー設定</h2>
-      </div>
-      <p style="color: #d32f2f; font-size: 12px; margin-bottom: 20px; font-weight:bold;">
-        ※ここの設定項目は、変更した瞬間にご使用のブラウザに自動保存されるためセーブ不要です。
-      </p>
-
-      <div class="policy-content" style="padding:20px; margin-bottom:20px;">
-        <h3 style="margin-top:0;">1. 基本設定</h3>
-        
-        <div style="margin-bottom:15px;">
-          <label style="font-weight:bold; display:block; margin-bottom:5px;">テーマカラー</label>
-          <select id="themeSelectInSettings" style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ccc; font-weight: bold;">
-            <option value="default">デフォルト (ピンク)</option>
-            <option value="as">アイドルマスター (赤)</option>
-            <option value="cg">シンデレラガールズ (青)</option>
-            <option value="ml">ミリオンライブ！ (黄)</option>
-            <option value="sidem">SideM (緑)</option>
-            <option value="sc">シャイニーカラーズ (水色)</option>
-            <option value="gakumas">学園アイドルマスター (オレンジ)</option>
-          </select>
-        </div>
-
-        <div style="margin-bottom:15px;">
-          <label style="font-weight:bold; display:block; margin-bottom:5px;">長いカード名の表示方法</label>
-          <select id="nameStyleSelect" style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ccc; font-weight: bold;">
-            <option value="ellipsis">「...」で省略する (デフォルト)</option>
-            <option value="shrink">意地でも1行に縮小して表示する</option>
-            <option value="marquee">自動で横スクロール（ヨーヨー）させる</option>
-          </select>
-        </div>
-
-        <div style="margin-bottom:15px;">
-          <label style="font-weight:bold; display:block; margin-bottom:5px;">ログイン直後のカードタップの挙動</label>
-          <select id="defaultModeSelect" style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ccc; font-weight: bold;">
-            <option value="on">詳細確認モード (ON: カードの詳細を見る)</option>
-            <option value="off">所持チェックモード (OFF: 所持/未所持を切り替える)</option>
-          </select>
-        </div>
-
-        <label class="checkbox-label" style="font-weight:bold; font-size:15px; margin-bottom:15px;">
-          <input type="checkbox" id="noticeToggleSettings" checked style="transform:scale(1.3); margin-right:10px;"> 画面上部にお知らせを表示する
-        </label>
-      </div>
-
-      <div class="policy-content" style="padding:20px; margin-bottom:20px;">
-        <div class="setting-header-wrap">
-            <h3 style="margin:0;">2. 詳細画面の表示順・ON/OFF設定</h3>
-            <button class="reset-btn" onclick="resetModalSettings()">デフォルトに戻す</button>
-        </div>
-        <p style="font-size:12px; color:#666; margin-bottom:15px;">
-          カードをタップしたときに出る表の項目を、好きな順番に入れ替えたり、不要なものを非表示にできます。
-        </p>
-        <div id="modalOrderSettingsContainer"></div>
-      </div>
-      
-      <div class="policy-content" style="padding:20px; margin-bottom:20px;">
-        <div class="setting-header-wrap">
-            <h3 style="margin:0;">3. サイドメニューの並び替え</h3>
-            <button class="reset-btn" onclick="resetMenuSettings()">デフォルトに戻す</button>
-        </div>
-        <p style="font-size:12px; color:#666; margin-bottom:15px;">
-          左から出てくるメニューの順番を、使いやすいように並び替えられます。
-        </p>
-        <div id="menuOrderSettingsContainer"></div>
-      </div>
-
-      <div class="policy-content" style="padding:20px;">
-        <div class="setting-header-wrap">
-            <h3 style="margin:0;">4. 絞り込み項目の並び替え・開閉設定</h3>
-            <button class="reset-btn" onclick="resetFilterSettings()">デフォルトに戻す</button>
-        </div>
-        <p style="font-size:12px; color:#666; margin-bottom:15px;">
-          「詳細な絞り込みを開く」を押した時の項目の順番と、最初から開いておくかどうかを設定できます。
-        </p>
-        <div id="filterOrderSettingsContainer"></div>
-      </div>
     </div>
   </main>
 
@@ -377,284 +227,129 @@
     import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
     import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    // ==========================================
-    // 定数・変数の宣言（エラー防止のため一番上に集約）
-    // ==========================================
-    const firebaseConfig = {
-      apiKey: "AIzaSyBBMuCXDKeF7sjBnPN8GqGy3WZ32HMYfQ0",
-      authDomain: "tourmas-checker-b05c1.firebaseapp.com",
-      projectId: "tourmas-checker-b05c1",
-      storageBucket: "tourmas-checker-b05c1.firebasestorage.app",
-      messagingSenderId: "3796099655",
-      appId: "1:3796099655:web:0a01862393e31117ec8762"
-    };
-
+    const firebaseConfig = { apiKey: "AIzaSyBBMuCXDKeF7sjBnPN8GqGy3WZ32HMYfQ0", authDomain: "tourmas-checker-b05c1.firebaseapp.com", projectId: "tourmas-checker-b05c1", storageBucket: "tourmas-checker-b05c1.firebasestorage.app", messagingSenderId: "3796099655", appId: "1:3796099655:web:0a01862393e31117ec8762" };
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
     const provider = new GoogleAuthProvider();
 
+    // ★ ページ判定（自分がどのページにいるか）
+    const currentPage = 'index';
+
     let currentUser = null;
     let ownedCardIds = new Set();
     let userCardDetails = {}; 
     let hasUnsavedChanges = false; 
-    let seriesSetForModal = new Set(); 
 
-    const themes = {
-      default: { main: '#ff66a3', sub: '#ffebf0' },
-      as: { main: '#f34f6d', sub: '#fce4e8' },
-      cg: { main: '#2681c8', sub: '#e4f0f9' },
-      ml: { main: '#ffc30b', sub: '#fff8e1' },
-      sidem: { main: '#0fbe94', sub: '#e0f7f1' },
-      sc: { main: '#8dbbff', sub: '#eef4ff' },
-      gakumas: { main: '#f39800', sub: '#feeee0' }
-    };
-    const rarityOrder = { "UR": 9, "SSR": 8, "SR": 7, "R": 6, "N": 5, "CO": 4, "TSSR": 3, "TSR": 2, "TR": 1 };
+    // ★ 設定データの読み込み
+    let menuConfig = JSON.parse(localStorage.getItem('tourmas_menuConfig')) || [ { id: 'collection', label: 'カード一覧' }, { id: 'formation', label: 'マイ編成メモ' }, { id: 'auth', label: 'アカウント・ログイン' }, { id: 'mode', label: '詳細モード・挙動設定' }, { id: 'series', label: '表示する弾数' }, { id: 'settings', label: 'チェッカー設定' }, { id: 'privacy', label: 'プライバシーポリシー' }, { id: 'egao', label: '笑顔満点占い' } ];
+    let modalConfig = JSON.parse(localStorage.getItem('tourmas_modalConfig')) || [ { id: 'number', label: '番号', show: true }, { id: 'rarity', label: 'レアリティ', show: true }, { id: 'type', label: '種類', show: true }, { id: 'appeal', label: 'アピール値', show: true }, { id: 'target', label: '対象／効果対象', show: true }, { id: 'part', label: '部位', show: true }, { id: 'genre', label: 'ジャンル', show: true }, { id: 'effect', label: '効果／リズム効果', show: true }, { id: 'note', label: '備考', show: true }, { id: 'relax', label: '制限緩和', show: true }, { id: 'comment', label: 'コメント', show: true }, { id: 'series', label: '入手手段', show: true }, { id: 'bonus', label: 'セットボーナス', show: true }, { id: 'altcard', label: '別カード', show: true }, { id: 'color', label: '色違い', show: true }, { id: 'utsurikomi', label: '写り込み', show: true } ];
+    let filterConfigGroups = JSON.parse(localStorage.getItem('tourmas_filterConfig')) || [ { id: 'owned', label: '所持状況', open: true }, { id: 'wish', label: '欲しいリスト', open: true }, { id: 'rarity', label: 'レアリティ', open: true }, { id: 'type', label: 'カード種類', open: true }, { id: 'brand', label: 'ブランド', open: true }, { id: 'target', label: '対象・効果', open: true }, { id: 'part', label: '部位', open: true }, { id: 'genre', label: 'ジャンル', open: true }, { id: 'idol', label: 'アイドル', open: false } ];
     
-    // --- ユーザーカスタマイズ設定 ---
-    const defaultModalItems = [
-      { id: 'number', label: '番号', show: true },
-      { id: 'rarity', label: 'レアリティ', show: true },
-      { id: 'type', label: '種類', show: true },
-      { id: 'appeal', label: 'アピール値', show: true },
-      { id: 'target', label: '対象／効果対象', show: true },
-      { id: 'part', label: '部位', show: true },
-      { id: 'genre', label: 'ジャンル', show: true },
-      { id: 'effect', label: '効果／リズム効果', show: true },
-      { id: 'note', label: '備考', show: true },
-      { id: 'relax', label: '制限緩和', show: true },
-      { id: 'comment', label: 'コメント', show: true },
-      { id: 'series', label: '入手手段', show: true },
-      { id: 'bonus', label: 'セットボーナス', show: true },
-      { id: 'altcard', label: '別カード', show: true },
-      { id: 'color', label: '色違い', show: true },
-      { id: 'utsurikomi', label: '写り込み', show: true }
-    ];
-    let modalConfig;
-    try {
-      const savedConfig = localStorage.getItem('tourmas_modalConfig');
-      modalConfig = savedConfig ? JSON.parse(savedConfig) : JSON.parse(JSON.stringify(defaultModalItems));
-      if (!Array.isArray(modalConfig)) modalConfig = JSON.parse(JSON.stringify(defaultModalItems));
-    } catch (e) { modalConfig = JSON.parse(JSON.stringify(defaultModalItems)); }
+    let savedTheme = localStorage.getItem('tourmas_theme') || 'default';
+    let savedNotice = localStorage.getItem('tourmas_notice') !== 'false';
+    let savedPrivacy = localStorage.getItem('tourmas_privacy') === 'true';
+    let savedNameStyle = localStorage.getItem('tourmas_nameStyle') || 'ellipsis';
+    
+    // ★ 詳細モードの初期値（デフォルトはON）
+    let defaultMode = localStorage.getItem('tourmas_defaultMode') || 'on';
+    let isDetailMode = true; 
+    if (localStorage.getItem('tourmas_detailMode') !== null) {
+        isDetailMode = localStorage.getItem('tourmas_detailMode') === 'true';
+    } else {
+        isDetailMode = (defaultMode === 'on');
+    }
 
-    const defaultMenuItems = [
-      { id: 'collection', label: 'カード一覧に戻る' },
-      { id: 'formation', label: 'マイ編成メモ' },
-      { id: 'auth', label: 'アカウント・ログイン' },
-      { id: 'mode', label: '詳細モード・挙動設定' },
-      { id: 'series', label: '表示する弾数' },
-      { id: 'settings', label: 'チェッカー設定' },
-      { id: 'privacy', label: 'プライバシーポリシー' },
-      { id: 'egao', label: '笑顔満点ですっ占い' }
-    ];
-    let menuConfig;
-    try {
-      const savedMenu = localStorage.getItem('tourmas_menuConfig');
-      menuConfig = savedMenu ? JSON.parse(savedMenu) : JSON.parse(JSON.stringify(defaultMenuItems));
-      if (!Array.isArray(menuConfig)) menuConfig = JSON.parse(JSON.stringify(defaultMenuItems));
-    } catch (e) { menuConfig = JSON.parse(JSON.stringify(defaultMenuItems)); }
+    const themes = { default: { main: '#ff66a3', sub: '#ffebf0' }, as: { main: '#f34f6d', sub: '#fce4e8' }, cg: { main: '#2681c8', sub: '#e4f0f9' }, ml: { main: '#ffc30b', sub: '#fff8e1' }, sidem: { main: '#0fbe94', sub: '#e0f7f1' }, sc: { main: '#8dbbff', sub: '#eef4ff' }, gakumas: { main: '#f39800', sub: '#feeee0' } };
+    document.documentElement.style.setProperty('--main-color', themes[savedTheme].main);
+    document.documentElement.style.setProperty('--sub-color', themes[savedTheme].sub);
+    document.getElementById('marqueeContainer').style.display = savedNotice ? 'block' : 'none';
 
-    const defaultFilterGroups = [
-      { id: 'owned', label: '所持状況', open: true },
-      { id: 'wish', label: '欲しいリスト', open: true },
-      { id: 'rarity', label: 'レアリティ', open: true },
-      { id: 'type', label: 'カード種類', open: true },
-      { id: 'brand', label: 'ブランド', open: true },
-      { id: 'target', label: '対象・効果', open: true },
-      { id: 'part', label: '部位', open: true },
-      { id: 'genre', label: 'ジャンル', open: true },
-      { id: 'idol', label: 'アイドル', open: false }
-    ];
-    let filterConfigGroups;
-    try {
-      const savedFilter = localStorage.getItem('tourmas_filterConfig');
-      filterConfigGroups = savedFilter ? JSON.parse(savedFilter) : JSON.parse(JSON.stringify(defaultFilterGroups));
-      if (!Array.isArray(filterConfigGroups)) filterConfigGroups = JSON.parse(JSON.stringify(defaultFilterGroups));
-    } catch (e) { filterConfigGroups = JSON.parse(JSON.stringify(defaultFilterGroups)); }
-
-
-    // ==========================================
-    // ユーティリティ・テーマ設定
-    // ==========================================
-    const safeAddListener = (id, event, handler) => {
-      const el = document.getElementById(id);
-      if (el) el.addEventListener(event, handler);
-    };
-
-    const applyTheme = (themeKey) => {
-      const t = themes[themeKey] || themes['default'];
-      document.documentElement.style.setProperty('--main-color', t.main);
-      document.documentElement.style.setProperty('--sub-color', t.sub);
-    };
-
-    window.switchView = (viewId) => {
-      document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
-      const targetView = document.getElementById('view-' + viewId);
-      if(targetView) targetView.classList.add('active');
-      if (viewId === 'settings') {
-          window.renderModalOrderSettings();
-          window.renderMenuOrderSettings();
-          window.renderFilterOrderSettings();
-      }
-      document.getElementById('sidebar')?.classList.remove('open');
-      document.getElementById('overlay')?.classList.remove('open');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    };
-
-    const loadSettings = () => {
-      let savedTheme = 'default';
-      let savedNotice = true;
-      let savedDetailMode = true;
-      let savedCloseOutside = true;
-      let savedPrivacy = false;
-      let savedNameStyle = 'ellipsis';
-      let defaultMode = 'on';
-
-      try {
-        savedTheme = localStorage.getItem('tourmas_theme') || 'default';
-        savedNotice = localStorage.getItem('tourmas_notice') !== 'false';
-        if (localStorage.getItem('tourmas_detailMode') === 'false') savedDetailMode = false;
-        if (localStorage.getItem('tourmas_closeOutside') === 'false') savedCloseOutside = false;
-        if (localStorage.getItem('tourmas_privacy') === 'true') savedPrivacy = true;
-        savedNameStyle = localStorage.getItem('tourmas_nameStyle') || 'ellipsis';
-        defaultMode = localStorage.getItem('tourmas_defaultMode') || 'on';
-      } catch(e) {}
-
-      const ts = document.getElementById('themeSelectInSettings');
-      if(ts) ts.value = savedTheme;
-      applyTheme(savedTheme);
+    // ★ メニュー構築（全ページ共通・壊れない版）
+    const renderSidebarMenu = () => {
+      const sidebar = document.getElementById('sidebar');
+      sidebar.innerHTML = '<button id="menuCloseBtn">✖</button>';
       
-      const ns = document.getElementById('nameStyleSelect');
-      if(ns) ns.value = savedNameStyle;
-      const dms = document.getElementById('defaultModeSelect');
-      if(dms) dms.value = defaultMode;
-
-      const nts = document.getElementById('noticeToggleSettings');
-      if(nts) nts.checked = savedNotice;
-      const mc = document.getElementById('marqueeContainer');
-      if(mc) mc.style.display = savedNotice ? 'block' : 'none';
-      
-      const dm = document.getElementById('detailModeToggle');
-      if(dm) {
-         if (defaultMode === 'on') { dm.checked = true; savedDetailMode = true; } 
-         else if (defaultMode === 'off') { dm.checked = false; savedDetailMode = false; }
-         localStorage.setItem('tourmas_detailMode', savedDetailMode);
-      }
-      
-      const co = document.getElementById('closeOutsideToggle');
-      if(co) co.checked = savedCloseOutside;
-      const pt = document.getElementById('privacyToggle');
-      if(pt) pt.checked = savedPrivacy;
-    };
-
-    safeAddListener('themeSelectInSettings', 'change', (e) => {
-      localStorage.setItem('tourmas_theme', e.target.value);
-      applyTheme(e.target.value);
-    });
-    safeAddListener('nameStyleSelect', 'change', (e) => {
-      localStorage.setItem('tourmas_nameStyle', e.target.value);
-      window.renderCards();
-    });
-    safeAddListener('defaultModeSelect', 'change', (e) => {
-      localStorage.setItem('tourmas_defaultMode', e.target.value);
-      const dm = document.getElementById('detailModeToggle');
-      if (dm) {
-          dm.checked = (e.target.value === 'on');
-          localStorage.setItem('tourmas_detailMode', dm.checked);
-      }
-    });
-    safeAddListener('noticeToggleSettings', 'change', (e) => {
-      localStorage.setItem('tourmas_notice', e.target.checked);
-      const mc = document.getElementById('marqueeContainer');
-      if(mc) mc.style.display = e.target.checked ? 'block' : 'none';
-    });
-    safeAddListener('detailModeToggle', 'change', (e) => localStorage.setItem('tourmas_detailMode', e.target.checked));
-    safeAddListener('closeOutsideToggle', 'change', (e) => localStorage.setItem('tourmas_closeOutside', e.target.checked));
-    safeAddListener('privacyToggle', 'change', (e) => { localStorage.setItem('tourmas_privacy', e.target.checked); updateUserInfo(); });
-
-    // ==========================================
-    // 笑顔満点・お知らせ・フィルター構築
-    // ==========================================
-    const egaoEffects = [
-      "コンボ時のスコアUP", "GOOD以上判定時のスコアUP", "GREAT以上判定時のスコアUP", "PERFECT判定時のスコアUP",
-      "成功判定のコンボ数UP", "すべての判定がPERFECTになる", "GOOD以上判定がPERFECTになる", "GREAT判定がPERFECTになる",
-      "MISS判定でもコンボが継続する", "コンボ数に応じてスコア獲得", "FEVERゲージ上昇率UP", "判定が長くなる",
-      "MISS判定時スコアDOWN", "判定が短くなる", "FEVERゲージを消費する", "SPアピール回数を1回消費"
-    ];
-    safeAddListener('egaoBtn', 'click', () => {
-        const dai = egaoEffects[Math.floor(Math.random() * egaoEffects.length)];
-        const shou = egaoEffects[Math.floor(Math.random() * egaoEffects.length)];
-        const resDiv = document.getElementById('egaoResult');
-        if(resDiv) { resDiv.innerHTML = `<strong>効果(大)：</strong>${dai}<br><strong>効果(小)：</strong>${shou}<br>`; resDiv.style.display = 'block'; }
-    });
-
-    let bdayMessages = [];
-    const today = new Date();
-    today.setHours(0,0,0,0);
-    filterConfig.idols.forEach(idol => {
-      const [month, day] = idol.birthday.split('-');
-      let bdayDate = new Date(today.getFullYear(), parseInt(month) - 1, parseInt(day));
-      let diffDays = (today - bdayDate) / (1000 * 60 * 60 * 24);
-      if (diffDays >= 0 && diffDays <= 2) bdayMessages.push(`${idol.name} のバースデーライブ期間！`);
-    });
-    let finalNotice = siteConfig.noticeText;
-    if (bdayMessages.length > 0) finalNotice += " ｜ " + bdayMessages.join(" ｜ ");
-    const mt = document.getElementById('marqueeText');
-    if(mt) mt.innerText = finalNotice;
-
-    // ★ ここから下が「絶対にバグらない」順番制御
-    window.renderMenuSettingsVisual = () => {
-       menuConfig.forEach((item, index) => {
-         const el = document.getElementById('menu-' + item.id);
-         if(el) el.style.order = index + 1;
-       });
-    };
-
-    window.renderFilterSettingsVisual = () => {
-      filterConfigGroups.forEach((group, index) => {
-        const el = document.getElementById('filterGroup-' + group.id);
-        if(el) {
-          el.style.order = index + 1;
-          el.open = group.open; 
+      menuConfig.forEach((item, index) => {
+        let btnHtml = '';
+        if(item.id === 'collection') btnHtml = `<a href="index.html" class="nav-btn ${currentPage==='index'?'active':''}">カード一覧</a>`;
+        else if(item.id === 'formation') btnHtml = `<a href="formation.html" class="nav-btn ${currentPage==='formation'?'active':''}">マイ編成メモ</a>`;
+        else if(item.id === 'settings') btnHtml = `<a href="settings.html" class="nav-btn ${currentPage==='settings'?'active':''}">チェッカー設定</a>`;
+        else if(item.id === 'privacy') btnHtml = `<a href="privacy.html" class="nav-btn ${currentPage==='privacy'?'active':''}">プライバシーポリシー</a>`;
+        else if(item.id === 'auth') btnHtml = `<div class="auth-container"><span id="userInfo">未ログイン</span><label class="checkbox-label" style="justify-content: center; font-size: 11px; margin-top: 5px;"><input type="checkbox" id="privacyToggle" ${savedPrivacy?'checked':''}> 名前を隠す</label><button id="loginBtn">Googleでログイン</button><button id="logoutBtn" class="logout-btn" style="display:none;">ログアウト</button></div>`;
+        else if(item.id === 'mode') btnHtml = `<div class="mode-switch"><label class="checkbox-label" style="margin: 0;"><input type="checkbox" id="detailModeToggle" ${isDetailMode?'checked':''}> 詳細確認モード</label><label class="checkbox-label" style="margin: 10px 0 0 0; font-size: 12px; font-weight: normal; color: #555;"><input type="checkbox" id="closeOutsideToggle" ${localStorage.getItem('tourmas_closeOutside')!=='false'?'checked':''}> 外枠をタップして閉じる</label></div>`;
+        else if(item.id === 'series') btnHtml = `<div><h3 style="margin: 0 0 10px 0; font-size: 15px; color: #555;">表示する弾数</h3><div id="seriesFilterContainer"></div></div>`;
+        else if(item.id === 'egao') btnHtml = `<div><button id="egaoBtn">笑顔満点ですっ</button><div id="egaoResult"></div></div>`;
+        
+        if(btnHtml) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'menu-section';
+            wrapper.style.order = index + 1;
+            wrapper.innerHTML = btnHtml;
+            sidebar.appendChild(wrapper);
         }
       });
+
+      document.getElementById('menuCloseBtn').onclick = () => { sidebar.classList.remove('open'); document.getElementById('overlay').classList.remove('open'); };
+      const pt = document.getElementById('privacyToggle');
+      if(pt) pt.addEventListener('change', (e) => { localStorage.setItem('tourmas_privacy', e.target.checked); savedPrivacy = e.target.checked; updateUserInfo(); });
+      const dmt = document.getElementById('detailModeToggle');
+      if(dmt) dmt.addEventListener('change', (e) => { localStorage.setItem('tourmas_detailMode', e.target.checked); isDetailMode = e.target.checked; });
+      const cot = document.getElementById('closeOutsideToggle');
+      if(cot) cot.addEventListener('change', (e) => localStorage.setItem('tourmas_closeOutside', e.target.checked));
+      
+      const lBtn = document.getElementById('loginBtn');
+      if(lBtn) lBtn.addEventListener('click', () => signInWithPopup(auth, provider));
+      const loBtn = document.getElementById('logoutBtn');
+      if(loBtn) loBtn.addEventListener('click', () => signOut(auth));
+
+      const egaoBtn = document.getElementById('egaoBtn');
+      if(egaoBtn) egaoBtn.addEventListener('click', () => {
+        const effects = ["コンボ時のスコアUP", "GOOD以上のスコアUP", "GREAT以上のスコアUP", "PERFECTのスコアUP", "成功判定のコンボ数UP", "すべての判定がPERFECTになる", "GOOD以上がPERFECTになる", "GREATがPERFECTになる", "MISSでもコンボ継続", "コンボ数に応じてスコア獲得", "FEVERゲージ上昇率UP", "判定が長くなる", "MISS時スコアDOWN", "判定が短くなる", "FEVER消費", "SPアピール消費"];
+        const resDiv = document.getElementById('egaoResult');
+        resDiv.innerHTML = `<strong>効果(大)：</strong>${effects[Math.floor(Math.random() * effects.length)]}<br><strong>効果(小)：</strong>${effects[Math.floor(Math.random() * effects.length)]}<br>`; 
+        resDiv.style.display = 'block';
+      });
+
+      setupSeriesFilter();
     };
 
-    window.setupSeriesFilter = () => {
-      seriesSetForModal.clear();
-      let hasToursRare = false;
-      let hasUnknown = false;
+    const updateUserInfo = () => {
+      const userInfo = document.getElementById('userInfo');
+      if(!userInfo) return;
+      if (currentUser) { userInfo.innerText = savedPrivacy ? `プロデューサー さん` : `${currentUser.displayName} さん`; } 
+      else { userInfo.innerText = "未ログイン（セーブ不可）"; }
+    };
+
+    const setupSeriesFilter = () => {
+      const seriesContainer = document.getElementById('seriesFilterContainer');
+      if(!seriesContainer) return;
+      const seriesSet = new Set();
+      let hasToursRare = false, hasUnknown = false;
       cardData.forEach(c => {
         let s = c["シリーズ"] || c["入手手段"];
         if (!s || s === "") { hasUnknown = true; return; }
-        if (s.includes("ツアーズレア")) hasToursRare = true;
-        else seriesSetForModal.add(s);
+        if (s.includes("ツアーズレア")) hasToursRare = true; else seriesSet.add(s);
       });
-      
-      const seriesContainer = document.getElementById('seriesFilterContainer');
-      if(seriesContainer) {
-          let htmlStr = '';
-          Array.from(seriesSetForModal).forEach(s => {
-            htmlStr += `<label class="checkbox-label"><input type="checkbox" class="series-filter" value="${s}" checked> ${s}</label>`;
-          });
-          if (hasToursRare) htmlStr += `<label class="checkbox-label" style="font-weight:bold; color:var(--main-color);"><input type="checkbox" class="series-filter" value="ツアーズレア" checked> ツアーズレア (全弾一括)</label>`;
-          if (hasUnknown) htmlStr += `<label class="checkbox-label" style="color:#888;"><input type="checkbox" class="series-filter" value="未設定" checked> 未設定（追加予定）</label>`;
-          seriesContainer.innerHTML = htmlStr;
-          document.querySelectorAll('.series-filter').forEach(cb => cb.addEventListener('change', window.applyFiltersAndSort));
-      }
+      let htmlStr = '';
+      Array.from(seriesSet).forEach(s => htmlStr += `<label class="checkbox-label"><input type="checkbox" class="series-filter" value="${s}" checked> ${s}</label>`);
+      if (hasToursRare) htmlStr += `<label class="checkbox-label" style="font-weight:bold; color:var(--main-color);"><input type="checkbox" class="series-filter" value="ツアーズレア" checked> ツアーズレア (全弾一括)</label>`;
+      if (hasUnknown) htmlStr += `<label class="checkbox-label" style="color:#888;"><input type="checkbox" class="series-filter" value="未設定" checked> 未設定（追加予定）</label>`;
+      seriesContainer.innerHTML = htmlStr;
+      document.querySelectorAll('.series-filter').forEach(cb => cb.addEventListener('change', applyFiltersAndSort));
     };
 
-    window.renderAdvancedFilters = () => {
+    // ★ 絞り込みアコーディオン構築（CSS順序制御版）
+    const renderAdvancedFilters = () => {
         const panel = document.getElementById('filterPanelBody');
         if(!panel) return;
-        
         let htmlStr = '';
-        filterConfigGroups.forEach(group => {
+        filterConfigGroups.forEach((group, index) => {
             let inner = "";
             if (group.id === 'owned') {
-                inner = `<label class="filter-btn-label"><input type="radio" name="filterOwned" value="all" checked onchange="applyFiltersAndSort()"> すべて表示</label><label class="filter-btn-label"><input type="radio" name="filterOwned" value="owned" onchange="applyFiltersAndSort()"> 持っている</label><label class="filter-btn-label"><input type="radio" name="filterOwned" value="unowned" onchange="applyFiltersAndSort()"> 持っていない</label>`;
+                inner = `<label class="filter-btn-label"><input type="radio" name="filterOwned" value="all" checked> すべて表示</label><label class="filter-btn-label"><input type="radio" name="filterOwned" value="owned"> 持っている</label><label class="filter-btn-label"><input type="radio" name="filterOwned" value="unowned"> 持っていない</label>`;
             } else if (group.id === 'wish') {
-                inner = `<label class="filter-btn-label"><input type="radio" name="filterWish" value="0" checked onchange="applyFiltersAndSort()"> 指定なし</label><label class="filter-btn-label"><input type="radio" name="filterWish" value="1" onchange="applyFiltersAndSort()"> ★1以上</label><label class="filter-btn-label"><input type="radio" name="filterWish" value="2" onchange="applyFiltersAndSort()"> ★2以上</label><label class="filter-btn-label"><input type="radio" name="filterWish" value="3" onchange="applyFiltersAndSort()"> ★3以上</label><label class="filter-btn-label"><input type="radio" name="filterWish" value="4" onchange="applyFiltersAndSort()"> ★4以上</label><label class="filter-btn-label"><input type="radio" name="filterWish" value="5" onchange="applyFiltersAndSort()"> ★5のみ</label>`;
+                inner = `<label class="filter-btn-label"><input type="radio" name="filterWish" value="0" checked> 指定なし</label><label class="filter-btn-label"><input type="radio" name="filterWish" value="1"> ★1以上</label><label class="filter-btn-label"><input type="radio" name="filterWish" value="2"> ★2以上</label><label class="filter-btn-label"><input type="radio" name="filterWish" value="3"> ★3以上</label><label class="filter-btn-label"><input type="radio" name="filterWish" value="4"> ★4以上</label><label class="filter-btn-label"><input type="radio" name="filterWish" value="5"> ★5のみ</label>`;
             } else {
                 let dataArray = [];
                 if(group.id === 'rarity') dataArray = filterConfig.rarities;
@@ -664,98 +359,99 @@
                 if(group.id === 'part') dataArray = filterConfig.parts;
                 if(group.id === 'genre') dataArray = filterConfig.genres;
                 if(group.id === 'idol') dataArray = filterConfig.idols;
-
                 dataArray.forEach(item => {
                     const value = typeof item === 'object' ? item.name : item;
-                    inner += `<label class="filter-btn-label"><input type="checkbox" class="advanced-filter filter-${group.id}" value="${value}" onchange="applyFiltersAndSort()"> ${value}</label>`;
+                    inner += `<label class="filter-btn-label"><input type="checkbox" class="advanced-filter filter-${group.id}" value="${value}"> ${value}</label>`;
                 });
             }
-            htmlStr += `<details class="filter-group" id="filterGroup-${group.id}"><summary><h4>${group.label}</h4></summary><div class="filter-grid" id="${group.id}Filters">${inner}</div></details>`;
+            htmlStr += `<details class="filter-group" id="filterGroup-${group.id}" style="order: ${index + 1};" ${group.open ? 'open' : ''}><summary><h4>${group.label}</h4></summary><div class="filter-grid" id="${group.id}Filters">${inner}</div></details>`;
         });
         panel.innerHTML = htmlStr;
-        window.renderFilterSettingsVisual();
+
+        document.querySelectorAll('input[name="filterOwned"]').forEach(r => r.addEventListener('change', applyFiltersAndSort));
+        document.querySelectorAll('input[name="filterWish"]').forEach(r => r.addEventListener('change', applyFiltersAndSort));
+        document.querySelectorAll('.advanced-filter').forEach(cb => cb.addEventListener('change', applyFiltersAndSort));
     };
 
-    window.toggleFilterPanel = () => {
+    document.getElementById('toggleFilterBtn').onclick = () => {
       const panel = document.getElementById('filterPanel');
-      const btn = document.getElementById('toggleFilterBtn');
-      if(panel && btn) {
-        panel.classList.toggle('open');
-        btn.innerText = panel.classList.contains('open') ? "▲ 詳細な絞り込みを閉じる" : "▼ 詳細な絞り込みを開く";
-      }
+      panel.classList.toggle('open');
+      document.getElementById('toggleFilterBtn').innerText = panel.classList.contains('open') ? "▲ 詳細な絞り込みを閉じる" : "▼ 詳細な絞り込みを開く";
     };
 
-    window.resetFilters = () => {
+    document.getElementById('resetFiltersBtn').onclick = () => {
       document.querySelectorAll('.advanced-filter').forEach(cb => cb.checked = false);
-      const f1 = document.querySelector('input[name="filterOwned"][value="all"]');
-      if(f1) f1.checked = true;
-      const f2 = document.querySelector('input[name="filterWish"][value="0"]');
-      if(f2) f2.checked = true;
-      window.applyFiltersAndSort();
+      const f1 = document.querySelector('input[name="filterOwned"][value="all"]'); if(f1) f1.checked = true;
+      const f2 = document.querySelector('input[name="filterWish"][value="0"]'); if(f2) f2.checked = true;
+      applyFiltersAndSort();
     };
 
-    // ==========================================
-    // セーブ・カード描画
-    // ==========================================
-    window.triggerCloudSave = async () => {
-      if (!currentUser) return alert("セーブするにはGoogleログインしてください。");
-      const detailModal = document.getElementById('detailModal');
-      if (detailModal && detailModal.classList.contains('open')) window.updateLocalMemory();
-
-      await setDoc(doc(db, "users", currentUser.uid), { 
-        ownedCards: Array.from(ownedCardIds), 
-        cardDetails: userCardDetails
-      }, { merge: true });
+    // ★ カード描画処理
+    const rarityOrder = { "UR": 9, "SSR": 8, "SR": 7, "R": 6, "N": 5, "CO": 4, "TSSR": 3, "TSR": 2, "TR": 1 };
+    const renderCards = () => {
+      const container = document.getElementById('cardList');
+      if(!container) return;
+      container.innerHTML = '';
       
-      hasUnsavedChanges = false;
-      document.querySelectorAll('.cloud-save-btn').forEach(btn => {
-          btn.classList.remove('unsaved');
-          btn.innerText = "クラウドにセーブ済";
+      cardData.forEach(data => {
+        const cardDiv = document.createElement('div');
+        cardDiv.className = 'card';
+        if (ownedCardIds.has(data["番号"])) cardDiv.classList.add('owned');
+        
+        let imgNum = 99999;
+        if (data["カード表"]) { cardDiv.style.backgroundImage = `url('images/${data["カード表"]}')`; cardDiv.style.backgroundSize = 'cover'; const match = data["カード表"].match(/\d+/); if (match) imgNum = parseInt(match[0]); }
+
+        const uData = userCardDetails[data["番号"]] || { count: 0, memo: "", wish: 0 };
+        const wishStars = uData.wish > 0 ? `<div class="wish-star">${'★'.repeat(uData.wish)}</div>` : '';
+
+        cardDiv.dataset.number = data["番号"]; cardDiv.dataset.imgNum = imgNum;
+        cardDiv.dataset.vocal = parseInt(data["アピール値（Vocal)"]) || 0; cardDiv.dataset.dance = parseInt(data["アピール値（Dance）"]) || 0; cardDiv.dataset.visual = parseInt(data["アピール値（Visual）"]) || 0;
+        cardDiv.dataset.wish = uData.wish || 0; cardDiv.dataset.rarity = data["レアリティ"] || ""; cardDiv.dataset.type = data["種類"] || ""; cardDiv.dataset.brand = data["シリーズブランド名"] || ""; cardDiv.dataset.idol = data["アイドル名"] || "";
+        cardDiv.dataset.series = data["シリーズ"] || data["入手手段"] || "未設定"; cardDiv.dataset.target = data["対象アイドル／サポート効果対象"] || ""; cardDiv.dataset.part = data["部位"] || ""; cardDiv.dataset.genre = data["ジャンル"] || ""; 
+
+        const commentData = data["キャラコメント"] || data["コメント"] || "";
+        cardDiv.dataset.searchExact = [data["アイドル名"], data["カード名"], data["番号"], data["シリーズブランド名"]].join(" ").toLowerCase();
+        cardDiv.dataset.searchPartial = cardDiv.dataset.searchExact + " " + [data["レアリティ"], data["種類"], data["ジャンル"], data["写り込み"], data["タグ"], data["対象アイドル／サポート効果対象"], data["部位"], commentData, data["セットボーナス"]].join(" ").toLowerCase();
+        
+        const mainText = data["カード名"] || data["番号"] || "未登録";
+        let subText = "";
+        if (data["アイドル名"]) subText = `<p>${data["アイドル名"]}</p>`; else if (data["シリーズブランド名"]) subText = `<p>${data["シリーズブランド名"]}</p>`;
+        
+        let h4Class = "";
+        const len = mainText.length;
+        if (len >= 11) {
+            if (savedNameStyle === 'marquee') h4Class = 'class="marquee-text"';
+            else if (savedNameStyle === 'shrink') { if (len >= 16) h4Class = 'class="shrink-text-sm"'; else if (len >= 13) h4Class = 'class="shrink-text-md"'; else h4Class = 'class="shrink-text-lg"'; }
+        }
+        
+        cardDiv.innerHTML = `${wishStars}<div class="rarity-badge">${data["レアリティ"]}</div><div class="card-info"><h4 ${h4Class}>${mainText}</h4>${subText}</div>`;
+        cardDiv.onclick = () => {
+          if (isDetailMode) { openModal(data); } 
+          else {
+            if (ownedCardIds.has(data["番号"])) { ownedCardIds.delete(data["番号"]); cardDiv.classList.remove('owned'); if (userCardDetails[data["番号"]]) userCardDetails[data["番号"]].count = 0; } 
+            else { ownedCardIds.add(data["番号"]); cardDiv.classList.add('owned'); if (!userCardDetails[data["番号"]]) userCardDetails[data["番号"]] = { count: 1, memo: "", wish: 0 }; else userCardDetails[data["番号"]].count = 1; }
+            applyFiltersAndSort(); markAsUnsaved(); 
+          }
+        };
+        container.appendChild(cardDiv);
       });
-      const toast = document.getElementById('toast');
-      if(toast) { toast.innerText = "クラウドに保存しました！"; toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 2000); }
+      applyFiltersAndSort();
     };
 
-    window.markAsUnsaved = () => {
-      hasUnsavedChanges = true;
-      document.querySelectorAll('.cloud-save-btn').forEach(btn => {
-        btn.style.display = 'inline-block';
-        btn.classList.add('unsaved');
-        btn.innerText = "セーブ(未保存)";
-      });
-    };
-
-    window.applyFiltersAndSort = () => {
-      const si = document.getElementById('searchInput');
-      const text = si ? si.value.toLowerCase() : "";
-      const sm = document.querySelector('input[name="searchMode"]:checked');
-      const searchMode = sm ? sm.value : "exact";
-      const fo = document.querySelector('input[name="filterOwned"]:checked');
-      const filterOwned = fo ? fo.value : "all";
-      const fw = document.querySelector('input[name="filterWish"]:checked');
-      const filterWish = fw ? parseInt(fw.value) : 0;
+    const applyFiltersAndSort = () => {
+      const text = document.getElementById('searchInput').value.toLowerCase();
+      const searchMode = document.querySelector('input[name="searchMode"]:checked').value;
+      const filterOwned = document.querySelector('input[name="filterOwned"]:checked').value;
+      const filterWish = parseInt(document.querySelector('input[name="filterWish"]:checked').value);
       
-      const getChecked = (className) => {
-        const checked = Array.from(document.querySelectorAll(`.${className}:checked`)).map(cb => cb.value);
-        return checked.length > 0 ? checked : null;
-      };
-
-      const checkedRarities = getChecked('filter-rarity');
-      const checkedTypes = getChecked('filter-type');
-      const checkedBrands = getChecked('filter-brand');
-      const checkedTargets = getChecked('filter-target');
-      const checkedParts = getChecked('filter-part');
-      const checkedGenres = getChecked('filter-genre');
-      const checkedIdols = getChecked('filter-idol');
+      const getChecked = (className) => { const checked = Array.from(document.querySelectorAll(`.${className}:checked`)).map(cb => cb.value); return checked.length > 0 ? checked : null; };
+      const checkedRarities = getChecked('filter-rarity'); const checkedTypes = getChecked('filter-type'); const checkedBrands = getChecked('filter-brand'); const checkedTargets = getChecked('filter-target'); const checkedParts = getChecked('filter-part'); const checkedGenres = getChecked('filter-genre'); const checkedIdols = getChecked('filter-idol');
       const checkedSeries = Array.from(document.querySelectorAll('.series-filter:checked')).map(cb => cb.value);
       
       let cardsArray = Array.from(document.querySelectorAll('.card'));
-      let visibleCount = 0;
-      let ownedVisibleCount = 0;
-      let totalCardsCount = 0;
+      let visibleCount = 0; let ownedVisibleCount = 0; let totalCardsCount = 0;
 
       cardsArray.forEach(card => {
-        if(!card.dataset.number) return;
         const searchTarget = (searchMode === 'partial') ? card.dataset.searchPartial : card.dataset.searchExact;
         const matchText = searchTarget.includes(text);
         const matchSeries = checkedSeries.some(s => s === "ツアーズレア" ? card.dataset.series.includes("ツアーズレア") : card.dataset.series === s);
@@ -763,7 +459,6 @@
         const matchOwned = filterOwned === 'all' || (filterOwned === 'owned' && isOwned) || (filterOwned === 'unowned' && !isOwned);
         const cardWish = parseInt(card.dataset.wish) || 0;
         const matchWish = filterWish === 0 || (filterWish === 5 ? cardWish === 5 : cardWish >= filterWish);
-
         const matchRarity = !checkedRarities || checkedRarities.includes(card.dataset.rarity);
         const matchType = !checkedTypes || checkedTypes.includes(card.dataset.type);
         const matchBrand = !checkedBrands || checkedBrands.includes(card.dataset.brand);
@@ -773,26 +468,15 @@
         const matchIdol = !checkedIdols || checkedIdols.includes(card.dataset.idol);
 
         if (matchText && matchSeries && matchRarity && matchType && matchBrand && matchTarget && matchPart && matchGenre && matchIdol && matchOwned && matchWish) {
-          card.style.display = 'flex';
-          visibleCount++;
-          if (isOwned) {
-            ownedVisibleCount++;
-            const cardId = card.dataset.number;
-            const count = userCardDetails[cardId] ? userCardDetails[cardId].count : 1;
-            totalCardsCount += count;
-          }
-        } else {
-          card.style.display = 'none';
-        }
+          card.style.display = 'flex'; visibleCount++;
+          if (isOwned) { ownedVisibleCount++; totalCardsCount += (userCardDetails[card.dataset.number]?.count || 1); }
+        } else { card.style.display = 'none'; }
       });
       
-      const ss = document.getElementById('sortSelect');
-      const sortKey = ss ? ss.value : 'number';
-      const sob = document.getElementById('sortOrderBtn');
-      const isAsc = sob ? sob.dataset.order === 'asc' : true;
+      const sortKey = document.getElementById('sortSelect').value;
+      const isAsc = document.getElementById('sortOrderBtn').dataset.order === 'asc';
 
       cardsArray.sort((a, b) => {
-        if(!a.dataset.number || !b.dataset.number) return 0;
         let valA, valB;
         if (sortKey === 'number') { valA = parseInt(a.dataset.imgNum); valB = parseInt(b.dataset.imgNum); } 
         else if (sortKey === 'wish') { valA = parseInt(a.dataset.wish); valB = parseInt(b.dataset.wish); }
@@ -802,371 +486,137 @@
       });
 
       const container = document.getElementById('cardList');
-      if(container) cardsArray.forEach(card => container.appendChild(card));
+      cardsArray.forEach(card => container.appendChild(card));
       const percent = visibleCount === 0 ? 0 : Math.floor((ownedVisibleCount / visibleCount) * 100);
-      const cd = document.getElementById('counterDisplay');
-      if(cd) cd.innerHTML = `所持数: ${ownedVisibleCount} / ${visibleCount}種 (${percent}%) <span id="totalCountDisplay">総枚数: ${totalCardsCount}枚</span>`;
+      document.getElementById('counterDisplay').innerHTML = `所持数: ${ownedVisibleCount} / ${visibleCount}種 (${percent}%) <span id="totalCountDisplay">総枚数: ${totalCardsCount}枚</span>`;
     };
 
-    window.renderCards = () => {
-      const container = document.getElementById('cardList');
-      if(!container) return;
-      container.innerHTML = '';
-      const nameStyle = localStorage.getItem('tourmas_nameStyle') || 'ellipsis';
+    let currentModalCardData = null; 
+    const openModal = (data) => {
+      currentModalCardData = data;
+      const imgFront = document.getElementById('modalImgFront'); const imgBack = document.getElementById('modalImgBack');
+      if (data["カード表"] && imgFront) { imgFront.src = `images/${data["カード表"]}`; imgFront.style.display = 'block'; } else if(imgFront) imgFront.style.display = 'none';
+      if (data["カード裏"] && imgBack) { imgBack.src = `images/${data["カード裏"]}`; imgBack.style.display = 'block'; } else if(imgBack) imgBack.style.display = 'none';
       
-      cardData.forEach(data => {
-        const cardDiv = document.createElement('div');
-        cardDiv.className = 'card';
-        if (ownedCardIds.has(data["番号"])) cardDiv.classList.add('owned');
-        
-        let imgNum = 99999;
-        if (data["カード表"]) {
-          cardDiv.style.backgroundImage = `url('images/${data["カード表"]}')`;
-          cardDiv.style.backgroundSize = 'cover';
-          const match = data["カード表"].match(/\d+/);
-          if (match) imgNum = parseInt(match[0]);
-        }
-
-        const uData = userCardDetails[data["番号"]] || { count: 0, memo: "", wish: 0 };
-        const wishStars = uData.wish > 0 ? `<div class="wish-star">${'★'.repeat(uData.wish)}</div>` : '';
-
-        cardDiv.dataset.number = data["番号"];
-        cardDiv.dataset.imgNum = imgNum;
-        cardDiv.dataset.vocal = parseInt(data["アピール値（Vocal)"]) || 0;
-        cardDiv.dataset.dance = parseInt(data["アピール値（Dance）"]) || 0;
-        cardDiv.dataset.visual = parseInt(data["アピール値（Visual）"]) || 0;
-        cardDiv.dataset.wish = uData.wish || 0;
-        cardDiv.dataset.rarity = data["レアリティ"] || "";
-        cardDiv.dataset.type = data["種類"] || "";
-        cardDiv.dataset.brand = data["シリーズブランド名"] || "";
-        cardDiv.dataset.idol = data["アイドル名"] || "";
-        cardDiv.dataset.series = data["シリーズ"] || data["入手手段"] || "未設定";
-        cardDiv.dataset.target = data["対象アイドル／サポート効果対象"] || "";
-        cardDiv.dataset.part = data["部位"] || "";
-        cardDiv.dataset.genre = data["ジャンル"] || ""; 
-
-        const commentData = data["キャラコメント"] || data["コメント"] || "";
-        const exactKeywords = [data["アイドル名"], data["カード名"], data["番号"], data["シリーズブランド名"]].join(" ").toLowerCase();
-        const partialKeywords = exactKeywords + " " + [data["レアリティ"], data["種類"], data["ジャンル"], data["写り込み"], data["タグ"], data["対象アイドル／サポート効果対象"], data["部位"], commentData, data["セットボーナス"]].join(" ").toLowerCase();
-        
-        cardDiv.dataset.searchExact = exactKeywords;
-        cardDiv.dataset.searchPartial = partialKeywords;
-        
-        const mainText = data["カード名"] || data["番号"] || "未登録";
-        let subText = "";
-        if (data["アイドル名"]) subText = `<p>${data["アイドル名"]}</p>`;
-        else if (data["シリーズブランド名"]) subText = `<p>${data["シリーズブランド名"]}</p>`;
-        
-        let h4Class = "";
-        const len = mainText.length;
-        if (len >= 11) {
-            if (nameStyle === 'marquee') h4Class = 'class="marquee-text"';
-            else if (nameStyle === 'shrink') {
-                if (len >= 16) h4Class = 'class="shrink-text-sm"';
-                else if (len >= 13) h4Class = 'class="shrink-text-md"';
-                else h4Class = 'class="shrink-text-lg"';
-            }
-        }
-        
-        cardDiv.innerHTML = `${wishStars}<div class="rarity-badge">${data["レアリティ"]}</div><div class="card-info"><h4 ${h4Class}>${mainText}</h4>${subText}</div>`;
-        
-        cardDiv.onclick = async () => {
-          const dmt = document.getElementById('detailModeToggle');
-          const isDetailMode = dmt ? dmt.checked : true;
-          if (isDetailMode) {
-            window.openModal(data);
-          } else {
-            if (ownedCardIds.has(data["番号"])) {
-              ownedCardIds.delete(data["番号"]);
-              cardDiv.classList.remove('owned');
-              if (userCardDetails[data["番号"]]) userCardDetails[data["番号"]].count = 0;
-            } else {
-              ownedCardIds.add(data["番号"]);
-              cardDiv.classList.add('owned');
-              if (!userCardDetails[data["番号"]]) userCardDetails[data["番号"]] = { count: 1, memo: "", wish: 0 };
-              else userCardDetails[data["番号"]].count = 1;
-            }
-            window.applyFiltersAndSort();
-            window.markAsUnsaved(); 
-          }
-        };
-        container.appendChild(cardDiv);
-      });
-      window.applyFiltersAndSort();
-    };
-
-    window.updateLocalMemory = () => {
-      let currentCardId = null;
-      if (document.getElementById('modalCardName')) {
-         const mNum = document.querySelector('.detail-table td');
-         if(mNum) currentCardId = mNum.innerText; 
-      }
-      if(!currentCardId) return;
-
-      const countEl = document.getElementById('modalCount');
-      const wishEl = document.getElementById('modalWish');
-      const memoEl = document.getElementById('modalMemo');
-      
-      const countVal = countEl ? parseInt(countEl.value) || 0 : 0;
-      const wishVal = wishEl ? parseInt(wishEl.value) || 0 : 0;
-      const memoVal = memoEl ? memoEl.value : "";
-      
-      if (countVal > 0) ownedCardIds.add(currentCardId);
-      else ownedCardIds.delete(currentCardId);
-      
-      userCardDetails[currentCardId] = { count: countVal, memo: memoVal, wish: wishVal };
-      window.markAsUnsaved();
-      window.renderCards(); 
-    };
-
-    window.openModal = (data) => {
-      const imgFront = document.getElementById('modalImgFront');
-      const imgBack = document.getElementById('modalImgBack');
-      if (data["カード表"] && imgFront) { imgFront.src = `images/${data["カード表"]}`; imgFront.style.display = 'block'; } else if(imgFront) { imgFront.style.display = 'none'; }
-      if (data["カード裏"] && imgBack) { imgBack.src = `images/${data["カード裏"]}`; imgBack.style.display = 'block'; } else if(imgBack) { imgBack.style.display = 'none'; }
-      
-      const nameEl = document.getElementById('modalCardName');
-      const idolEl = document.getElementById('modalCardIdol');
-      if(nameEl) nameEl.innerText = data["カード名"] || data["番号"] || "名称不明";
-      if(idolEl) idolEl.innerText = `${data["シリーズブランド名"]} / ${data["アイドル名"]}`;
+      document.getElementById('modalCardName').innerText = data["カード名"] || data["番号"] || "名称不明";
+      document.getElementById('modalCardIdol').innerText = `${data["シリーズブランド名"]} / ${data["アイドル名"]}`;
       
       const table = document.getElementById('modalTable');
-      if(table) table.innerHTML = '';
+      table.innerHTML = '';
       
       const createCardLinks = (idsString, displayType) => {
-        if (!idsString) return '';
-        const ids = idsString.split(',').map(id => id.trim()).filter(id => id !== '');
-        if (ids.length === 0) return '';
+        if (!idsString) return ''; const ids = idsString.split(',').map(id => id.trim()).filter(id => id !== ''); if (ids.length === 0) return '';
         let html = '';
         ids.forEach(id => {
           const targetCard = cardData.find(c => c["番号"] === id);
-          if (targetCard) {
-            const btnText = displayType === 'name' ? (targetCard["カード名"] || id) : id;
-            html += `<button class="card-link-btn" data-target-id="${id}">${btnText}</button>`;
-          } else {
-            html += `<button class="card-link-btn disabled" disabled>${id} (未登録)</button>`;
-          }
+          if (targetCard) html += `<button class="card-link-btn" data-target-id="${id}">${displayType === 'name' ? (targetCard["カード名"] || id) : id}</button>`;
+          else html += `<button class="card-link-btn disabled" disabled>${id} (未登録)</button>`;
         });
         return html;
       };
 
-      if(table) {
-        modalConfig.forEach(item => {
-          if (!item.show) return;
-          let val = "";
-          if (item.id === 'number') val = data["番号"];
-          else if (item.id === 'rarity') val = data["レアリティ"];
-          else if (item.id === 'type') val = data["種類"];
-          else if (item.id === 'genre') val = data["ジャンル"];
-          else if (item.id === 'appeal') {
-            const v = data["アピール値（Vocal)"] || 0; const d = data["アピール値（Dance）"] || 0; const vi = data["アピール値（Visual）"] || 0;
-            if (v||d||vi) val = `<span style="color:#e91e63">Vo: ${v}</span> / <span style="color:#2196f3">Da: ${d}</span> / <span style="color:#ffc107">Vi: ${vi}</span>`;
-          }
-          else if (item.id === 'target') val = data["対象アイドル／サポート効果対象"];
-          else if (item.id === 'part') val = data["部位"];
-          else if (item.id === 'effect') val = data["サポート効果／リズムライブ効果"];
-          else if (item.id === 'note') val = (data["備考"] || "").replace(/,/g, '<br>');
-          else if (item.id === 'relax') val = data["制限緩和"];
-          else if (item.id === 'comment') val = data["キャラコメント"] || data["コメント"];
-          else if (item.id === 'series') val = data["シリーズ"] || data["入手手段"];
-          else if (item.id === 'bonus') {
-            if (data["セットボーナス"]) val = `<button class="card-link-btn set-bonus-link" data-bonus="${data["セットボーナス"]}">${data["セットボーナス"]}</button>`;
-          }
-          else if (item.id === 'altcard') val = createCardLinks(data["別カード"] || data["別イラスト"], 'id');
-          else if (item.id === 'color') val = createCardLinks(data["色違い"], 'name');
-          else if (item.id === 'utsurikomi') val = (data["写り込み"] || "").replace(/,/g, '、');
-
-          if (val && val !== "") table.innerHTML += `<tr><th>${item.label}</th><td>${val}</td></tr>`;
-        });
-      }
+      modalConfig.forEach(item => {
+        if (!item.show) return;
+        let val = "";
+        if (item.id === 'number') val = data["番号"]; else if (item.id === 'rarity') val = data["レアリティ"]; else if (item.id === 'type') val = data["種類"]; else if (item.id === 'genre') val = data["ジャンル"];
+        else if (item.id === 'appeal') { const v = data["アピール値（Vocal)"] || 0; const d = data["アピール値（Dance）"] || 0; const vi = data["アピール値（Visual）"] || 0; if (v||d||vi) val = `<span style="color:#e91e63">Vo: ${v}</span> / <span style="color:#2196f3">Da: ${d}</span> / <span style="color:#ffc107">Vi: ${vi}</span>`; }
+        else if (item.id === 'target') val = data["対象アイドル／サポート効果対象"]; else if (item.id === 'part') val = data["部位"]; else if (item.id === 'effect') val = data["サポート効果／リズムライブ効果"];
+        else if (item.id === 'note') val = (data["備考"] || "").replace(/,/g, '<br>'); else if (item.id === 'relax') val = data["制限緩和"]; else if (item.id === 'comment') val = data["キャラコメント"] || data["コメント"];
+        else if (item.id === 'series') val = data["シリーズ"] || data["入手手段"]; else if (item.id === 'bonus') { if (data["セットボーナス"]) val = `<button class="card-link-btn set-bonus-link" data-bonus="${data["セットボーナス"]}">${data["セットボーナス"]}</button>`; }
+        else if (item.id === 'altcard') val = createCardLinks(data["別カード"] || data["別イラスト"], 'id'); else if (item.id === 'color') val = createCardLinks(data["色違い"], 'name'); else if (item.id === 'utsurikomi') val = (data["写り込み"] || "").replace(/,/g, '、');
+        if (val && val !== "") table.innerHTML += `<tr><th>${item.label}</th><td>${val}</td></tr>`;
+      });
       
       const userDetail = userCardDetails[data["番号"]] || { count: (ownedCardIds.has(data["番号"]) ? 1 : 0), memo: "", wish: 0 };
-      const mCount = document.getElementById('modalCount');
-      const mWish = document.getElementById('modalWish');
-      const mMemo = document.getElementById('modalMemo');
-      if(mCount) mCount.value = userDetail.count;
-      if(mWish) mWish.value = userDetail.wish;
-      if(mMemo) mMemo.value = userDetail.memo;
+      document.getElementById('modalCount').value = userDetail.count;
+      document.getElementById('modalWish').value = userDetail.wish;
+      document.getElementById('modalMemo').value = userDetail.memo;
       
       const detailModal = document.getElementById('detailModal');
-      if(detailModal) detailModal.classList.add('open');
+      detailModal.classList.add('open');
 
-      if(table) {
-        const linkBtns = table.querySelectorAll('.card-link-btn:not(.disabled):not(.set-bonus-link)');
-        linkBtns.forEach(btn => {
-          btn.onclick = () => {
-            const targetId = btn.dataset.targetId;
-            const targetData = cardData.find(c => c["番号"] === targetId);
-            if (targetData) { window.updateLocalMemory(); window.openModal(targetData); }
-          };
-        });
+      table.querySelectorAll('.card-link-btn:not(.disabled):not(.set-bonus-link)').forEach(btn => {
+        btn.onclick = () => { const targetId = btn.dataset.targetId; const targetData = cardData.find(c => c["番号"] === targetId); if (targetData) { updateLocalMemory(); openModal(targetData); } };
+      });
+      table.querySelectorAll('.set-bonus-link').forEach(btn => {
+        btn.onclick = () => { updateLocalMemory(); detailModal.classList.remove('open'); document.querySelector('input[name="searchMode"][value="partial"]').checked = true; document.getElementById('searchInput').value = btn.dataset.bonus; applyFiltersAndSort(); };
+      });
+    };
 
-        const bonusBtns = table.querySelectorAll('.set-bonus-link');
-        bonusBtns.forEach(btn => {
-          btn.onclick = () => {
-            window.updateLocalMemory();
-            if(detailModal) detailModal.classList.remove('open');
-            window.switchView('collection');
-            const sm = document.querySelector('input[name="searchMode"][value="partial"]');
-            if(sm) sm.checked = true;
-            const si = document.getElementById('searchInput');
-            if(si) si.value = btn.dataset.bonus;
-            window.applyFiltersAndSort();
-          };
-        });
+    const updateLocalMemory = () => {
+      if (!currentModalCardData) return;
+      const countVal = parseInt(document.getElementById('modalCount').value) || 0;
+      const wishVal = parseInt(document.getElementById('modalWish').value) || 0;
+      const memoVal = document.getElementById('modalMemo').value;
+      const cardId = currentModalCardData["番号"];
+      if (countVal > 0) ownedCardIds.add(cardId); else ownedCardIds.delete(cardId);
+      userCardDetails[cardId] = { count: countVal, memo: memoVal, wish: wishVal };
+      markAsUnsaved(); renderCards(); 
+    };
+
+    document.getElementById('modalCount').addEventListener('change', updateLocalMemory);
+    document.getElementById('modalWish').addEventListener('change', updateLocalMemory);
+    let memoTimeout; document.getElementById('modalMemo').addEventListener('input', () => { clearTimeout(memoTimeout); memoTimeout = setTimeout(updateLocalMemory, 500); });
+    
+    document.getElementById('modalCloseBtn').onclick = () => document.getElementById('detailModal').classList.remove('open');
+    document.getElementById('detailModal').addEventListener('click', (e) => {
+      if (e.target === document.getElementById('detailModal') && localStorage.getItem('tourmas_closeOutside') !== 'false') {
+        document.getElementById('detailModal').classList.remove('open');
       }
+    });
+
+    const markAsUnsaved = () => {
+      hasUnsavedChanges = true;
+      const btn = document.getElementById('cloudSaveBtnMain');
+      if(btn) { btn.style.display = 'inline-block'; btn.classList.add('unsaved'); btn.innerText = "セーブ(未保存)"; }
     };
 
-    const modalCloseBtn = document.getElementById('modalCloseBtn');
-    if(modalCloseBtn) modalCloseBtn.onclick = () => document.getElementById('detailModal')?.classList.remove('open');
-    const detailModalEl = document.getElementById('detailModal');
-    if(detailModalEl) {
-      detailModalEl.addEventListener('click', (e) => {
-        const co = document.getElementById('closeOutsideToggle');
-        if (e.target === detailModalEl && co && co.checked) detailModalEl.classList.remove('open');
-      });
-    }
+    window.triggerCloudSave = async () => {
+      if (!currentUser) return alert("セーブするにはGoogleログインしてください。");
+      const detailModal = document.getElementById('detailModal');
+      if (detailModal && detailModal.classList.contains('open')) updateLocalMemory();
 
-    // ==========================================
-    // 各種設定の保存と並び替えロジック
-    // ==========================================
-    window.resetModalSettings = () => {
-        modalConfig = JSON.parse(JSON.stringify(defaultModalItems));
-        localStorage.setItem('tourmas_modalConfig', JSON.stringify(modalConfig));
-        window.renderModalOrderSettings();
-    };
-    window.renderModalOrderSettings = () => {
-      const container = document.getElementById('modalOrderSettingsContainer');
-      if(!container) return;
-      container.innerHTML = '';
-      modalConfig.forEach((item, index) => {
-        container.innerHTML += `<div class="settings-list-item"><button onclick="moveModalItem(${index}, -1)" style="margin-right:5px;" ${index === 0 ? 'disabled' : ''}>▲</button><button onclick="moveModalItem(${index}, 1)" style="margin-right:15px;" ${index === modalConfig.length - 1 ? 'disabled' : ''}>▼</button><label style="flex:1; cursor:pointer; font-size:14px; font-weight:bold; color:#333;"><input type="checkbox" style="transform:scale(1.2); margin-right:8px;" onchange="toggleModalItem(${index}, this.checked)" ${item.show ? 'checked' : ''}>${item.label}</label></div>`;
-      });
-    };
-    window.moveModalItem = (index, dir) => {
-      const temp = modalConfig[index];
-      modalConfig[index] = modalConfig[index + dir];
-      modalConfig[index + dir] = temp;
-      localStorage.setItem('tourmas_modalConfig', JSON.stringify(modalConfig));
-      window.renderModalOrderSettings();
-    };
-    window.toggleModalItem = (index, show) => {
-      modalConfig[index].show = show;
-      localStorage.setItem('tourmas_modalConfig', JSON.stringify(modalConfig));
+      await setDoc(doc(db, "users", currentUser.uid), { ownedCards: Array.from(ownedCardIds), cardDetails: userCardDetails }, { merge: true });
+      hasUnsavedChanges = false;
+      const btn = document.getElementById('cloudSaveBtnMain');
+      if(btn) { btn.classList.remove('unsaved'); btn.innerText = "クラウドにセーブ済"; }
+      const toast = document.getElementById('toast');
+      toast.innerText = "クラウドに保存しました！"; toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 2000);
     };
 
-    window.resetMenuSettings = () => {
-        menuConfig = JSON.parse(JSON.stringify(defaultMenuItems));
-        localStorage.setItem('tourmas_menuConfig', JSON.stringify(menuConfig));
-        window.renderMenuOrderSettings();
-        window.renderMenuSettingsVisual();
-    };
-    window.renderMenuOrderSettings = () => {
-      const container = document.getElementById('menuOrderSettingsContainer');
-      if(!container) return;
-      container.innerHTML = '';
-      menuConfig.forEach((item, index) => {
-        container.innerHTML += `<div class="settings-list-item"><button onclick="moveMenuItem(${index}, -1)" style="margin-right:5px;" ${index === 0 ? 'disabled' : ''}>▲</button><button onclick="moveMenuItem(${index}, 1)" style="margin-right:15px;" ${index === menuConfig.length - 1 ? 'disabled' : ''}>▼</button><span style="flex:1; font-size:14px; font-weight:bold; color:#333;">${item.label}</span></div>`;
-      });
-    };
-    window.moveMenuItem = (index, dir) => {
-      const temp = menuConfig[index];
-      menuConfig[index] = menuConfig[index + dir];
-      menuConfig[index + dir] = temp;
-      localStorage.setItem('tourmas_menuConfig', JSON.stringify(menuConfig));
-      window.renderMenuOrderSettings();
-      window.renderMenuSettingsVisual();
-    };
+    document.getElementById('searchInput').addEventListener('input', applyFiltersAndSort);
+    document.querySelectorAll('input[name="searchMode"]').forEach(radio => radio.addEventListener('change', applyFiltersAndSort));
+    document.getElementById('sortSelect').addEventListener('change', applyFiltersAndSort);
+    document.getElementById('sortOrderBtn').addEventListener('click', () => {
+        const btn = document.getElementById('sortOrderBtn');
+        if (btn.dataset.order === 'asc') { btn.dataset.order = 'desc'; btn.innerText = "降順 ▼"; } else { btn.dataset.order = 'asc'; btn.innerText = "昇順 ▲"; }
+        applyFiltersAndSort();
+    });
 
-    window.resetFilterSettings = () => {
-        filterConfigGroups = JSON.parse(JSON.stringify(defaultFilterGroups));
-        localStorage.setItem('tourmas_filterConfig', JSON.stringify(filterConfigGroups));
-        window.renderFilterOrderSettings();
-        window.renderFilterSettingsVisual();
-    };
-    window.renderFilterOrderSettings = () => {
-      const container = document.getElementById('filterOrderSettingsContainer');
-      if(!container) return;
-      container.innerHTML = '';
-      filterConfigGroups.forEach((group, index) => {
-        container.innerHTML += `<div class="settings-list-item"><button onclick="moveFilterItem(${index}, -1)" style="margin-right:5px;" ${index === 0 ? 'disabled' : ''}>▲</button><button onclick="moveFilterItem(${index}, 1)" style="margin-right:15px;" ${index === filterConfigGroups.length - 1 ? 'disabled' : ''}>▼</button><label style="flex:1; cursor:pointer; font-size:14px; font-weight:bold; color:#333;"><input type="checkbox" style="transform:scale(1.2); margin-right:8px;" onchange="toggleFilterOpen(${index}, this.checked)" ${group.open ? 'checked' : ''}>${group.label} (最初から開く)</label></div>`;
-      });
-    };
-    window.moveFilterItem = (index, dir) => {
-      const temp = filterConfigGroups[index];
-      filterConfigGroups[index] = filterConfigGroups[index + dir];
-      filterConfigGroups[index + dir] = temp;
-      localStorage.setItem('tourmas_filterConfig', JSON.stringify(filterConfigGroups));
-      window.renderFilterOrderSettings();
-      window.renderFilterSettingsVisual();
-    };
-    window.toggleFilterOpen = (index, openStatus) => {
-      filterConfigGroups[index].open = openStatus;
-      localStorage.setItem('tourmas_filterConfig', JSON.stringify(filterConfigGroups));
-      const el = document.getElementById('filterGroup-' + filterConfigGroups[index].id);
-      if (el) el.open = openStatus;
-    };
+    document.getElementById('menuOpenBtn').onclick = () => { document.getElementById('sidebar').classList.add('open'); document.getElementById('overlay').classList.add('open'); };
 
-    safeAddListener('searchInput', 'input', window.applyFiltersAndSort);
-    safeAddListener('sortSelect', 'change', window.applyFiltersAndSort);
-    const sortOrderBtn = document.getElementById('sortOrderBtn');
-    if(sortOrderBtn) {
-      sortOrderBtn.addEventListener('click', () => {
-        if (sortOrderBtn.dataset.order === 'asc') { sortOrderBtn.dataset.order = 'desc'; sortOrderBtn.innerText = "降順 ▼"; } 
-        else { sortOrderBtn.dataset.order = 'asc'; sortOrderBtn.innerText = "昇順 ▲"; }
-        window.applyFiltersAndSort();
-      });
-    }
-
-    const menuOpenBtn = document.getElementById('menuOpenBtn');
-    if(menuOpenBtn) menuOpenBtn.onclick = () => { document.getElementById('sidebar')?.classList.add('open'); document.getElementById('overlay')?.classList.add('open'); };
-    const closeMenu = () => { document.getElementById('sidebar')?.classList.remove('open'); document.getElementById('overlay')?.classList.remove('open'); };
-    const menuCloseBtn = document.getElementById('menuCloseBtn');
-    if(menuCloseBtn) menuCloseBtn.onclick = closeMenu;
-    const overlay = document.getElementById('overlay');
-    if(overlay) overlay.onclick = closeMenu;
-
-    const loginBtn = document.getElementById('loginBtn');
-    const logoutBtn = document.getElementById('logoutBtn');
-    safeAddListener('loginBtn', 'click', () => signInWithPopup(auth, provider));
-    safeAddListener('logoutBtn', 'click', () => signOut(auth));
-
-    // ==========================================
-    // 起動処理
-    // ==========================================
     onAuthStateChanged(auth, async (user) => {
       currentUser = user || null;
-      
       if (user) {
         const docRef = doc(db, "users", user.uid);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
           ownedCardIds = new Set(docSnap.data().ownedCards || []);
           userCardDetails = docSnap.data().cardDetails || {};
-        } else {
-          ownedCardIds = new Set();
-          userCardDetails = {};
         }
-      } else {
-        ownedCardIds = new Set();
-        userCardDetails = {};
       }
       
-      window.setupSeriesFilter();
-      window.renderSidebarMenu(); 
-      window.renderMenuSettingsVisual(); 
-      window.renderAdvancedFilters();
-      window.renderFilterSettingsVisual(); 
+      renderSidebarMenu(); 
+      renderAdvancedFilters();
+      renderCards();
       
-      loadSettings(); 
-      window.renderCards();
+      const lBtn = document.getElementById('loginBtn');
+      const loBtn = document.getElementById('logoutBtn');
+      if(lBtn) lBtn.style.display = user ? 'none' : 'inline-block';
+      if(loBtn) loBtn.style.display = user ? 'inline-block' : 'none';
       
-      if(loginBtn) loginBtn.style.display = user ? 'none' : 'inline-block';
-      if(logoutBtn) logoutBtn.style.display = user ? 'inline-block' : 'none';
-      
-      document.querySelectorAll('.cloud-save-btn').forEach(btn => {
-         btn.style.display = user ? 'inline-block' : 'none';
-      });
+      const csb = document.getElementById('cloudSaveBtnMain');
+      if(csb) csb.style.display = user ? 'inline-block' : 'none';
     });
   </script>
 </body>
