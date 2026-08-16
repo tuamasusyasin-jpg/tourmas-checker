@@ -189,7 +189,6 @@
         <button id="menuOpenBtn">☰</button>
         <h1>ツアマス所持率チェッカー</h1>
     </div>
-    <!-- ヘッダーにもセーブボタンを配置 -->
     <button class="cloud-save-btn" onclick="triggerCloudSave()">クラウドにセーブ</button>
   </header>
 
@@ -399,6 +398,7 @@
       
       <div style="text-align:center; margin-bottom:10px; display:flex; flex-wrap:wrap; gap:10px; justify-content:center;">
         <select id="modalFilterSelect" style="padding:8px; border-radius:5px; border:1px solid #ccc; font-weight:bold;">
+          <!-- JSで自動生成されます -->
         </select>
         <button id="cardSelectClearBtn" style="padding:8px 20px; background:#f44336; color:white; font-weight:bold; border:none; border-radius:8px; cursor:pointer;">この枠を「未設定」にする</button>
       </div>
@@ -555,8 +555,6 @@
       safeAddListener('detailModeToggle', 'change', (e) => localStorage.setItem('tourmas_detailMode', e.target.checked));
       safeAddListener('closeOutsideToggle', 'change', (e) => localStorage.setItem('tourmas_closeOutside', e.target.checked));
       safeAddListener('privacyToggle', 'change', (e) => { localStorage.setItem('tourmas_privacy', e.target.checked); updateUserInfo(); });
-      safeAddListener('loginBtn', 'click', () => signInWithPopup(auth, provider));
-      safeAddListener('logoutBtn', 'click', () => signOut(auth));
       
       const egaoBtn = document.getElementById('egaoBtn');
       if(egaoBtn) egaoBtn.addEventListener('click', () => {
@@ -699,7 +697,6 @@
       
       const dm = document.getElementById('detailModeToggle');
       if(dm) {
-         // ★ ログイン・ロード直後に「初期モード」を反映させる
          if (defaultMode === 'on') {
              dm.checked = true;
              savedDetailMode = true;
@@ -750,6 +747,8 @@
       localStorage.setItem('tourmas_notice', isChecked);
       const mc = document.getElementById('marqueeContainer');
       if(mc) mc.style.display = isChecked ? 'block' : 'none';
+      const nts = document.getElementById('noticeToggleSidebar');
+      if(nts) nts.checked = isChecked;
     });
 
     safeAddListener('freeMemoToggle', 'change', (e) => {
@@ -1071,8 +1070,6 @@
         }
       });
     }
-
-    // --- 各種設定画面のレンダリング ---
 
     window.resetModalSettings = () => {
         modalConfig = JSON.parse(JSON.stringify(defaultModalItems));
@@ -1624,15 +1621,10 @@
     const overlay = document.getElementById('overlay');
     if(overlay) overlay.onclick = closeMenu;
 
-    loginBtn?.addEventListener('click', () => signInWithPopup(auth, provider));
-    logoutBtn?.addEventListener('click', () => signOut(auth));
-
     onAuthStateChanged(auth, async (user) => {
+      currentUser = user || null;
+      
       if (user) {
-        currentUser = user;
-        if(loginBtn) loginBtn.style.display = 'none';
-        if(logoutBtn) logoutBtn.style.display = 'block';
-        
         const docRef = doc(db, "users", user.uid);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
@@ -1645,24 +1637,24 @@
           userFormations = [];
         }
       } else {
-        currentUser = null;
         ownedCardIds = new Set();
         userCardDetails = {};
         userFormations = [];
-        if(loginBtn) loginBtn.style.display = 'block';
-        if(logoutBtn) logoutBtn.style.display = 'none';
       }
       
-      // ★ 初期化フローの順序を最適化
-      renderSidebarMenu(); // まずメニュー構築
-      renderAdvancedFilters(); // 絞り込みアコーディオン構築
-      loadSettings(); // 設定ロード（ここで詳細モード等適用）
-      renderCards(); // カード表示
-      renderFormations(); // 編成表示
+      renderSidebarMenu(); 
+      renderAdvancedFilters();
+      loadSettings(); 
+      renderCards();
+      renderFormations(); 
       
-      // ボタン同期
+      const lBtn = document.getElementById('loginBtn');
+      const loBtn = document.getElementById('logoutBtn');
+      if(lBtn) lBtn.style.display = user ? 'none' : 'inline-block';
+      if(loBtn) loBtn.style.display = user ? 'inline-block' : 'none';
+      
       document.querySelectorAll('.cloud-save-btn').forEach(btn => {
-         btn.style.display = currentUser ? 'inline-block' : 'none';
+         btn.style.display = user ? 'inline-block' : 'none';
       });
     });
   </script>
