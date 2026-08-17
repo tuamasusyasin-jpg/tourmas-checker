@@ -11,29 +11,31 @@
     header { background: #fff; padding: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: space-between; }
     #menuOpenBtn { font-size: 24px; background: none; border: none; cursor: pointer; color: #555; }
     .header-left { display: flex; align-items: center; gap: 15px; }
-    header h1 { margin: 0; font-size: 18px; }
+    header h1 { margin: 0; font-size: 18px; color: #333; }
 
     #sidebar { position: fixed; top: 0; left: -300px; width: 300px; height: 100%; background: #fff; box-shadow: 2px 0 10px rgba(0,0,0,0.2); transition: left 0.3s ease; z-index: 1000; padding: 20px; box-sizing: border-box; overflow-y: auto; display: flex; flex-direction: column; }
     #sidebar.open { left: 0; }
-    #menuCloseBtn { font-size: 24px; background: none; border: none; cursor: pointer; color: #999; text-align: right; width: 100%; margin-bottom: 20px; }
+    #menuCloseBtn { font-size: 24px; background: none; border: none; cursor: pointer; color: #999; display: block; text-align: right; width: 100%; margin-bottom: 20px; flex-shrink: 0; }
     #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); opacity: 0; pointer-events: none; transition: opacity 0.3s ease; z-index: 999; }
     #overlay.open { opacity: 1; pointer-events: auto; }
     
-    .menu-section { margin-bottom: 10px; width: 100%; border: none; }
+    .menu-section { margin-bottom: 10px; width: 100%; border: none; box-sizing: border-box; }
     .menu-section h3 { margin: 0 0 10px 0; font-size: 15px; color: #555; }
+    
     .nav-btn { display: block; width: 100%; padding: 12px; margin-bottom: 10px; background: #fff; border: 2px solid #ddd; color: #555; font-weight: bold; border-radius: 8px; cursor: pointer; transition: 0.2s; text-align: center; text-decoration: none; box-sizing: border-box; }
     .nav-btn.active { border-color: var(--main-color); color: var(--main-color); background: var(--sub-color); }
 
-    .auth-container { text-align: center; background: #e3f2fd; padding: 15px; border-radius: 10px; }
+    .auth-container { text-align: center; background: #e3f2fd; padding: 15px; border-radius: 10px; box-sizing: border-box; }
     .auth-container button { padding: 8px; width: 100%; font-weight: bold; cursor: pointer; border-radius: 5px; border: none; background: #1a73e8; color: white; transition: 0.2s; margin-top: 10px; }
     .auth-container button.logout-btn { background: #dc3545; }
-    #userInfo { font-size: 12px; font-weight: bold; display: block; margin-bottom: 5px; }
+    #userInfo { font-size: 12px; font-weight: bold; color: #333; display: block; margin-bottom: 5px; }
     .checkbox-label { display: flex; align-items: center; margin-bottom: 8px; font-size: 14px; cursor: pointer; }
-    .mode-switch { background: var(--sub-color); padding: 10px; border-radius: 8px; border: 2px solid var(--main-color); font-weight: bold; margin-bottom: 15px; }
+    
+    .mode-switch { background: var(--sub-color); padding: 10px; border-radius: 8px; border: 2px solid var(--main-color); font-weight: bold; color: #333; margin-bottom: 15px; transition: 0.3s;}
 
     #egaoBtn { background: linear-gradient(45deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%); border: 2px solid #ff66a3; border-radius: 8px; padding: 10px; width: 100%; font-weight: bold; color: #d81b60; cursor: pointer; margin-top: 10px; transition: 0.2s; }
     #egaoBtn:hover { filter: brightness(0.95); transform: scale(0.98); }
-    #egaoResult { display: none; margin-top: 10px; padding: 12px; border-radius: 8px; background: #fff; border: 2px dashed var(--main-color); font-size: 13px; line-height: 1.6; }
+    #egaoResult { display: none; margin-top: 10px; padding: 12px; border-radius: 8px; background: #fff; border: 2px dashed var(--main-color); font-size: 13px; color: #333; line-height: 1.6; text-align: left; transition: 0.3s; }
     
     .view-section { padding: 20px; max-width: 1200px; margin: 0 auto; }
     .page-title { color: var(--main-color); border-bottom: 3px solid var(--sub-color); padding-bottom: 10px; margin-top: 0; display: flex; justify-content: space-between; align-items: center;}
@@ -69,59 +71,90 @@
       <div class="page-title">
           <h2>チェッカー設定</h2>
       </div>
-      <p style="color: #d32f2f; font-size: 12px; margin-bottom: 20px; font-weight:bold;">※ここの設定項目は、変更した瞬間に自動保存されます。クラウドへのセーブボタンを押す必要はありません。</p>
+      <p style="color: #d32f2f; font-size: 12px; margin-bottom: 20px; font-weight:bold;">
+        ※ここの設定項目は、変更した瞬間にご使用のブラウザ（端末）に自動保存されます。クラウドへのセーブボタンを押す必要はありません。
+      </p>
 
       <div class="policy-content" style="padding:20px; margin-bottom:20px;">
         <h3 style="margin-top:0;">1. 基本設定</h3>
+        
         <div style="margin-bottom:15px;">
           <label style="font-weight:bold; display:block; margin-bottom:5px;">テーマカラー</label>
           <select id="themeSelectInSettings" style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ccc; font-weight: bold;">
-            <option value="default">デフォルト (ピンク)</option><option value="as">アイドルマスター (赤)</option><option value="cg">シンデレラガールズ (青)</option>
-            <option value="ml">ミリオンライブ！ (黄)</option><option value="sidem">SideM (緑)</option><option value="sc">シャイニーカラーズ (水色)</option><option value="gakumas">学園アイドルマスター (オレンジ)</option>
+            <option value="default">デフォルト (ピンク)</option>
+            <option value="as">アイドルマスター (赤)</option>
+            <option value="cg">シンデレラガールズ (青)</option>
+            <option value="ml">ミリオンライブ！ (黄)</option>
+            <option value="sidem">SideM (緑)</option>
+            <option value="sc">シャイニーカラーズ (水色)</option>
+            <option value="gakumas">学園アイドルマスター (オレンジ)</option>
           </select>
         </div>
+
         <div style="margin-bottom:15px;">
           <label style="font-weight:bold; display:block; margin-bottom:5px;">長いカード名の表示方法</label>
           <select id="nameStyleSelect" style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ccc; font-weight: bold;">
-            <option value="ellipsis">「...」で省略する (デフォルト)</option><option value="shrink">意地でも1行に縮小して表示する</option><option value="marquee">自動で横スクロール（ヨーヨー）させる</option>
+            <option value="ellipsis">「...」で省略する (デフォルト)</option>
+            <option value="shrink">意地でも1行に縮小して表示する</option>
+            <option value="marquee">自動で横スクロール（ヨーヨー）させる</option>
           </select>
         </div>
+
         <div style="margin-bottom:15px;">
           <label style="font-weight:bold; display:block; margin-bottom:5px;">ログイン直後のカードタップの挙動</label>
           <select id="defaultModeSelect" style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ccc; font-weight: bold;">
-            <option value="on">詳細確認モード (ON: カードの詳細を見る)</option><option value="off">所持チェックモード (OFF: 所持/未所持を切り替える)</option>
+            <option value="on">詳細確認モード (ON: カードの詳細を見る)</option>
+            <option value="off">所持チェックモード (OFF: 所持/未所持を切り替える)</option>
           </select>
         </div>
-        <label class="checkbox-label" style="font-weight:bold; font-size:15px; margin-bottom:15px;"><input type="checkbox" id="noticeToggleSettings" checked style="transform:scale(1.3); margin-right:10px;"> 画面上部にお知らせを表示する</label>
-        <label class="checkbox-label" style="font-weight:bold; font-size:15px;"><input type="checkbox" id="freeMemoToggle" checked style="transform:scale(1.3); margin-right:10px;"> 編成メモに「自由メモ欄」を表示する</label>
+
+        <label class="checkbox-label" style="font-weight:bold; font-size:15px; margin-bottom:15px;">
+          <input type="checkbox" id="noticeToggleSettings" checked style="transform:scale(1.3); margin-right:10px;"> 画面上部にお知らせを表示する
+        </label>
+        
+        <label class="checkbox-label" style="font-weight:bold; font-size:15px;">
+          <input type="checkbox" id="freeMemoToggle" checked style="transform:scale(1.3); margin-right:10px;"> 編成メモに「自由メモ欄」を表示する
+        </label>
       </div>
 
       <div class="policy-content" style="padding:20px; margin-bottom:20px;">
-        <div class="setting-header-wrap"><h3 style="margin:0;">2. 詳細画面の表示順・ON/OFF設定</h3><button class="reset-btn" onclick="resetModalSettings()">デフォルトに戻す</button></div>
-        <p style="font-size:12px; color:#666; margin-bottom:15px;">カードをタップしたときに出る表の項目を、好きな順番に入れ替えたり、不要なものを非表示にできます。</p>
+        <div class="setting-header-wrap">
+            <h3 style="margin:0;">2. 詳細画面の表示順・ON/OFF設定</h3>
+            <button class="reset-btn" onclick="resetModalSettings()">デフォルトに戻す</button>
+        </div>
+        <p style="font-size:12px; color:#666; margin-bottom:15px;">
+          カードをタップしたときに出る表の項目を、好きな順番に入れ替えたり、不要なものを非表示にできます。
+        </p>
         <div id="modalOrderSettingsContainer"></div>
       </div>
       
       <div class="policy-content" style="padding:20px; margin-bottom:20px;">
-        <div class="setting-header-wrap"><h3 style="margin:0;">3. サイドメニューの並び替え</h3><button class="reset-btn" onclick="resetMenuSettings()">デフォルトに戻す</button></div>
-        <p style="font-size:12px; color:#666; margin-bottom:15px;">左から出てくるメニューの順番を、使いやすいように並び替えられます。</p>
+        <div class="setting-header-wrap">
+            <h3 style="margin:0;">3. サイドメニューの並び替え</h3>
+            <button class="reset-btn" onclick="resetMenuSettings()">デフォルトに戻す</button>
+        </div>
+        <p style="font-size:12px; color:#666; margin-bottom:15px;">
+          左から出てくるメニューの順番を、使いやすいように並び替えられます。
+        </p>
         <div id="menuOrderSettingsContainer"></div>
       </div>
     </div>
   </main>
 
   <script type="module">
-    import { siteConfig, filterConfig } from './data.js';
+    import { siteConfig, filterConfig, cardData } from './data.js';
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
     const firebaseConfig = { apiKey: "AIzaSyBBMuCXDKeF7sjBnPN8GqGy3WZ32HMYfQ0", authDomain: "tourmas-checker-b05c1.firebaseapp.com", projectId: "tourmas-checker-b05c1", storageBucket: "tourmas-checker-b05c1.firebasestorage.app", messagingSenderId: "3796099655", appId: "1:3796099655:web:0a01862393e31117ec8762" };
-    const app = initializeApp(firebaseConfig); const auth = getAuth(app); const provider = new GoogleAuthProvider();
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
 
     let currentUser = null;
 
-    // ★ 設定が消えるバグを防ぐため、空配列の場合はデフォルトを強制適用する！
     const getStore = (k, d) => { try { const v = localStorage.getItem(k); const p = v ? JSON.parse(v) : null; return (p && p.length > 0) ? p : d; } catch(e){ return d; } };
+    
     const defaultModalItems = [{id:'number',label:'番号',show:true},{id:'rarity',label:'レアリティ',show:true},{id:'type',label:'種類',show:true},{id:'appeal',label:'アピール値',show:true},{id:'target',label:'対象／効果対象',show:true},{id:'part',label:'部位',show:true},{id:'genre',label:'ジャンル',show:true},{id:'effect',label:'効果／リズム効果',show:true},{id:'note',label:'備考',show:true},{id:'relax',label:'制限緩和',show:true},{id:'comment',label:'コメント',show:true},{id:'series',label:'入手手段',show:true},{id:'bonus',label:'セットボーナス',show:true},{id:'altcard',label:'別カード',show:true},{id:'color',label:'色違い',show:true},{id:'utsurikomi',label:'写り込み',show:true}];
     const defaultMenuItems = [{id:'collection',label:'カード一覧'},{id:'formation',label:'マイ編成メモ'},{id:'auth',label:'アカウント・ログイン'},{id:'mode',label:'詳細モード・挙動設定'},{id:'series',label:'表示する弾数'},{id:'settings',label:'チェッカー設定'},{id:'privacy',label:'プライバシーポリシー'},{id:'egao',label:'笑顔満点占い'}];
     
@@ -136,91 +169,161 @@
     const themes = { default: { main: '#ff66a3', sub: '#ffebf0' }, as: { main: '#f34f6d', sub: '#fce4e8' }, cg: { main: '#2681c8', sub: '#e4f0f9' }, ml: { main: '#ffc30b', sub: '#fff8e1' }, sidem: { main: '#0fbe94', sub: '#e0f7f1' }, sc: { main: '#8dbbff', sub: '#eef4ff' }, gakumas: { main: '#f39800', sub: '#feeee0' } };
     document.documentElement.style.setProperty('--main-color', themes[savedTheme].main);
     document.documentElement.style.setProperty('--sub-color', themes[savedTheme].sub);
-
-    let bdayMessages = [];
-    const today = new Date(); today.setHours(0,0,0,0);
-    filterConfig.idols.forEach(idol => {
-      if(idol.birthday) {
-        const [month, day] = idol.birthday.split('-');
-        let bdayDate = new Date(today.getFullYear(), parseInt(month) - 1, parseInt(day));
-        let diffDays = (today - bdayDate) / (1000 * 60 * 60 * 24);
-        if (diffDays >= 0 && diffDays <= 2) bdayMessages.push(`${idol.name} のバースデー期間！`);
-      }
-    });
-    let finalNotice = siteConfig.noticeText;
-    if (bdayMessages.length > 0) finalNotice += " ｜ " + bdayMessages.join(" ｜ ");
-    const mt = document.getElementById('marqueeText'); if(mt) mt.innerText = finalNotice;
-    const mc = document.getElementById('marqueeContainer'); if(mc) mc.style.display = savedNotice ? 'block' : 'none';
+    document.getElementById('marqueeContainer').style.display = savedNotice ? 'block' : 'none';
 
     window.renderSidebarMenu = () => {
-      const sidebar = document.getElementById('sidebar'); sidebar.innerHTML = '<button id="menuCloseBtn">✖</button>';
-      menuConfig.forEach((item, idx) => {
-        let h = '';
-        if(item.id === 'collection') h = `<div class="menu-section" style="order:${idx}"><a href="index.html" class="nav-btn">カード一覧</a></div>`;
-        else if(item.id === 'formation') h = `<div class="menu-section" style="order:${idx}"><a href="formation.html" class="nav-btn">マイ編成メモ</a></div>`;
-        else if(item.id === 'settings') h = `<div class="menu-section" style="order:${idx}"><a href="settings.html" class="nav-btn active">チェッカー設定</a></div>`;
-        else if(item.id === 'privacy') h = `<div class="menu-section" style="order:${idx}"><a href="privacy.html" class="nav-btn">プライバシーポリシー</a></div>`;
-        else if(item.id === 'auth') h = `<div class="menu-section auth-container" style="order:${idx}"><span id="userInfo">未ログイン</span><label class="checkbox-label" style="justify-content: center; font-size: 11px; margin-top: 5px;"><input type="checkbox" id="privacyToggle" ${savedPrivacy?'checked':''}> 名前を隠す</label><button id="loginBtn">Googleでログイン</button><button id="logoutBtn" class="logout-btn" style="display:none;">ログアウト</button></div>`;
-        else if(item.id === 'mode') h = `<div class="mode-switch"><label class="checkbox-label" style="margin: 0;"><input type="checkbox" id="detailModeToggle" ${isDetailMode?'checked':''}> 詳細確認モード</label><label class="checkbox-label" style="margin: 10px 0 0 0; font-size: 12px; font-weight: normal; color: #555;"><input type="checkbox" id="closeOutsideToggle" ${localStorage.getItem('tourmas_closeOutside')!=='false'?'checked':''}> 外枠をタップして閉じる</label></div>`;
-        else if(item.id === 'series') h = `<div><h3 style="margin: 0 0 10px 0; font-size: 15px; color: #555;">表示する弾数（設定は一覧で）</h3></div>`;
-        else if(item.id === 'egao') h = `<div><button id="egaoBtn">笑顔満点ですっ</button><div id="egaoResult"></div></div>`;
-        if(h) { const w = document.createElement('div'); w.className = 'menu-section'; w.style.order = idx + 1; w.innerHTML = h; sidebar.appendChild(w); }
+      const sidebar = document.getElementById('sidebar');
+      if(!sidebar) return;
+      sidebar.innerHTML = '<button id="menuCloseBtn">✖</button>';
+      
+      const currentPath = window.location.pathname;
+      const isIndex = currentPath.endsWith('/') || currentPath.endsWith('index.html');
+      const isFormation = currentPath.endsWith('formation.html');
+      const isSettings = currentPath.endsWith('settings.html');
+      const isPrivacy = currentPath.endsWith('privacy.html');
+
+      menuConfig.forEach((item, index) => {
+        let btnHtml = '';
+        if(item.id === 'collection') btnHtml = `<a href="index.html" class="nav-btn ${isIndex ? 'active' : ''}">カード一覧</a>`;
+        else if(item.id === 'formation') btnHtml = `<a href="formation.html" class="nav-btn ${isFormation ? 'active' : ''}">マイ編成メモ</a>`;
+        else if(item.id === 'settings') btnHtml = `<a href="settings.html" class="nav-btn ${isSettings ? 'active' : ''}">チェッカー設定</a>`;
+        else if(item.id === 'privacy') btnHtml = `<a href="privacy.html" class="nav-btn ${isPrivacy ? 'active' : ''}">プライバシーポリシー</a>`;
+        else if(item.id === 'auth') btnHtml = `<div class="auth-container"><span id="userInfo">未ログイン</span><label class="checkbox-label" style="justify-content: center; font-size: 11px; margin-top: 5px;"><input type="checkbox" id="privacyToggle" ${savedPrivacy?'checked':''}> 名前を隠す</label><button id="loginBtn">Googleでログイン</button><button id="logoutBtn" class="logout-btn" style="display:none;">ログアウト</button></div>`;
+        else if(item.id === 'mode') btnHtml = `<div class="mode-switch"><label class="checkbox-label" style="margin: 0;"><input type="checkbox" id="detailModeToggle" ${isDetailMode?'checked':''}> 詳細確認モード</label><label class="checkbox-label" style="margin: 10px 0 0 0; font-size: 12px; font-weight: normal; color: #555;"><input type="checkbox" id="closeOutsideToggle" ${localStorage.getItem('tourmas_closeOutside')!=='false'?'checked':''}> 外枠をタップして閉じる</label></div>`;
+        else if(item.id === 'series') btnHtml = `<div><h3 style="margin: 0 0 10px 0; font-size: 15px; color: #555;">表示する弾数（設定は一覧で）</h3></div>`;
+        else if(item.id === 'egao') btnHtml = `<div><button id="egaoBtn">笑顔満点ですっ</button><div id="egaoResult"></div></div>`;
+        
+        if(btnHtml) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'menu-section';
+            wrapper.style.order = index + 1;
+            wrapper.innerHTML = btnHtml;
+            sidebar.appendChild(wrapper);
+        }
       });
 
       document.getElementById('menuCloseBtn').onclick = () => { sidebar.classList.remove('open'); document.getElementById('overlay').classList.remove('open'); };
-      document.getElementById('privacyToggle')?.addEventListener('change', e => { localStorage.setItem('tourmas_privacy', e.target.checked); savedPrivacy = e.target.checked; updateUserInfo(); });
-      document.getElementById('detailModeToggle')?.addEventListener('change', e => { localStorage.setItem('tourmas_detailMode', e.target.checked); isDetailMode = e.target.checked; });
-      document.getElementById('closeOutsideToggle')?.addEventListener('change', e => localStorage.setItem('tourmas_closeOutside', e.target.checked));
-      document.getElementById('loginBtn')?.addEventListener('click', () => signInWithPopup(auth, provider));
-      document.getElementById('logoutBtn')?.addEventListener('click', () => signOut(auth));
-      document.getElementById('egaoBtn')?.addEventListener('click', () => {
+      const pt = document.getElementById('privacyToggle');
+      if(pt) pt.addEventListener('change', (e) => { localStorage.setItem('tourmas_privacy', e.target.checked); savedPrivacy = e.target.checked; updateUserInfo(); });
+      const dmt = document.getElementById('detailModeToggle');
+      if(dmt) dmt.addEventListener('change', (e) => { localStorage.setItem('tourmas_detailMode', e.target.checked); isDetailMode = e.target.checked; });
+      const cot = document.getElementById('closeOutsideToggle');
+      if(cot) cot.addEventListener('change', (e) => localStorage.setItem('tourmas_closeOutside', e.target.checked));
+      
+      const lBtn = document.getElementById('loginBtn');
+      if(lBtn) lBtn.addEventListener('click', () => signInWithPopup(auth, provider));
+      const loBtn = document.getElementById('logoutBtn');
+      if(loBtn) loBtn.addEventListener('click', () => signOut(auth));
+
+      const egaoBtn = document.getElementById('egaoBtn');
+      if(egaoBtn) egaoBtn.addEventListener('click', () => {
         const effects = ["コンボ時のスコアUP", "GOOD以上のスコアUP", "GREAT以上のスコアUP", "PERFECTのスコアUP", "成功判定のコンボ数UP", "すべての判定がPERFECTになる", "GOOD以上がPERFECTになる", "GREATがPERFECTになる", "MISSでもコンボ継続", "コンボ数に応じてスコア獲得", "FEVERゲージ上昇率UP", "判定が長くなる", "MISS時スコアDOWN", "判定が短くなる", "FEVER消費", "SPアピール消費"];
-        const resDiv = document.getElementById('egaoResult'); resDiv.innerHTML = `<strong>効果(大)：</strong>${effects[Math.floor(Math.random() * effects.length)]}<br><strong>効果(小)：</strong>${effects[Math.floor(Math.random() * effects.length)]}<br>`; resDiv.style.display = 'block';
+        const resDiv = document.getElementById('egaoResult');
+        resDiv.innerHTML = `<strong>効果(大)：</strong>${effects[Math.floor(Math.random() * effects.length)]}<br><strong>効果(小)：</strong>${effects[Math.floor(Math.random() * effects.length)]}<br>`; 
+        resDiv.style.display = 'block';
       });
+      updateUserInfo();
     };
 
     const updateUserInfo = () => {
-      const userInfo = document.getElementById('userInfo'); if(!userInfo) return;
+      const userInfo = document.getElementById('userInfo');
+      if(!userInfo) return;
       if (currentUser) { userInfo.innerText = savedPrivacy ? `プロデューサー さん` : `${currentUser.displayName} さん`; } 
       else { userInfo.innerText = "未ログイン（セーブ不可）"; }
     };
+    
+    window.renderSidebarMenu();
 
     document.getElementById('themeSelectInSettings').value = savedTheme;
-    document.getElementById('themeSelectInSettings').addEventListener('change', (e) => { localStorage.setItem('tourmas_theme', e.target.value); document.documentElement.style.setProperty('--main-color', themes[e.target.value].main); document.documentElement.style.setProperty('--sub-color', themes[e.target.value].sub); });
+    document.getElementById('themeSelectInSettings').addEventListener('change', (e) => {
+      localStorage.setItem('tourmas_theme', e.target.value);
+      document.documentElement.style.setProperty('--main-color', themes[e.target.value].main);
+      document.documentElement.style.setProperty('--sub-color', themes[e.target.value].sub);
+    });
+
     document.getElementById('nameStyleSelect').value = localStorage.getItem('tourmas_nameStyle') || 'ellipsis';
     document.getElementById('nameStyleSelect').addEventListener('change', (e) => localStorage.setItem('tourmas_nameStyle', e.target.value));
+
     document.getElementById('defaultModeSelect').value = localStorage.getItem('tourmas_defaultMode') || 'on';
-    document.getElementById('defaultModeSelect').addEventListener('change', (e) => { localStorage.setItem('tourmas_defaultMode', e.target.value); localStorage.setItem('tourmas_detailMode', e.target.value === 'on'); isDetailMode = e.target.value === 'on'; const dmt = document.getElementById('detailModeToggle'); if(dmt) dmt.checked = isDetailMode; });
+    document.getElementById('defaultModeSelect').addEventListener('change', (e) => {
+        localStorage.setItem('tourmas_defaultMode', e.target.value);
+        localStorage.setItem('tourmas_detailMode', e.target.value === 'on');
+        isDetailMode = e.target.value === 'on';
+        const dmt = document.getElementById('detailModeToggle');
+        if(dmt) dmt.checked = isDetailMode;
+    });
+
     document.getElementById('noticeToggleSettings').checked = savedNotice;
-    document.getElementById('noticeToggleSettings').addEventListener('change', (e) => { localStorage.setItem('tourmas_notice', e.target.checked); document.getElementById('marqueeContainer').style.display = e.target.checked ? 'block' : 'none'; });
+    document.getElementById('noticeToggleSettings').addEventListener('change', (e) => {
+      localStorage.setItem('tourmas_notice', e.target.checked);
+      document.getElementById('marqueeContainer').style.display = e.target.checked ? 'block' : 'none';
+    });
+
     document.getElementById('freeMemoToggle').checked = localStorage.getItem('tourmas_freeMemo') !== 'false';
     document.getElementById('freeMemoToggle').addEventListener('change', (e) => localStorage.setItem('tourmas_freeMemo', e.target.checked));
 
-    window.resetModalSettings = () => { modalConfig = JSON.parse(JSON.stringify(defaultModalItems)); localStorage.setItem('tourmas_modalConfig', JSON.stringify(modalConfig)); window.renderModalOrderSettings(); };
+    window.resetModalSettings = () => {
+        modalConfig = JSON.parse(JSON.stringify(defaultModalItems));
+        localStorage.setItem('tourmas_modalConfig', JSON.stringify(modalConfig));
+        renderModalOrderSettings();
+    };
+    
     window.renderModalOrderSettings = () => {
-      const c = document.getElementById('modalOrderSettingsContainer'); c.innerHTML = '';
-      modalConfig.forEach((item, index) => { c.innerHTML += `<div class="settings-list-item"><button onclick="moveModalItem(${index}, -1)" style="margin-right:5px;" ${index === 0 ? 'disabled' : ''}>▲</button><button onclick="moveModalItem(${index}, 1)" style="margin-right:15px;" ${index === modalConfig.length - 1 ? 'disabled' : ''}>▼</button><label style="flex:1; cursor:pointer; font-size:14px; font-weight:bold; color:#333;"><input type="checkbox" style="transform:scale(1.2); margin-right:8px;" onchange="toggleModalItem(${index}, this.checked)" ${item.show ? 'checked' : ''}>${item.label}</label></div>`; });
+      const container = document.getElementById('modalOrderSettingsContainer');
+      if(!container) return;
+      container.innerHTML = '';
+      modalConfig.forEach((item, index) => {
+        container.innerHTML += `<div class="settings-list-item"><button onclick="moveModalItem(${index}, -1)" style="margin-right:5px;" ${index === 0 ? 'disabled' : ''}>▲</button><button onclick="moveModalItem(${index}, 1)" style="margin-right:15px;" ${index === modalConfig.length - 1 ? 'disabled' : ''}>▼</button><label style="flex:1; cursor:pointer; font-size:14px; font-weight:bold; color:#333;"><input type="checkbox" style="transform:scale(1.2); margin-right:8px;" onchange="toggleModalItem(${index}, this.checked)" ${item.show ? 'checked' : ''}>${item.label}</label></div>`;
+      });
     };
-    window.moveModalItem = (index, dir) => { const temp = modalConfig[index]; modalConfig[index] = modalConfig[index + dir]; modalConfig[index + dir] = temp; localStorage.setItem('tourmas_modalConfig', JSON.stringify(modalConfig)); window.renderModalOrderSettings(); };
-    window.toggleModalItem = (index, show) => { modalConfig[index].show = show; localStorage.setItem('tourmas_modalConfig', JSON.stringify(modalConfig)); };
+    
+    window.moveModalItem = (index, dir) => {
+      const temp = modalConfig[index]; modalConfig[index] = modalConfig[index + dir]; modalConfig[index + dir] = temp;
+      localStorage.setItem('tourmas_modalConfig', JSON.stringify(modalConfig));
+      renderModalOrderSettings();
+    };
+    
+    window.toggleModalItem = (index, show) => {
+      modalConfig[index].show = show;
+      localStorage.setItem('tourmas_modalConfig', JSON.stringify(modalConfig));
+    };
 
-    window.resetMenuSettings = () => { menuConfig = JSON.parse(JSON.stringify(defaultMenuItems)); localStorage.setItem('tourmas_menuConfig', JSON.stringify(menuConfig)); window.renderMenuOrderSettings(); renderSidebarMenu(); };
-    window.renderMenuOrderSettings = () => {
-      const c = document.getElementById('menuOrderSettingsContainer'); c.innerHTML = '';
-      menuConfig.forEach((item, index) => { c.innerHTML += `<div class="settings-list-item"><button onclick="moveMenuItem(${index}, -1)" style="margin-right:5px;" ${index === 0 ? 'disabled' : ''}>▲</button><button onclick="moveMenuItem(${index}, 1)" style="margin-right:15px;" ${index === menuConfig.length - 1 ? 'disabled' : ''}>▼</button><span style="flex:1; font-size:14px; font-weight:bold; color:#333;">${item.label}</span></div>`; });
+    window.resetMenuSettings = () => {
+        menuConfig = JSON.parse(JSON.stringify(defaultMenuItems));
+        localStorage.setItem('tourmas_menuConfig', JSON.stringify(menuConfig));
+        renderMenuOrderSettings();
+        renderSidebarMenu();
     };
-    window.moveMenuItem = (index, dir) => { const temp = menuConfig[index]; menuConfig[index] = menuConfig[index + dir]; menuConfig[index + dir] = temp; localStorage.setItem('tourmas_menuConfig', JSON.stringify(menuConfig)); window.renderMenuOrderSettings(); renderSidebarMenu(); };
+    
+    window.renderMenuOrderSettings = () => {
+      const container = document.getElementById('menuOrderSettingsContainer');
+      if(!container) return;
+      container.innerHTML = '';
+      menuConfig.forEach((item, index) => {
+        container.innerHTML += `<div class="settings-list-item"><button onclick="moveMenuItem(${index}, -1)" style="margin-right:5px;" ${index === 0 ? 'disabled' : ''}>▲</button><button onclick="moveMenuItem(${index}, 1)" style="margin-right:15px;" ${index === menuConfig.length - 1 ? 'disabled' : ''}>▼</button><span style="flex:1; font-size:14px; font-weight:bold; color:#333;">${item.label}</span></div>`;
+      });
+    };
+    
+    window.moveMenuItem = (index, dir) => {
+      const temp = menuConfig[index]; menuConfig[index] = menuConfig[index + dir]; menuConfig[index + dir] = temp;
+      localStorage.setItem('tourmas_menuConfig', JSON.stringify(menuConfig));
+      renderMenuOrderSettings();
+      renderSidebarMenu();
+    };
 
     document.getElementById('menuOpenBtn').onclick = () => { document.getElementById('sidebar').classList.add('open'); document.getElementById('overlay').classList.add('open'); };
     document.getElementById('overlay').onclick = () => { document.getElementById('sidebar').classList.remove('open'); document.getElementById('overlay').classList.remove('open'); };
 
-    // ★ 確実に初期描画を行う
-    window.addEventListener('DOMContentLoaded', () => { window.renderModalOrderSettings(); window.renderMenuOrderSettings(); });
+    // ★ 初期描画
+    window.renderModalOrderSettings();
+    window.renderMenuOrderSettings();
 
     onAuthStateChanged(auth, async (user) => {
       currentUser = user || null;
       renderSidebarMenu(); 
-      const lBtn = document.getElementById('loginBtn'); const loBtn = document.getElementById('logoutBtn');
+      
+      const lBtn = document.getElementById('loginBtn');
+      const loBtn = document.getElementById('logoutBtn');
       if(lBtn) lBtn.style.display = user ? 'none' : 'inline-block';
       if(loBtn) loBtn.style.display = user ? 'inline-block' : 'none';
     });
