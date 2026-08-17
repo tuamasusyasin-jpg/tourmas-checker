@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>プライバシーポリシー - ツアマス所持率チェッカー</title>
-  <meta name="description" content="アーケードゲーム「アイドルマスター TOURS（ツアマス）」のカード所持率を管理できる非公式チェッカーです。">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     :root { --main-color: #ff66a3; --sub-color: #ffebf0; }
     body { font-family: sans-serif; padding: 0; margin: 0; background-color: #f0f0f0; color: #333;}
@@ -21,7 +21,6 @@
     
     .menu-section { margin-bottom: 10px; width: 100%; border: none; }
     .menu-section h3 { margin: 0 0 10px 0; font-size: 15px; color: #555; }
-    
     .nav-btn { display: block; width: 100%; padding: 12px; margin-bottom: 10px; background: #fff; border: 2px solid #ddd; color: #555; font-weight: bold; border-radius: 8px; cursor: pointer; transition: 0.2s; text-align: center; text-decoration: none; box-sizing: border-box; }
     .nav-btn.active { border-color: var(--main-color); color: var(--main-color); background: var(--sub-color); }
 
@@ -30,6 +29,7 @@
     .auth-container button.logout-btn { background: #dc3545; }
     #userInfo { font-size: 12px; font-weight: bold; color: #333; display: block; margin-bottom: 5px; }
     .checkbox-label { display: flex; align-items: center; margin-bottom: 8px; font-size: 14px; cursor: pointer; }
+    .mode-switch { background: var(--sub-color); padding: 10px; border-radius: 8px; border: 2px solid var(--main-color); font-weight: bold; margin-bottom: 15px; }
 
     #egaoBtn { background: linear-gradient(45deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%); border: 2px solid #ff66a3; border-radius: 8px; padding: 10px; width: 100%; font-weight: bold; color: #d81b60; cursor: pointer; margin-top: 10px; transition: 0.2s; }
     #egaoBtn:hover { filter: brightness(0.95); transform: scale(0.98); }
@@ -90,7 +90,7 @@
 
     let currentUser = null;
 
-    const getStore = (k, d) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch(e){ return d; } };
+    const getStore = (k, d) => { try { const v = localStorage.getItem(k); const p = v ? JSON.parse(v) : null; return (p && p.length > 0) ? p : d; } catch(e){ return d; } };
     let menuConfig = getStore('tourmas_menuConfig', [ { id: 'collection', label: 'カード一覧' }, { id: 'formation', label: 'マイ編成メモ' }, { id: 'auth', label: 'アカウント・ログイン' }, { id: 'mode', label: '詳細モード・挙動設定' }, { id: 'series', label: '表示する弾数' }, { id: 'settings', label: 'チェッカー設定' }, { id: 'privacy', label: 'プライバシーポリシー' }, { id: 'egao', label: '笑顔満点占い' } ]);
     let savedTheme = localStorage.getItem('tourmas_theme') || 'default';
     let savedNotice = localStorage.getItem('tourmas_notice') !== 'false';
@@ -113,60 +113,38 @@
     });
     let finalNotice = siteConfig.noticeText;
     if (bdayMessages.length > 0) finalNotice += " ｜ " + bdayMessages.join(" ｜ ");
-    const mt = document.getElementById('marqueeText');
-    if(mt) mt.innerText = finalNotice;
-    const mc = document.getElementById('marqueeContainer');
-    if(mc) mc.style.display = savedNotice ? 'block' : 'none';
+    const mt = document.getElementById('marqueeText'); if(mt) mt.innerText = finalNotice;
+    const mc = document.getElementById('marqueeContainer'); if(mc) mc.style.display = savedNotice ? 'block' : 'none';
 
     window.renderSidebarMenu = () => {
-      const sidebar = document.getElementById('sidebar');
-      sidebar.innerHTML = '<button id="menuCloseBtn">✖</button>';
-      
-      menuConfig.forEach((item, index) => {
-        let btnHtml = '';
-        if(item.id === 'collection') btnHtml = `<a href="index.html" class="nav-btn">カード一覧</a>`;
-        else if(item.id === 'formation') btnHtml = `<a href="formation.html" class="nav-btn">マイ編成メモ</a>`;
-        else if(item.id === 'settings') btnHtml = `<a href="settings.html" class="nav-btn">チェッカー設定</a>`;
-        else if(item.id === 'privacy') btnHtml = `<a href="privacy.html" class="nav-btn active">プライバシーポリシー</a>`;
-        else if(item.id === 'auth') btnHtml = `<div class="auth-container"><span id="userInfo">未ログイン</span><label class="checkbox-label" style="justify-content: center; font-size: 11px; margin-top: 5px;"><input type="checkbox" id="privacyToggle" ${savedPrivacy?'checked':''}> 名前を隠す</label><button id="loginBtn">Googleでログイン</button><button id="logoutBtn" class="logout-btn" style="display:none;">ログアウト</button></div>`;
-        else if(item.id === 'mode') btnHtml = `<div class="mode-switch"><label class="checkbox-label" style="margin: 0;"><input type="checkbox" id="detailModeToggle" ${isDetailMode?'checked':''}> 詳細確認モード</label><label class="checkbox-label" style="margin: 10px 0 0 0; font-size: 12px; font-weight: normal; color: #555;"><input type="checkbox" id="closeOutsideToggle" ${localStorage.getItem('tourmas_closeOutside')!=='false'?'checked':''}> 外枠をタップして閉じる</label></div>`;
-        else if(item.id === 'series') btnHtml = `<div><h3 style="margin: 0 0 10px 0; font-size: 15px; color: #555;">表示する弾数（設定は一覧で）</h3></div>`;
-        else if(item.id === 'egao') btnHtml = `<div><button id="egaoBtn">笑顔満点ですっ</button><div id="egaoResult"></div></div>`;
-        
-        if(btnHtml) {
-            const wrapper = document.createElement('div');
-            wrapper.className = 'menu-section';
-            wrapper.style.order = index + 1;
-            wrapper.innerHTML = btnHtml;
-            sidebar.appendChild(wrapper);
-        }
+      const sidebar = document.getElementById('sidebar'); sidebar.innerHTML = '<button id="menuCloseBtn">✖</button>';
+      menuConfig.forEach((item, idx) => {
+        let h = '';
+        if(item.id === 'collection') h = `<div class="menu-section" style="order:${idx}"><a href="index.html" class="nav-btn">カード一覧</a></div>`;
+        else if(item.id === 'formation') h = `<div class="menu-section" style="order:${idx}"><a href="formation.html" class="nav-btn">マイ編成メモ</a></div>`;
+        else if(item.id === 'settings') h = `<div class="menu-section" style="order:${idx}"><a href="settings.html" class="nav-btn">チェッカー設定</a></div>`;
+        else if(item.id === 'privacy') h = `<div class="menu-section" style="order:${idx}"><a href="privacy.html" class="nav-btn active">プライバシーポリシー</a></div>`;
+        else if(item.id === 'auth') h = `<div class="menu-section auth-container" style="order:${idx}"><span id="userInfo">未ログイン</span><label class="checkbox-label" style="justify-content: center; font-size: 11px; margin-top: 5px;"><input type="checkbox" id="privacyToggle" ${savedPrivacy?'checked':''}> 名前を隠す</label><button id="loginBtn">Googleでログイン</button><button id="logoutBtn" class="logout-btn" style="display:none;">ログアウト</button></div>`;
+        else if(item.id === 'mode') h = `<div class="mode-switch"><label class="checkbox-label" style="margin: 0;"><input type="checkbox" id="detailModeToggle" ${isDetailMode?'checked':''}> 詳細確認モード</label><label class="checkbox-label" style="margin: 10px 0 0 0; font-size: 12px; font-weight: normal; color: #555;"><input type="checkbox" id="closeOutsideToggle" ${localStorage.getItem('tourmas_closeOutside')!=='false'?'checked':''}> 外枠をタップして閉じる</label></div>`;
+        else if(item.id === 'series') h = `<div><h3 style="margin: 0 0 10px 0; font-size: 15px; color: #555;">表示する弾数（設定は一覧で）</h3></div>`;
+        else if(item.id === 'egao') h = `<div><button id="egaoBtn">笑顔満点ですっ</button><div id="egaoResult"></div></div>`;
+        if(h) { const w = document.createElement('div'); w.className = 'menu-section'; w.style.order = idx + 1; w.innerHTML = h; sidebar.appendChild(w); }
       });
 
       document.getElementById('menuCloseBtn').onclick = () => { sidebar.classList.remove('open'); document.getElementById('overlay').classList.remove('open'); };
-      const pt = document.getElementById('privacyToggle');
-      if(pt) pt.addEventListener('change', (e) => { localStorage.setItem('tourmas_privacy', e.target.checked); savedPrivacy = e.target.checked; updateUserInfo(); });
-      const dmt = document.getElementById('detailModeToggle');
-      if(dmt) dmt.addEventListener('change', (e) => { localStorage.setItem('tourmas_detailMode', e.target.checked); isDetailMode = e.target.checked; });
-      const cot = document.getElementById('closeOutsideToggle');
-      if(cot) cot.addEventListener('change', (e) => localStorage.setItem('tourmas_closeOutside', e.target.checked));
-      
-      const lBtn = document.getElementById('loginBtn');
-      if(lBtn) lBtn.addEventListener('click', () => signInWithPopup(auth, provider));
-      const loBtn = document.getElementById('logoutBtn');
-      if(loBtn) loBtn.addEventListener('click', () => signOut(auth));
-
-      const egaoBtn = document.getElementById('egaoBtn');
-      if(egaoBtn) egaoBtn.addEventListener('click', () => {
+      document.getElementById('privacyToggle')?.addEventListener('change', e => { localStorage.setItem('tourmas_privacy', e.target.checked); savedPrivacy = e.target.checked; updateUserInfo(); });
+      document.getElementById('detailModeToggle')?.addEventListener('change', e => { localStorage.setItem('tourmas_detailMode', e.target.checked); isDetailMode = e.target.checked; });
+      document.getElementById('closeOutsideToggle')?.addEventListener('change', e => localStorage.setItem('tourmas_closeOutside', e.target.checked));
+      document.getElementById('loginBtn')?.addEventListener('click', () => signInWithPopup(auth, provider));
+      document.getElementById('logoutBtn')?.addEventListener('click', () => signOut(auth));
+      document.getElementById('egaoBtn')?.addEventListener('click', () => {
         const effects = ["コンボ時のスコアUP", "GOOD以上のスコアUP", "GREAT以上のスコアUP", "PERFECTのスコアUP", "成功判定のコンボ数UP", "すべての判定がPERFECTになる", "GOOD以上がPERFECTになる", "GREATがPERFECTになる", "MISSでもコンボ継続", "コンボ数に応じてスコア獲得", "FEVERゲージ上昇率UP", "判定が長くなる", "MISS時スコアDOWN", "判定が短くなる", "FEVER消費", "SPアピール消費"];
-        const resDiv = document.getElementById('egaoResult');
-        resDiv.innerHTML = `<strong>効果(大)：</strong>${effects[Math.floor(Math.random() * effects.length)]}<br><strong>効果(小)：</strong>${effects[Math.floor(Math.random() * effects.length)]}<br>`; 
-        resDiv.style.display = 'block';
+        const resDiv = document.getElementById('egaoResult'); resDiv.innerHTML = `<strong>効果(大)：</strong>${effects[Math.floor(Math.random() * effects.length)]}<br><strong>効果(小)：</strong>${effects[Math.floor(Math.random() * effects.length)]}<br>`; resDiv.style.display = 'block';
       });
     };
 
     const updateUserInfo = () => {
-      const userInfo = document.getElementById('userInfo');
-      if(!userInfo) return;
+      const userInfo = document.getElementById('userInfo'); if(!userInfo) return;
       if (currentUser) { userInfo.innerText = savedPrivacy ? `プロデューサー さん` : `${currentUser.displayName} さん`; } 
       else { userInfo.innerText = "未ログイン（セーブ不可）"; }
     };
@@ -178,9 +156,7 @@
     onAuthStateChanged(auth, async (user) => {
       currentUser = user || null;
       window.renderSidebarMenu(); 
-      
-      const lBtn = document.getElementById('loginBtn');
-      const loBtn = document.getElementById('logoutBtn');
+      const lBtn = document.getElementById('loginBtn'); const loBtn = document.getElementById('logoutBtn');
       if(lBtn) lBtn.style.display = user ? 'none' : 'inline-block';
       if(loBtn) loBtn.style.display = user ? 'inline-block' : 'none';
     });
