@@ -19,11 +19,11 @@
     #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); opacity: 0; pointer-events: none; transition: opacity 0.3s ease; z-index: 999; }
     #overlay.open { opacity: 1; pointer-events: auto; }
     
-    .menu-section { margin-bottom: 15px; width: 100%; }
+    /* ★ メニューの上下線を完全に削除！ */
+    .menu-section { margin-bottom: 10px; width: 100%; border: none; }
     .menu-section h3 { margin: 0 0 10px 0; font-size: 15px; color: #555; }
     
     .nav-btn { display: block; width: 100%; padding: 12px; margin-bottom: 10px; background: #fff; border: 2px solid #ddd; color: #555; font-weight: bold; border-radius: 8px; cursor: pointer; transition: 0.2s; text-align: center; text-decoration: none; box-sizing: border-box; }
-    .nav-btn:hover { background: #f9f9f9; }
     .nav-btn.active { border-color: var(--main-color); color: var(--main-color); background: var(--sub-color); }
 
     .auth-container { text-align: center; background: #e3f2fd; padding: 15px; border-radius: 10px; }
@@ -142,16 +142,7 @@
         <div id="menuOrderSettingsContainer"></div>
       </div>
 
-      <div class="policy-content" style="padding:20px;">
-        <div class="setting-header-wrap">
-            <h3 style="margin:0;">4. 絞り込み項目の並び替え・開閉設定</h3>
-            <button class="reset-btn" onclick="resetFilterSettings()">デフォルトに戻す</button>
-        </div>
-        <p style="font-size:12px; color:#666; margin-bottom:15px;">
-          「詳細な絞り込みを開く」を押した時の項目の順番と、最初から開いておくかどうかを設定できます。
-        </p>
-        <div id="filterOrderSettingsContainer"></div>
-      </div>
+      <!-- ★「4. 絞り込みの開閉設定」はタブ化に伴い不要になったため削除しました -->
     </div>
   </main>
 
@@ -167,13 +158,15 @@
 
     let currentUser = null;
 
+    // ★ 宣言の順序を修正し、初期化エラーを完全に防ぐ
     const defaultModalItems = [{id:'number',label:'番号',show:true},{id:'rarity',label:'レアリティ',show:true},{id:'type',label:'種類',show:true},{id:'appeal',label:'アピール値',show:true},{id:'target',label:'対象／効果対象',show:true},{id:'part',label:'部位',show:true},{id:'genre',label:'ジャンル',show:true},{id:'effect',label:'効果／リズム効果',show:true},{id:'note',label:'備考',show:true},{id:'relax',label:'制限緩和',show:true},{id:'comment',label:'コメント',show:true},{id:'series',label:'入手手段',show:true},{id:'bonus',label:'セットボーナス',show:true},{id:'altcard',label:'別カード',show:true},{id:'color',label:'色違い',show:true},{id:'utsurikomi',label:'写り込み',show:true}];
     const defaultMenuItems = [{id:'collection',label:'カード一覧'},{id:'formation',label:'マイ編成メモ'},{id:'auth',label:'アカウント・ログイン'},{id:'mode',label:'詳細モード・挙動設定'},{id:'series',label:'表示する弾数'},{id:'settings',label:'チェッカー設定'},{id:'privacy',label:'プライバシーポリシー'},{id:'egao',label:'笑顔満点占い'}];
-    const defaultFilterGroups = [{id:'owned',label:'所持状況',open:true},{id:'wish',label:'欲しいリスト',open:true},{id:'rarity',label:'レアリティ',open:true},{id:'type',label:'カード種類',open:true},{id:'brand',label:'ブランド',open:true},{id:'target',label:'対象・効果',open:true},{id:'part',label:'部位',open:true},{id:'genre',label:'ジャンル',open:true},{id:'idol',label:'アイドル',open:false}];
-
-    let menuConfig = JSON.parse(localStorage.getItem('tourmas_menuConfig')) || defaultMenuItems;
-    let modalConfig = JSON.parse(localStorage.getItem('tourmas_modalConfig')) || defaultModalItems;
-    let filterConfigGroups = JSON.parse(localStorage.getItem('tourmas_filterConfig')) || defaultFilterGroups;
+    
+    // localStorage.getItem を使って安全に読み込む
+    const getStore = (k, d) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch(e){ return d; } };
+    
+    let modalConfig = getStore('tourmas_modalConfig', defaultModalItems);
+    let menuConfig = getStore('tourmas_menuConfig', defaultMenuItems);
     
     let savedTheme = localStorage.getItem('tourmas_theme') || 'default';
     let savedNotice = localStorage.getItem('tourmas_notice') !== 'false';
@@ -312,36 +305,12 @@
       renderSidebarMenu();
     };
 
-    // フィルターの設定
-    window.resetFilterSettings = () => {
-        filterConfigGroups = JSON.parse(JSON.stringify(defaultFilterGroups));
-        localStorage.setItem('tourmas_filterConfig', JSON.stringify(filterConfigGroups));
-        renderFilterOrderSettings();
-    };
-    window.renderFilterOrderSettings = () => {
-      const container = document.getElementById('filterOrderSettingsContainer');
-      container.innerHTML = '';
-      filterConfigGroups.forEach((group, index) => {
-        container.innerHTML += `<div class="settings-list-item"><button onclick="moveFilterItem(${index}, -1)" style="margin-right:5px;" ${index === 0 ? 'disabled' : ''}>▲</button><button onclick="moveFilterItem(${index}, 1)" style="margin-right:15px;" ${index === filterConfigGroups.length - 1 ? 'disabled' : ''}>▼</button><label style="flex:1; cursor:pointer; font-size:14px; font-weight:bold; color:#333;"><input type="checkbox" style="transform:scale(1.2); margin-right:8px;" onchange="toggleFilterOpen(${index}, this.checked)" ${group.open ? 'checked' : ''}>${group.label} (最初から開く)</label></div>`;
-      });
-    };
-    window.moveFilterItem = (index, dir) => {
-      const temp = filterConfigGroups[index]; filterConfigGroups[index] = filterConfigGroups[index + dir]; filterConfigGroups[index + dir] = temp;
-      localStorage.setItem('tourmas_filterConfig', JSON.stringify(filterConfigGroups));
-      renderFilterOrderSettings();
-    };
-    window.toggleFilterOpen = (index, openStatus) => {
-      filterConfigGroups[index].open = openStatus;
-      localStorage.setItem('tourmas_filterConfig', JSON.stringify(filterConfigGroups));
-    };
-
     document.getElementById('menuOpenBtn').onclick = () => { document.getElementById('sidebar').classList.add('open'); document.getElementById('overlay').classList.add('open'); };
 
     // ★ ページ読み込み時に確実に設定項目を描画する
     window.addEventListener('DOMContentLoaded', () => {
         renderModalOrderSettings();
         renderMenuOrderSettings();
-        renderFilterOrderSettings();
     });
 
     onAuthStateChanged(auth, async (user) => {
