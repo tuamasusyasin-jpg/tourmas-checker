@@ -22,10 +22,10 @@
     .menu-section { margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid #eee; width: 100%; }
     .menu-section h3 { margin: 0 0 10px 0; font-size: 15px; color: #555; }
     
-    /* ★ メニューボタンを落ち着いたデザインに */
-    .nav-btn { display: block; width: 100%; padding: 12px; margin-bottom: 10px; background: #fff; border: 2px solid #ddd; color: #555; font-weight: bold; border-radius: 8px; cursor: pointer; transition: 0.2s; text-align: center; box-sizing: border-box; }
-    /* .nav-btn:hover { background: #f9f9f9; } は削除しました */
-    .nav-btn.active { background: var(--sub-color); border-color: var(--main-color); color: var(--main-color); }
+    /* ★ メニューボタンを元の可愛いデザインに戻しました！ */
+    .nav-btn { display: block; width: 100%; padding: 12px; margin-bottom: 10px; background: var(--sub-color); border: 2px solid var(--main-color); color: #333; font-weight: bold; border-radius: 8px; cursor: pointer; transition: 0.2s; text-align: center; box-sizing: border-box; text-decoration: none; }
+    .nav-btn:hover { background: var(--main-color); color: #fff; }
+    .nav-btn.active { filter: brightness(0.9); box-shadow: 0 0 5px rgba(0,0,0,0.2) inset; }
 
     .auth-container { text-align: center; background: #e3f2fd; padding: 15px; border-radius: 10px; }
     .auth-container button { padding: 8px; width: 100%; font-weight: bold; cursor: pointer; border-radius: 5px; border: none; background: #1a73e8; color: white; transition: 0.2s; margin-top: 10px; }
@@ -88,20 +88,22 @@
     #filterPanel.open { max-height: 5000px; padding: 20px; }
     #filterPanelBody { display: flex; flex-direction: column; }
     
-    /* ★ 絞り込みアコーディオンをコンパクト化！ */
+    /* ★ 絞り込みアコーディオン */
     details.filter-group { margin-bottom: 8px; border: 1px solid #eee; border-radius: 6px; background: #fafafa; }
     details.filter-group summary { padding: 8px 12px; cursor: pointer; font-weight: bold; color: var(--main-color); font-size: 13px; display: flex; align-items: center; user-select: none; }
     details.filter-group summary::-webkit-details-marker { display: none; }
     details.filter-group summary::before { content: '▶'; display: inline-block; margin-right: 8px; font-size: 10px; transition: 0.2s; }
     details.filter-group[open] summary::before { transform: rotate(90deg); }
     .filter-grid { display: flex; flex-wrap: wrap; gap: 6px; padding: 4px 12px 10px; background: #fff; border-top: 1px solid #eee; border-radius: 0 0 6px 6px; }
-.filter-btn-label { display: inline-block; padding: 2px 8px; border-radius: 20px; border: 1px solid #ccc; background: #fafafa; font-size: 10px; cursor: pointer; transition: 0.2s; user-select: none; }
+    
+    /* ★ 文字サイズと余白をちょうど良く調整しました！ */
+    .filter-btn-label { display: inline-block; padding: 4px 12px; border-radius: 20px; border: 1px solid #ccc; background: #fafafa; font-size: 11px; cursor: pointer; transition: 0.2s; user-select: none; }
     .filter-btn-label input { display: none; }
     .filter-btn-label:has(input:checked) { background: var(--main-color); color: white; border-color: var(--main-color); font-weight: bold; }
 
     .card-list { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; }
     .card { border: 3px solid #ccc; border-radius: 12px; width: 160px; aspect-ratio: 378 / 533; cursor: pointer; background-color: #999; position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; }
-    .card-info { background: rgba(255, 255, 255, 0.95); padding: 10px; text-align: center; border-top: 1px solid #eee; overflow: hidden; }
+    .card-info { background: rgba(255, 255, 255, 0.95); padding: 10px; text-align: center; border-top: 1px solid #eee; overflow: hidden; z-index: 2;}
     .card-info h4, .card-info p { margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
     .card-info h4 { font-size: 14px; line-height: 1.2; font-weight: bold; }
     .card-info p { margin-top: 5px; font-size: 10px; color: #666; }
@@ -112,8 +114,8 @@
     .marquee-text { display: inline-block !important; overflow: visible !important; animation: scroll-left 5s linear infinite alternate; }
     @keyframes scroll-left { 0%, 15% { transform: translateX(0); } 85%, 100% { transform: translateX(calc(130px - 100%)); } }
 
-    .rarity-badge { position: absolute; top: 5px; left: 5px; background-color: #333; color: #fff; padding: 3px 8px; border-radius: 10px; font-size: 11px; font-weight: bold; }
-    .card::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); pointer-events: none; transition: 0.2s; }
+    .rarity-badge { position: absolute; top: 5px; left: 5px; background-color: #333; color: #fff; padding: 3px 8px; border-radius: 10px; font-size: 11px; font-weight: bold; z-index: 2;}
+    .card::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); pointer-events: none; transition: 0.2s; z-index: 1;}
     .card.owned { border-color: var(--main-color); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
     .card.owned::after { background-color: rgba(0, 0, 0, 0); }
     .wish-star { position: absolute; top: 5px; right: 5px; color: #ffeb3b; text-shadow: 0 0 3px #000; font-size: 16px; z-index: 10; font-weight: bold; }
@@ -170,8 +172,8 @@
         <button id="menuOpenBtn">☰</button>
         <h1>ツアマス所持率チェッカー</h1>
     </div>
-    <!-- ★ ヘッダーのこの1個だけ！ -->
-    <button class="cloud-save-btn" id="cloudSaveBtn" style="display:none;">クラウドにセーブ</button>
+    <!-- ヘッダーのこの1個だけ！ -->
+    <button class="cloud-save-btn" id="cloudSaveBtn" style="display:none;" onclick="triggerCloudSave()">クラウドにセーブ</button>
   </header>
 
   <div id="overlay"></div>
@@ -197,9 +199,9 @@
           </select>
           <button id="sortOrderBtn" data-order="asc">昇順 ▲</button>
         </div>
-        <button id="toggleFilterBtn">▼ 詳細な絞り込みを開く</button>
+        <button id="toggleFilterBtn" onclick="toggleFilterPanel()">▼ 詳細な絞り込みを開く</button>
         <div id="filterPanel">
-          <div style="text-align: right; margin-bottom: 10px;"><button id="resetFiltersBtn" style="padding:5px 10px; cursor:pointer;">✖ 全てクリア</button></div>
+          <div style="text-align: right; margin-bottom: 10px;"><button id="resetFiltersBtn" onclick="resetFilters()" style="padding:5px 10px; cursor:pointer;">✖ 全てクリア</button></div>
           <div id="filterPanelBody"></div>
         </div>
       </div>
@@ -211,7 +213,7 @@
       <div class="page-title"><h2>マイ編成メモ</h2></div>
       <p style="color: #666; font-size: 14px; margin-bottom: 20px;">スコアアタック用の理想の編成を記録できます。枠をタップすると所持・未所持に関わらず全てのデータから検索・選択できます。</p>
       <div id="formationListContainer"></div>
-      <button id="addFormationBtn">＋ 新しい編成を記録する</button>
+      <button id="addFormationBtn" onclick="addFormation()">＋ 新しい編成を記録する</button>
     </div>
 
     <!-- チェッカー設定画面 -->
@@ -245,19 +247,19 @@
       </div>
 
       <div class="policy-content">
-        <div class="setting-header-wrap"><h3 style="margin:0;">2. 詳細画面の表示順・ON/OFF設定</h3><button class="reset-btn" id="resetModalBtn">デフォルトに戻す</button></div>
+        <div class="setting-header-wrap"><h3 style="margin:0;">2. 詳細画面の表示順・ON/OFF設定</h3><button class="reset-btn" id="resetModalBtn" onclick="resetModalSettings()">デフォルトに戻す</button></div>
         <p style="font-size:12px; color:#666; margin-bottom:15px;">カードをタップしたときに出る表の項目を、好きな順番に入れ替えたり、不要なものを非表示にできます。</p>
         <div id="modalOrderSettingsContainer"></div>
       </div>
       
       <div class="policy-content">
-        <div class="setting-header-wrap"><h3 style="margin:0;">3. サイドメニューの並び替え</h3><button class="reset-btn" id="resetMenuBtn">デフォルトに戻す</button></div>
+        <div class="setting-header-wrap"><h3 style="margin:0;">3. サイドメニューの並び替え</h3><button class="reset-btn" id="resetMenuBtn" onclick="resetMenuSettings()">デフォルトに戻す</button></div>
         <p style="font-size:12px; color:#666; margin-bottom:15px;">左から出てくるメニューの順番を、使いやすいように並び替えられます。</p>
         <div id="menuOrderSettingsContainer"></div>
       </div>
 
       <div class="policy-content">
-        <div class="setting-header-wrap"><h3 style="margin:0;">4. 絞り込み項目の並び替え・開閉設定</h3><button class="reset-btn" id="resetFilterBtn">デフォルトに戻す</button></div>
+        <div class="setting-header-wrap"><h3 style="margin:0;">4. 絞り込み項目の並び替え・開閉設定</h3><button class="reset-btn" id="resetFilterBtn" onclick="resetFilterSettings()">デフォルトに戻す</button></div>
         <p style="font-size:12px; color:#666; margin-bottom:15px;">「詳細な絞り込みを開く」を押した時の項目の順番と、最初から開いておくかどうかを設定できます。</p>
         <div id="filterOrderSettingsContainer"></div>
       </div>
@@ -352,7 +354,6 @@
     
     // --- 初期設定適用 ---
     document.documentElement.style.setProperty('--main-color', themes[savedTheme].main); document.documentElement.style.setProperty('--sub-color', themes[savedTheme].sub);
-    // ▼ここから追加：お知らせテキストの生成と流し込み＆画面遷移処理▼
     let bdayMessages = [];
     const today = new Date();
     today.setHours(0,0,0,0);
@@ -372,7 +373,6 @@
       if (window.location.hash === '#settings' && typeof switchView === 'function') switchView('settings');
       else if (window.location.hash === '#formation' && typeof switchView === 'function') switchView('formation');
     });
-    // ▲追加ここまで▲
     $('marqueeContainer').style.display = savedNotice ? 'block' : 'none';
     $('themeSelectInSettings').value = savedTheme; $('nameStyleSelect').value = savedNameStyle; $('defaultModeSelect').value = savedDefaultMode;
     $('noticeToggleSettings').checked = savedNotice; $('freeMemoToggle').checked = savedFreeMemo;
@@ -424,6 +424,35 @@
     $('defaultModeSelect').addEventListener('change', e => { localStorage.setItem('tourmas_defaultMode', e.target.value); const dm = $('detailModeToggle'); if (dm) { dm.checked = (e.target.value === 'on'); localStorage.setItem('tourmas_detailMode', dm.checked); isDetailMode = dm.checked; } });
     $('noticeToggleSettings').addEventListener('change', e => { localStorage.setItem('tourmas_notice', e.target.checked); $('marqueeContainer').style.display = e.target.checked ? 'block' : 'none'; });
     $('freeMemoToggle').addEventListener('change', e => { localStorage.setItem('tourmas_freeMemo', e.target.checked); savedFreeMemo = e.target.checked; renderFormations(); });
+
+    window.triggerCloudSave = async () => {
+      if (!currentUser) return alert("セーブするにはGoogleログインしてください。");
+      const dm = $('detailModeToggle');
+      if (dm && dm.checked) updateLocalMemory();
+
+      await setDoc(doc(db, "users", currentUser.uid), { 
+        ownedCards: Array.from(ownedCardIds), 
+        cardDetails: userCardDetails,
+        formations: userFormations 
+      }, { merge: true });
+      
+      hasUnsavedChanges = false;
+      $$('.cloud-save-btn').forEach(btn => {
+          btn.classList.remove('unsaved');
+          btn.innerText = "クラウドにセーブ済";
+      });
+      const toast = document.getElementById('toast');
+      if(toast) { toast.innerText = "クラウドに保存しました！"; toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 2000); }
+    };
+
+    window.markAsUnsaved = () => {
+      hasUnsavedChanges = true;
+      $$('.cloud-save-btn').forEach(btn => {
+        btn.style.display = 'inline-block';
+        btn.classList.add('unsaved');
+        btn.innerText = "セーブ(未保存)";
+      });
+    };
 
     // --- フィルター構築（CSS Order完全対応版） ---
     const buildFilters = () => {
@@ -542,6 +571,7 @@
       userCardDetails[cId] = { count: cV, memo: mV, wish: wV };
       markAsUnsaved(); renderCards(); 
     };
+    window.updateLocalMemory = updateLocalMemory;
     $('modalCount').addEventListener('change', updateLocalMemory); $('modalWish').addEventListener('change', updateLocalMemory);
     let mtId; $('modalMemo').addEventListener('input', () => { clearTimeout(mtId); mtId = setTimeout(updateLocalMemory, 500); });
 
@@ -626,9 +656,9 @@
         if (sf !== "all") { if (sf === "ツアーズレア") { if (!s.includes("ツアーズレア")) return; } else { if (s !== sf) return; } }
         
         const cd = document.createElement('div'); cd.className = 'card';
-        // ★ モーダルでも所持しているカードに owned クラスをつける！
+        // ★ モーダルでも持っているカードを光らせる！
         if (ownedCardIds.has(d["番号"])) cd.classList.add('owned');
-
+        
         if (d["カード表"]) { cd.style.backgroundImage = `url('images/${d["カード表"]}')`; cd.style.backgroundSize = 'cover'; }
         const mt = d["カード名"] || d["番号"] || "未登録";
         let st = ""; if (d["アイドル名"]) st = `<p>${d["アイドル名"]}</p>`; else if (d["シリーズブランド名"]) st = `<p>${d["シリーズブランド名"]}</p>`;
@@ -665,7 +695,7 @@
     const csClB = $('cardSelectClearBtn'); if(csClB) csClB.onclick = () => { if (curSel) { window.updateFormationData(curSel.idx, curSel.field, curSel.subfield, ""); window.renderFormations(); } $('cardSelectModal')?.classList.remove('open'); };
 
     // --- 各種設定用関数 ---
-    window.resetModalSettings = () => { modalConfig = JSON.parse(JSON.stringify(defaultModalItems)); setStore('tourmas_modalConfig', modalConfig); window.renderModalOrderSettings(); };
+    window.resetModalSettings = () => { modalConfig = JSON.parse(JSON.stringify(dModal)); setStore('tourmas_modalConfig', modalConfig); window.renderModalOrderSettings(); };
     window.renderModalOrderSettings = () => {
       const c = $('modalOrderSettingsContainer'); if(!c) return; c.innerHTML = '';
       modalConfig.forEach((i, idx) => { c.innerHTML += `<div class="settings-list-item" style="order:${idx}"><button onclick="moveModalItem(${idx}, -1)" style="margin-right:5px;" ${idx === 0 ? 'disabled' : ''}>▲</button><button onclick="moveModalItem(${idx}, 1)" style="margin-right:15px;" ${idx === modalConfig.length - 1 ? 'disabled' : ''}>▼</button><label style="flex:1; cursor:pointer; font-size:14px; font-weight:bold; color:#333;"><input type="checkbox" style="transform:scale(1.2); margin-right:8px;" onchange="toggleModalItem(${idx}, this.checked)" ${i.show ? 'checked' : ''}>${i.label}</label></div>`; });
@@ -673,19 +703,19 @@
     window.moveModalItem = (idx, dir) => { const t = modalConfig[idx]; modalConfig[idx] = modalConfig[idx + dir]; modalConfig[idx + dir] = t; setStore('tourmas_modalConfig', modalConfig); window.renderModalOrderSettings(); };
     window.toggleModalItem = (idx, show) => { modalConfig[idx].show = show; setStore('tourmas_modalConfig', modalConfig); };
 
-    window.resetMenuSettings = () => { menuConfig = JSON.parse(JSON.stringify(defaultMenuItems)); setStore('tourmas_menuConfig', menuConfig); window.renderMenuOrderSettings(); buildSidebar(); };
+    window.resetMenuSettings = () => { menuConfig = JSON.parse(JSON.stringify(dMenu)); setStore('tourmas_menuConfig', menuConfig); window.renderMenuOrderSettings(); buildSidebar(); };
     window.renderMenuOrderSettings = () => {
       const c = $('menuOrderSettingsContainer'); if(!c) return; c.innerHTML = '';
       menuConfig.forEach((i, idx) => { c.innerHTML += `<div class="settings-list-item" style="order:${idx}"><button onclick="moveMenuItem(${idx}, -1)" style="margin-right:5px;" ${idx === 0 ? 'disabled' : ''}>▲</button><button onclick="moveMenuItem(${idx}, 1)" style="margin-right:15px;" ${idx === menuConfig.length - 1 ? 'disabled' : ''}>▼</button><span style="flex:1; font-size:14px; font-weight:bold; color:#333;">${i.label}</span></div>`; });
     };
     window.moveMenuItem = (idx, dir) => { const t = menuConfig[idx]; menuConfig[idx] = menuConfig[idx + dir]; menuConfig[idx + dir] = t; setStore('tourmas_menuConfig', menuConfig); window.renderMenuOrderSettings(); buildSidebar(); };
 
-    window.resetFilterSettings = () => { filterConfigGroups = JSON.parse(JSON.stringify(defaultFilterGroups)); setStore('tourmas_filterConfig', filterConfigGroups); window.renderFilterOrderSettings(); window.renderAdvancedFilters(); };
+    window.resetFilterSettings = () => { filterConfigGroups = JSON.parse(JSON.stringify(dFilter)); setStore('tourmas_filterConfig', filterConfigGroups); window.renderFilterOrderSettings(); buildFilters(); };
     window.renderFilterOrderSettings = () => {
       const c = $('filterOrderSettingsContainer'); if(!c) return; c.innerHTML = '';
       filterConfigGroups.forEach((g, idx) => { c.innerHTML += `<div class="settings-list-item" style="order:${idx}"><button onclick="moveFilterItem(${idx}, -1)" style="margin-right:5px;" ${idx === 0 ? 'disabled' : ''}>▲</button><button onclick="moveFilterItem(${idx}, 1)" style="margin-right:15px;" ${idx === filterConfigGroups.length - 1 ? 'disabled' : ''}>▼</button><label style="flex:1; cursor:pointer; font-size:14px; font-weight:bold; color:#333;"><input type="checkbox" style="transform:scale(1.2); margin-right:8px;" onchange="toggleFilterOpen(${idx}, this.checked)" ${g.open ? 'checked' : ''}>${g.label} (最初から開く)</label></div>`; });
     };
-    window.moveFilterItem = (idx, dir) => { const t = filterConfigGroups[idx]; filterConfigGroups[idx] = filterConfigGroups[idx + dir]; filterConfigGroups[idx + dir] = t; setStore('tourmas_filterConfig', filterConfigGroups); window.renderFilterOrderSettings(); window.renderAdvancedFilters(); };
+    window.moveFilterItem = (idx, dir) => { const t = filterConfigGroups[idx]; filterConfigGroups[idx] = filterConfigGroups[idx + dir]; filterConfigGroups[idx + dir] = t; setStore('tourmas_filterConfig', filterConfigGroups); window.renderFilterOrderSettings(); buildFilters(); };
     window.toggleFilterOpen = (idx, st) => { filterConfigGroups[idx].open = st; setStore('tourmas_filterConfig', filterConfigGroups); const el = $(`filterGroup-${filterConfigGroups[idx].id}`); if(el) el.open = st; };
 
     $('menuOpenBtn').onclick = () => { $('sidebar').classList.add('open'); $('overlay').classList.add('open'); };
@@ -699,12 +729,12 @@
       }
       
       buildSidebar(); 
-      window.renderAdvancedFilters();
-      window.renderCards();
-      window.renderFormations();
-      window.renderModalOrderSettings();
-      window.renderMenuOrderSettings();
-      window.renderFilterOrderSettings();
+      buildFilters();
+      if($('cardList')) window.renderCards();
+      if($('formationListContainer')) window.renderFormations();
+      if($('modalOrderSettingsContainer')) window.renderModalOrderSettings();
+      if($('menuOrderSettingsContainer')) window.renderMenuOrderSettings();
+      if($('filterOrderSettingsContainer')) window.renderFilterOrderSettings();
       
       const lBtn = $('loginBtn'), loBtn = $('logoutBtn');
       if(lBtn) lBtn.style.display = user ? 'none' : 'inline-block';
