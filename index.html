@@ -428,7 +428,12 @@
         if (item.id === 'number') v = data["番号"]; else if (item.id === 'rarity') v = data["レアリティ"]; else if (item.id === 'type') v = data["種類"]; else if (item.id === 'genre') v = data["ジャンル"];
         else if (item.id === 'appeal') { const vV = data["アピール値（Vocal)"] || 0, dV = data["アピール値（Dance）"] || 0, viV = data["アピール値（Visual）"] || 0; if (vV||dV||viV) v = `<span style="color:#e91e63">Vo: ${vV}</span> / <span style="color:#2196f3">Da: ${dV}</span> / <span style="color:#ffc107">Vi: ${viV}</span>`; }
         else if (item.id === 'target') v = data["対象アイドル／サポート効果対象"]; else if (item.id === 'part') v = data["部位"]; else if (item.id === 'effect') v = data["サポート効果／リズムライブ効果"]; else if (item.id === 'note') v = (data["備考"] || "").replace(/,/g, '<br>'); else if (item.id === 'relax') v = data["制限緩和"]; else if (item.id === 'comment') v = data["キャラコメント"] || data["コメント"]; else if (item.id === 'series') v = data["シリーズ"] || data["入手手段"];
-        else if (item.id === 'bonus') { if (data["セットボーナス"]) v = `<button class="card-link-btn set-bonus-link" data-bonus="${data["セットボーナス"]}">${data["セットボーナス"]}</button>`; }
+        else if (item.id === 'bonus') { 
+          if (data["セットボーナス"]) {
+            const bonuses = data["セットボーナス"].split(',').map(b => b.trim()).filter(b => b !== '');
+            v = bonuses.map(b => `<button class="card-link-btn set-bonus-link" data-bonus="${b}">${b}</button>`).join('');
+          } 
+        }
         else if (item.id === 'altcard') v = mkL(data["別カード"] || data["別イラスト"], 'id'); else if (item.id === 'color') v = mkL(data["色違い"], 'name'); else if (item.id === 'utsurikomi') v = (data["写り込み"] || "").replace(/,/g, '、');
         if (v && v !== "") tb.innerHTML += `<tr><th>${item.label}</th><td>${v}</td></tr>`;
       });
