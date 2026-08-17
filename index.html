@@ -30,9 +30,9 @@
     .auth-container button.logout-btn { background: #dc3545; }
     #userInfo { font-size: 12px; font-weight: bold; display: block; margin-bottom: 5px; }
     .checkbox-label { display: flex; align-items: center; margin-bottom: 8px; font-size: 14px; cursor: pointer; }
-    .mode-switch { background: var(--sub-color); padding: 10px; border-radius: 8px; border: 2px solid var(--main-color); font-weight: bold; margin-bottom: 15px; }
+    .mode-switch { background: var(--sub-color); padding: 10px; border-radius: 8px; border: 2px solid var(--main-color); font-weight: bold; margin-bottom: 15px; box-sizing: border-box; }
 
-    #egaoBtn { background: linear-gradient(45deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%); border: 2px solid #ff66a3; border-radius: 8px; padding: 10px; width: 100%; font-weight: bold; color: #d81b60; cursor: pointer; margin-top: 10px; transition: 0.2s; }
+    #egaoBtn { background: linear-gradient(45deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%); border: 2px solid #ff66a3; border-radius: 8px; padding: 10px; width: 100%; font-weight: bold; color: #d81b60; cursor: pointer; margin-top: 10px; transition: 0.2s; box-sizing: border-box; }
     #egaoBtn:hover { filter: brightness(0.95); transform: scale(0.98); }
     #egaoResult { display: none; margin-top: 10px; padding: 12px; border-radius: 8px; background: #fff; border: 2px dashed var(--main-color); font-size: 13px; line-height: 1.6; }
     
@@ -198,9 +198,19 @@
 
     let currentUser = null, ownedCardIds = new Set(), userCardDetails = {}, userFormations = [], hasUnsavedChanges = false, seriesSetForModal = new Set(); 
     
+    // ★ データを安全に読み込む（空っぽバグの防止機能）
     const getStore = (k, d) => { try { const v = localStorage.getItem(k); const p = v ? JSON.parse(v) : null; return (p && p.length > 0) ? p : d; } catch(e){ return d; } };
     const setStore = (k, v) => localStorage.setItem(k, JSON.stringify(v));
     
+    // ★ 未ログインやリロード時に備え、先にローカルから所持データを復旧させておく
+    try {
+      const localData = JSON.parse(localStorage.getItem('tourmas_cardDetails') || '{}');
+      userCardDetails = localData;
+      Object.keys(localData).forEach(k => {
+        if (localData[k].count > 0) ownedCardIds.add(k);
+      });
+    } catch(e) {}
+
     const dModal = [{id:'number',label:'番号',show:true},{id:'rarity',label:'レアリティ',show:true},{id:'type',label:'種類',show:true},{id:'appeal',label:'アピール値',show:true},{id:'target',label:'対象／効果対象',show:true},{id:'part',label:'部位',show:true},{id:'genre',label:'ジャンル',show:true},{id:'effect',label:'効果／リズム効果',show:true},{id:'note',label:'備考',show:true},{id:'relax',label:'制限緩和',show:true},{id:'comment',label:'コメント',show:true},{id:'series',label:'入手手段',show:true},{id:'bonus',label:'セットボーナス',show:true},{id:'altcard',label:'別カード',show:true},{id:'color',label:'色違い',show:true},{id:'utsurikomi',label:'写り込み',show:true}];
     const dMenu = [{id:'collection',label:'カード一覧'},{id:'formation',label:'マイ編成メモ'},{id:'auth',label:'アカウント・ログイン'},{id:'mode',label:'詳細モード・挙動設定'},{id:'series',label:'表示する弾数'},{id:'settings',label:'チェッカー設定'},{id:'privacy',label:'プライバシーポリシー'},{id:'egao',label:'笑顔満点占い'}];
     
@@ -232,7 +242,7 @@
     if($('marqueeText')) $('marqueeText').innerText = finalNotice;
     if($('marqueeContainer')) $('marqueeContainer').style.display = savedNotice ? 'block' : 'none';
 
-    // ★ 全画面共通のメニュー構築処理
+    // ★ メニュー構築処理（はみ出しバグ修正済）
     window.renderSidebarMenu = () => {
       const sidebar = document.getElementById('sidebar');
       if(!sidebar) return;
@@ -246,18 +256,34 @@
 
       menuConfig.forEach((item, index) => {
         let btnHtml = '';
+        let extraClass = '';
+        
         if(item.id === 'collection') btnHtml = `<a href="index.html" class="nav-btn ${isIndex ? 'active' : ''}">カード一覧</a>`;
         else if(item.id === 'formation') btnHtml = `<a href="formation.html" class="nav-btn ${isFormation ? 'active' : ''}">マイ編成メモ</a>`;
         else if(item.id === 'settings') btnHtml = `<a href="settings.html" class="nav-btn ${isSettings ? 'active' : ''}">チェッカー設定</a>`;
         else if(item.id === 'privacy') btnHtml = `<a href="privacy.html" class="nav-btn ${isPrivacy ? 'active' : ''}">プライバシーポリシー</a>`;
-        else if(item.id === 'auth') btnHtml = `<div class="auth-container"><span id="userInfo">未ログイン</span><label class="checkbox-label" style="justify-content: center; font-size: 11px; margin-top: 5px;"><input type="checkbox" id="privacyToggle" ${savedPrivacy?'checked':''}> 名前を隠す</label><button id="loginBtn">Googleでログイン</button><button id="logoutBtn" class="logout-btn" style="display:none;">ログアウト</button></div>`;
-        else if(item.id === 'mode') btnHtml = `<div class="mode-switch"><label class="checkbox-label" style="margin: 0;"><input type="checkbox" id="detailModeToggle" ${isDetailMode?'checked':''}> 詳細確認モード</label><label class="checkbox-label" style="margin: 10px 0 0 0; font-size: 12px; font-weight: normal; color: #555;"><input type="checkbox" id="closeOutsideToggle" ${localStorage.getItem('tourmas_closeOutside')!=='false'?'checked':''}> 外枠をタップして閉じる</label></div>`;
-        else if(item.id === 'series') btnHtml = `<div><h3 style="margin: 0 0 10px 0; font-size: 15px; color: #555;">表示する弾数（設定は一覧で）</h3></div>`;
-        else if(item.id === 'egao') btnHtml = `<div><button id="egaoBtn">笑顔満点ですっ</button><div id="egaoResult"></div></div>`;
+        else if(item.id === 'auth') {
+            extraClass = 'auth-container';
+            btnHtml = `<span id="userInfo">未ログイン</span><label class="checkbox-label" style="justify-content: center; font-size: 11px; margin-top: 5px;"><input type="checkbox" id="privacyToggle" ${savedPrivacy?'checked':''}> 名前を隠す</label><button id="loginBtn">Googleでログイン</button><button id="logoutBtn" class="logout-btn" style="display:none;">ログアウト</button>`;
+        }
+        else if(item.id === 'mode') {
+            extraClass = 'mode-switch';
+            btnHtml = `<label class="checkbox-label" style="margin: 0;"><input type="checkbox" id="detailModeToggle" ${isDetailMode?'checked':''}> 詳細確認モード</label><label class="checkbox-label" style="margin: 10px 0 0 0; font-size: 12px; font-weight: normal; color: #555;"><input type="checkbox" id="closeOutsideToggle" ${localStorage.getItem('tourmas_closeOutside')!=='false'?'checked':''}> 外枠をタップして閉じる</label>`;
+        }
+        else if(item.id === 'series') {
+            if (isIndex) {
+                btnHtml = `<h3 style="margin: 0 0 10px 0; font-size: 15px; color: #555;">表示する弾数</h3><div id="seriesFilterContainer" style="display:flex; flex-direction:column;"></div>`;
+            } else {
+                btnHtml = `<h3 style="margin: 0 0 10px 0; font-size: 15px; color: #555;">表示する弾数（設定は一覧で）</h3>`;
+            }
+        }
+        else if(item.id === 'egao') {
+            btnHtml = `<button id="egaoBtn">笑顔満点ですっ</button><div id="egaoResult"></div>`;
+        }
         
         if(btnHtml) {
             const wrapper = document.createElement('div');
-            wrapper.className = 'menu-section';
+            wrapper.className = `menu-section ${extraClass}`;
             wrapper.style.order = index + 1;
             wrapper.innerHTML = btnHtml;
             sidebar.appendChild(wrapper);
@@ -288,14 +314,17 @@
     };
 
     const updateUserInfo = () => {
-      const userInfo = document.getElementById('userInfo'); if(!userInfo) return;
+      const userInfo = document.getElementById('userInfo');
+      if(!userInfo) return;
       if (currentUser) { userInfo.innerText = savedPrivacy ? `プロデューサー さん` : `${currentUser.displayName} さん`; } 
       else { userInfo.innerText = "未ログイン（セーブ不可）"; }
     };
     
+    // ★ エラーを無くすため、ここでも1回実行しておきます
     window.renderSidebarMenu();
 
-    const buildFilters = () => {
+    // ★ 公式リスペクトのタブ型フィルター構築
+    window.buildFilters = () => {
       seriesSetForModal.clear(); let hasRare = false, hasUnk = false;
       cardData.forEach(c => { let s = c["シリーズ"] || c["入手手段"]; if (!s || s === "") { hasUnk = true; return; } if (s.includes("ツアーズレア")) hasRare = true; else seriesSetForModal.add(s); });
       
@@ -344,6 +373,7 @@
     window.toggleFilterPanel = () => { const p = $('filterPanel'); p.classList.toggle('open'); $('toggleFilterBtn').innerText = p.classList.contains('open') ? "▲ 詳細な絞り込みを閉じる" : "▼ 詳細な絞り込みを開く"; };
     window.resetFilters = () => { $$('.advanced-filter').forEach(cb => cb.checked = false); const f1 = document.querySelector('input[name="filterOwned"][value="all"]'); if(f1) f1.checked = true; const f2 = document.querySelector('input[name="filterWish"][value="0"]'); if(f2) f2.checked = true; window.applyFiltersAndSort(); };
 
+    // --- カード描画 ---
     let currentModalCardData = null; 
     window.renderCards = () => {
       const container = $('cardList'); if(!container) return; container.innerHTML = '';
@@ -451,6 +481,8 @@
         if (item.id === 'number') v = data["番号"]; else if (item.id === 'rarity') v = data["レアリティ"]; else if (item.id === 'type') v = data["種類"]; else if (item.id === 'genre') v = data["ジャンル"];
         else if (item.id === 'appeal') { const vV = data["アピール値（Vocal)"] || 0, dV = data["アピール値（Dance）"] || 0, viV = data["アピール値（Visual）"] || 0; if (vV||dV||viV) v = `<span style="color:#e91e63">Vo: ${vV}</span> / <span style="color:#2196f3">Da: ${dV}</span> / <span style="color:#ffc107">Vi: ${viV}</span>`; }
         else if (item.id === 'target') v = data["対象アイドル／サポート効果対象"]; else if (item.id === 'part') v = data["部位"]; else if (item.id === 'effect') v = data["サポート効果／リズムライブ効果"]; else if (item.id === 'note') v = (data["備考"] || "").replace(/,/g, '<br>'); else if (item.id === 'relax') v = data["制限緩和"]; else if (item.id === 'comment') v = data["キャラコメント"] || data["コメント"]; else if (item.id === 'series') v = data["シリーズ"] || data["入手手段"];
+        
+        // ★ カンマ区切りのバグ修正
         else if (item.id === 'bonus') { 
           if (data["セットボーナス"]) {
             const bonuses = data["セットボーナス"].split(',').map(b => b.trim()).filter(b => b !== '');
@@ -493,9 +525,17 @@
       currentUser = user || null;
       if (user) {
         const docSnap = await getDoc(doc(db, "users", user.uid));
-        if (docSnap.exists()) { ownedCardIds = new Set(docSnap.data().ownedCards || []); userCardDetails = docSnap.data().cardDetails || {}; userFormations = docSnap.data().formations || []; }
+        if (docSnap.exists()) { 
+            ownedCardIds = new Set(docSnap.data().ownedCards || []); 
+            userCardDetails = docSnap.data().cardDetails || {}; 
+            userFormations = docSnap.data().formations || []; 
+            localStorage.setItem('tourmas_cardDetails', JSON.stringify(userCardDetails)); // ★ ログイン時に同期
+        }
       }
-      buildSidebar(); buildFilters(); window.renderCards();
+      
+      window.renderSidebarMenu(); 
+      window.buildFilters(); 
+      window.renderCards();
       
       const lBtn = $('loginBtn'), loBtn = $('logoutBtn');
       if(lBtn) lBtn.style.display = user ? 'none' : 'inline-block';
