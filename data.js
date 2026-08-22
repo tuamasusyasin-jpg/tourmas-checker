@@ -35,12 +35,12 @@ export const filterConfig = {
     { name: "硲 道夫", birthday: "01-13" },
     { name: "櫻木 真乃", birthday: "04-25" },
     { name: "風野 灯織", birthday: "03-04" },
-    { name: "八宮 めぐる", birthday: "07-22" }
-    { name: "小宮 果穂", birthday: "07-29" }
-    { name: "花海 咲季", birthday: "04-02" }
-    { name: "月村 手毬", birthday: "06-03" }
-    { name: "藤田 ことね", birthday: "04-29" }
-    { name: "紫雲 清夏", birthday: "11-11" }
+    { name: "八宮 めぐる", birthday: "07-22" },
+    { name: "小宮 果穂", birthday: "07-29" },
+    { name: "花海 咲季", birthday: "04-02" },
+    { name: "月村 手毬", birthday: "06-03" },
+    { name: "藤田 ことね", birthday: "04-29" },
+    { name: "紫雲 清夏", birthday: "11-11" },
     { name: "袖屋 璃空", birthday: "09-13" }
   ]
 };
