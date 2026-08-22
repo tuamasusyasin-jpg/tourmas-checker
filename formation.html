@@ -8,9 +8,13 @@
     :root { --main-color: #ff66a3; --sub-color: #ffebf0; }
     body { font-family: sans-serif; padding: 0; margin: 0; background-color: #f0f0f0; color: #333; }
     
-    /* ★ ヘッダー固定CSS */
     .header-fixed-wrap { position: sticky; top: 0; z-index: 900; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-    #marqueeContainer { background: #333; color: #fff; padding: 8px 0; font-size: 14px; font-weight: bold; }
+    
+    /* ★ お知らせバーのアニメーション対応 */
+    #marqueeContainer { background: #333; color: #fff; padding: 8px 0; font-size: 14px; font-weight: bold; overflow: hidden; white-space: nowrap; position: relative; }
+    .marquee-content { display: inline-block; padding-left: 100%; animation: marquee 15s linear infinite; }
+    @keyframes marquee { 0% { transform: translate(0, 0); } 100% { transform: translate(-100%, 0); } }
+
     header { background: #fff; padding: 15px; display: flex; align-items: center; justify-content: space-between; }
     
     #menuOpenBtn { font-size: 24px; background: none; border: none; cursor: pointer; color: #555; }
@@ -79,6 +83,10 @@
     .shrink-text-lg { font-size: 12px !important; letter-spacing: -0.5px; }
     .shrink-text-md { font-size: 11px !important; letter-spacing: -1px; }
     .shrink-text-sm { font-size: 10px !important; letter-spacing: -1.5px; transform: scaleX(0.95); transform-origin: left center; width: 105% !important; }
+    
+    /* カード名のマーキーは残します（全体のお知らせ用とは別物です） */
+    .marquee-text { display: inline-block !important; overflow: visible !important; animation: scroll-left 5s linear infinite alternate; }
+    @keyframes scroll-left { 0%, 15% { transform: translateX(0); } 85%, 100% { transform: translateX(calc(130px - 100%)); } }
 
     .rarity-badge { position: absolute; top: 5px; left: 5px; background-color: #333; color: #fff; padding: 3px 8px; border-radius: 10px; font-size: 11px; font-weight: bold; z-index: 2;}
     
@@ -95,7 +103,7 @@
     #cardSelectModal.open { display: flex; }
     #cardSelectModal .modal-content { display: flex; flex-direction: column; max-height: 90vh; background: #fff; border-radius: 15px; width: 100%; max-width: 1050px; position: relative; padding: 40px 30px; box-sizing: border-box; }
     .modal-close { position: absolute; top: 15px; right: 20px; font-size: 28px; background: none; border: none; cursor: pointer; color: #999; z-index: 20; }
-    #cardSelectList { overflow-y: auto; padding: 10px; flex: 1; display:flex; flex-wrap:wrap; gap:10px; justify-content:center; align-content: flex-start;}
+    #cardSelectList { overflow-y: auto; padding: 10px; flex: 1; display:flex; flex-wrap:wrap; gap:10px; justify-content:center; }
     
     #toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 10px 20px; border-radius: 30px; z-index: 3000; font-weight: bold; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
     #toast.show { opacity: 1; }
@@ -103,9 +111,9 @@
 </head>
 <body>
 
-  <!-- ★ ヘッダーをラップして追従固定 -->
+  <!-- ★ お知らせバーを div クラスのmarqueeに変更 -->
   <div class="header-fixed-wrap">
-    <div id="marqueeContainer"><marquee id="marqueeText" scrollamount="5"></marquee></div>
+    <div id="marqueeContainer"><div class="marquee-content" id="marqueeText"></div></div>
     <header>
       <div class="header-left">
           <button id="menuOpenBtn">☰</button>
@@ -162,10 +170,9 @@
     let currentUser = null;
     let userFormations = [];
     let hasUnsavedChanges = false; 
-    let seriesSetForModal = new Set(); 
     let ownedCardIds = new Set();
     
-    const getStore = (k, d) => { try { const v = localStorage.getItem(k); const p = v ? JSON.parse(v) : null; return (p && p.length > 0) ? p : d; } catch(e){ return d; } };
+    const getStore = (k, d) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch(e){ return d; } };
     let menuConfig = getStore('tourmas_menuConfig', [ { id: 'collection', label: 'カード一覧' }, { id: 'formation', label: 'マイ編成メモ' }, { id: 'auth', label: 'アカウント・ログイン' }, { id: 'mode', label: '詳細モード・挙動設定' }, { id: 'series', label: '表示する弾数' }, { id: 'settings', label: 'チェッカー設定' }, { id: 'privacy', label: 'プライバシーポリシー' }, { id: 'egao', label: '笑顔満点占い' } ]);
 
     let savedTheme = localStorage.getItem('tourmas_theme') || 'default';
@@ -201,21 +208,14 @@
 
     window.renderSidebarMenu = () => {
       const sidebar = document.getElementById('sidebar');
-      if(!sidebar) return;
       sidebar.innerHTML = '<button id="menuCloseBtn">✖</button>';
       
-      const currentPath = window.location.pathname;
-      const isIndex = currentPath.endsWith('/') || currentPath.endsWith('index.html');
-      const isFormation = currentPath.endsWith('formation.html');
-      const isSettings = currentPath.endsWith('settings.html');
-      const isPrivacy = currentPath.endsWith('privacy.html');
-
       menuConfig.forEach((item, index) => {
         let btnHtml = '';
-        if(item.id === 'collection') btnHtml = `<a href="index.html" class="nav-btn ${isIndex ? 'active' : ''}">カード一覧</a>`;
-        else if(item.id === 'formation') btnHtml = `<a href="formation.html" class="nav-btn ${isFormation ? 'active' : ''}">マイ編成メモ</a>`;
-        else if(item.id === 'settings') btnHtml = `<a href="settings.html" class="nav-btn ${isSettings ? 'active' : ''}">チェッカー設定</a>`;
-        else if(item.id === 'privacy') btnHtml = `<a href="privacy.html" class="nav-btn ${isPrivacy ? 'active' : ''}">プライバシーポリシー</a>`;
+        if(item.id === 'collection') btnHtml = `<a href="index.html" class="nav-btn">カード一覧</a>`;
+        else if(item.id === 'formation') btnHtml = `<a href="formation.html" class="nav-btn active">マイ編成メモ</a>`;
+        else if(item.id === 'settings') btnHtml = `<a href="settings.html" class="nav-btn">チェッカー設定</a>`;
+        else if(item.id === 'privacy') btnHtml = `<a href="privacy.html" class="nav-btn">プライバシーポリシー</a>`;
         else if(item.id === 'auth') btnHtml = `<div class="auth-container"><span id="userInfo">未ログイン</span><label class="checkbox-label" style="justify-content: center; font-size: 11px; margin-top: 5px;"><input type="checkbox" id="privacyToggle" ${savedPrivacy?'checked':''}> 名前を隠す</label><button id="loginBtn">Googleでログイン</button><button id="logoutBtn" class="logout-btn" style="display:none;">ログアウト</button></div>`;
         else if(item.id === 'mode') btnHtml = `<div class="mode-switch"><label class="checkbox-label" style="margin: 0;"><input type="checkbox" id="detailModeToggle" ${isDetailMode?'checked':''}> 詳細確認モード</label><label class="checkbox-label" style="margin: 10px 0 0 0; font-size: 12px; font-weight: normal; color: #555;"><input type="checkbox" id="closeOutsideToggle" ${localStorage.getItem('tourmas_closeOutside')!=='false'?'checked':''}> 外枠をタップして閉じる</label></div>`;
         else if(item.id === 'series') btnHtml = `<div><h3 style="margin: 0 0 10px 0; font-size: 15px; color: #555;">表示する弾数（設定は一覧で）</h3></div>`;
@@ -259,8 +259,6 @@
       if (currentUser) { userInfo.innerText = savedPrivacy ? `プロデューサー さん` : `${currentUser.displayName} さん`; } 
       else { userInfo.innerText = "未ログイン（セーブ不可）"; }
     };
-    
-    window.renderSidebarMenu();
 
     window.triggerCloudSave = async () => {
       if (!currentUser) return alert("セーブするにはGoogleログインしてください。");
@@ -471,11 +469,9 @@
         if (filterPart && data["部位"] !== filterPart) return;
         if (filterRarities && !filterRarities.includes(data["レアリティ"])) return;
         
-        const s = data["シリーズ"] || data["入手手段"] || "未設定";
-        if (selectedFilter !== "all") {
-           if (selectedFilter === "ツアーズレア") { if (!s.includes("ツアーズレア")) return; } 
-           else { if (s !== selectedFilter) return; }
-        }
+        // ★ 特別扱いをやめ、シンプルに文字列比較へ
+        const s = (data["シリーズ"] || data["入手手段"] || "未設定").trim();
+        if (selectedFilter !== "all" && s !== selectedFilter) return;
         
         const cardDiv = document.createElement('div');
         cardDiv.className = 'card';
@@ -543,26 +539,30 @@
           if(st) st.innerText = title;
           if(msf) {
               msf.innerHTML = '<option value="all">すべての弾</option>';
-              seriesSetForModal.clear();
-              let hasToursRare = false;
+              
+              // ★ シリーズの増殖を解消する完璧なソートロジック
+              let actualSeriesSet = new Set();
               let hasUnknown = false;
+              
               cardData.forEach(c => {
                 let s = c["シリーズ"] || c["入手手段"];
-                if (!s || s === "") { hasUnknown = true; return; }
-                if (s.includes("ツアーズレア")) hasToursRare = true;
-                else seriesSetForModal.add(s);
+                if (!s || s.trim() === "") { hasUnknown = true; }
+                else { actualSeriesSet.add(s.trim()); }
               });
               
-              // ★ seriesList を絶対の基準としてソートする
-              let sortedSeries = siteConfig.seriesList ? [...siteConfig.seriesList] : [];
-              Array.from(seriesSetForModal).forEach(s => {
-                  if (!sortedSeries.includes(s)) {
-                      sortedSeries.push(s);
-                  }
-              });
+              let sortedSeries = [];
+              if (siteConfig.seriesList && Array.isArray(siteConfig.seriesList)) {
+                  siteConfig.seriesList.forEach(s => {
+                      if (actualSeriesSet.has(s)) {
+                          sortedSeries.push(s);
+                          actualSeriesSet.delete(s); // 追加したものはSetから消す
+                      }
+                  });
+              }
+              // 残っているもの（siteConfigに未定義の新しい弾など）を末尾に追加
+              sortedSeries = sortedSeries.concat(Array.from(actualSeriesSet));
               
               sortedSeries.forEach(s => msf.innerHTML += `<option value="${s}">${s}</option>`);
-              if (hasToursRare) msf.innerHTML += `<option value="ツアーズレア">ツアーズレア (全弾一括)</option>`;
               if (hasUnknown) msf.innerHTML += `<option value="未設定">未設定</option>`;
           }
       }
@@ -598,10 +598,13 @@
       });
     }
 
-    document.getElementById('menuOpenBtn').onclick = () => { document.getElementById('sidebar')?.classList.add('open'); document.getElementById('overlay')?.classList.add('open'); };
+    const menuOpenBtn = document.getElementById('menuOpenBtn');
+    if(menuOpenBtn) menuOpenBtn.onclick = () => { document.getElementById('sidebar')?.classList.add('open'); document.getElementById('overlay')?.classList.add('open'); };
     const closeMenu = () => { document.getElementById('sidebar')?.classList.remove('open'); document.getElementById('overlay')?.classList.remove('open'); };
-    document.getElementById('menuCloseBtn').onclick = closeMenu;
-    document.getElementById('overlay').onclick = closeMenu;
+    const menuCloseBtn = document.getElementById('menuCloseBtn');
+    if(menuCloseBtn) menuCloseBtn.onclick = closeMenu;
+    const overlay = document.getElementById('overlay');
+    if(overlay) overlay.onclick = closeMenu;
 
     onAuthStateChanged(auth, async (user) => {
       currentUser = user || null;

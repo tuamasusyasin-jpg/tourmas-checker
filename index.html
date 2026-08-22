@@ -8,9 +8,13 @@
     :root { --main-color: #ff66a3; --sub-color: #ffebf0; }
     body { font-family: sans-serif; padding: 0; margin: 0; background-color: #f0f0f0; color: #333; }
     
-    /* ★ ヘッダーを固定するためのラップCSS */
     .header-fixed-wrap { position: sticky; top: 0; z-index: 900; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-    #marqueeContainer { background: #333; color: #fff; padding: 8px 0; font-size: 14px; font-weight: bold; }
+    
+    /* ★ お知らせバーのCSSをワープしないアニメーションに修正 */
+    #marqueeContainer { background: #333; color: #fff; padding: 8px 0; font-size: 14px; font-weight: bold; overflow: hidden; white-space: nowrap; position: relative; }
+    .marquee-content { display: inline-block; padding-left: 100%; animation: marquee 15s linear infinite; }
+    @keyframes marquee { 0% { transform: translate(0, 0); } 100% { transform: translate(-100%, 0); } }
+
     header { background: #fff; padding: 15px; display: flex; align-items: center; justify-content: space-between; }
     
     #menuOpenBtn { font-size: 24px; background: none; border: none; cursor: pointer; color: #555; }
@@ -123,9 +127,9 @@
 </head>
 <body>
 
-  <!-- ★ ヘッダーをラップして追従固定！ -->
+  <!-- ★ お知らせバーを div クラスのmarqueeに変更 -->
   <div class="header-fixed-wrap">
-    <div id="marqueeContainer"><marquee id="marqueeText" scrollamount="5"></marquee></div>
+    <div id="marqueeContainer"><div class="marquee-content" id="marqueeText"></div></div>
     <header>
       <div class="header-left">
           <button id="menuOpenBtn">☰</button>
@@ -200,7 +204,7 @@
     const app = initializeApp({ apiKey: "AIzaSyBBMuCXDKeF7sjBnPN8GqGy3WZ32HMYfQ0", authDomain: "tourmas-checker-b05c1.firebaseapp.com", projectId: "tourmas-checker-b05c1", storageBucket: "tourmas-checker-b05c1.firebasestorage.app", messagingSenderId: "3796099655", appId: "1:3796099655:web:0a01862393e31117ec8762" });
     const auth = getAuth(app); const db = getFirestore(app); const provider = new GoogleAuthProvider();
 
-    let currentUser = null, ownedCardIds = new Set(), userCardDetails = {}, userFormations = [], hasUnsavedChanges = false, seriesSetForModal = new Set(); 
+    let currentUser = null, ownedCardIds = new Set(), userCardDetails = {}, userFormations = [], hasUnsavedChanges = false;
     
     const getStore = (k, d) => { try { const v = localStorage.getItem(k); const p = v ? JSON.parse(v) : null; return (p && p.length > 0) ? p : d; } catch(e){ return d; } };
     const setStore = (k, v) => localStorage.setItem(k, JSON.stringify(v));
@@ -297,26 +301,33 @@
 
     window.renderSidebarMenu();
 
+    // ★ シリーズの増殖を解消する完璧なソートロジック
     const buildFilters = () => {
-      seriesSetForModal.clear(); let hasRare = false, hasUnk = false;
-      cardData.forEach(c => { let s = c["シリーズ"] || c["入手手段"]; if (!s || s === "") { hasUnk = true; return; } if (s.includes("ツアーズレア")) hasRare = true; else seriesSetForModal.add(s); });
+      let actualSeriesSet = new Set();
+      let hasUnk = false;
+      
+      cardData.forEach(c => { 
+          let s = c["シリーズ"] || c["入手手段"]; 
+          if (!s || s.trim() === "") { hasUnk = true; } 
+          else { actualSeriesSet.add(s.trim()); } 
+      });
       
       let sortedSeries = [];
       if (siteConfig.seriesList && Array.isArray(siteConfig.seriesList)) {
           siteConfig.seriesList.forEach(s => {
-              if (seriesSetForModal.has(s)) {
+              if (actualSeriesSet.has(s)) {
                   sortedSeries.push(s);
-                  seriesSetForModal.delete(s);
+                  actualSeriesSet.delete(s); // 追加したものはSetから消す
               }
           });
       }
-      sortedSeries = sortedSeries.concat(Array.from(seriesSetForModal));
+      // 残っているもの（siteConfigに未定義の新しい弾など）を末尾に追加
+      sortedSeries = sortedSeries.concat(Array.from(actualSeriesSet));
       
       const sfc = $('seriesFilterContainer');
       if(sfc) {
           let sh = ''; 
           sortedSeries.forEach(s => sh += `<label class="checkbox-label"><input type="checkbox" class="series-filter" value="${s}" checked> ${s}</label>`);
-          if(hasRare) sh += `<label class="checkbox-label" style="font-weight:bold; color:var(--main-color);"><input type="checkbox" class="series-filter" value="ツアーズレア" checked> ツアーズレア (全弾一括)</label>`;
           if(hasUnk) sh += `<label class="checkbox-label" style="color:#888;"><input type="checkbox" class="series-filter" value="未設定" checked> 未設定（追加予定）</label>`;
           sfc.innerHTML = sh;
           $$('.series-filter').forEach(cb => cb.addEventListener('change', window.applyFiltersAndSort));
@@ -394,7 +405,7 @@
         
         cardDiv.dataset.number = data["番号"]; cardDiv.dataset.imgNum = data["カード表"] ? parseInt(data["カード表"].match(/\d+/)?.[0] || 99999) : 99999;
         cardDiv.dataset.vocal = parseInt(data["アピール値（Vocal)"]) || 0; cardDiv.dataset.dance = parseInt(data["アピール値（Dance）"]) || 0; cardDiv.dataset.visual = parseInt(data["アピール値（Visual）"]) || 0;
-        cardDiv.dataset.wish = userCardDetails[data["番号"]]?.wish || 0; cardDiv.dataset.rarity = data["レアリティ"] || ""; cardDiv.dataset.type = data["種類"] || ""; cardDiv.dataset.brand = data["シリーズブランド名"] || ""; cardDiv.dataset.idol = data["アイドル名"] || ""; cardDiv.dataset.series = data["シリーズ"] || data["入手手段"] || "未設定"; cardDiv.dataset.target = data["対象アイドル／サポート効果対象"] || ""; cardDiv.dataset.part = data["部位"] || ""; cardDiv.dataset.genre = data["ジャンル"] || ""; 
+        cardDiv.dataset.wish = userCardDetails[data["番号"]]?.wish || 0; cardDiv.dataset.rarity = data["レアリティ"] || ""; cardDiv.dataset.type = data["種類"] || ""; cardDiv.dataset.brand = data["シリーズブランド名"] || ""; cardDiv.dataset.idol = data["アイドル名"] || ""; cardDiv.dataset.series = (data["シリーズ"] || data["入手手段"] || "未設定").trim(); cardDiv.dataset.target = data["対象アイドル／サポート効果対象"] || ""; cardDiv.dataset.part = data["部位"] || ""; cardDiv.dataset.genre = data["ジャンル"] || ""; 
 
         const searchItems = [ data["レアリティ"], data["種類"], data["ジャンル"], data["写り込み"], data["タグ"], data["対象アイドル／サポート効果対象"], data["部位"], data["セットボーナス"], data["サポート効果／リズムライブ効果"] ].filter(Boolean);
         let appealTags = [];
@@ -441,7 +452,10 @@
       arr.forEach(c => {
         if(!c.dataset.number) return;
         const mt = (searchMode === 'partial' ? c.dataset.searchPartial : c.dataset.searchExact).includes(text);
-        const ms = cS.some(s => s === "ツアーズレア" ? c.dataset.series.includes("ツアーズレア") : c.dataset.series === s);
+        
+        // ★ 特別扱いをやめて、シンプルに一致するかどうかで判定
+        const ms = cS.length === 0 || cS.includes(c.dataset.series);
+        
         const io = c.classList.contains('owned'); const mo = filterOwned === 'all' || (filterOwned === 'owned' && io) || (filterOwned === 'unowned' && !io);
         const mw = filterWish === 0 || (filterWish === 5 ? c.dataset.wish == 5 : c.dataset.wish >= filterWish);
         if (mt && ms && (!cR || cR.includes(c.dataset.rarity)) && (!cT || cT.includes(c.dataset.type)) && (!cB || cB.includes(c.dataset.brand)) && (!cTa || cTa.some(t => c.dataset.target.includes(t))) && (!cP || cP.includes(c.dataset.part)) && (!cG || cG.includes(c.dataset.genre)) && (!cI || cI.includes(c.dataset.idol)) && mo && mw) {
