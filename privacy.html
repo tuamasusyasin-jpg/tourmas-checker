@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>プライバシーポリシー - ツアマス所持率チェッカー</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    :root { --main-color: #ff66a3; --sub-color: #ffebf0; }
+    body { font-family: sans-serif; padding: 0; margin: 0; background-color: #f0f0f0; color: #333;}
+    #marqueeContainer { background: #333; color: #fff; padding: 8px 0; font-size: 14px; font-weight: bold; }
+    header { background: #fff; padding: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: space-between; }
+    #menuOpenBtn { font-size: 24px; background: none; border: none; cursor: pointer; color: #555; }
+    .header-left { display: flex; align-items: center; gap: 15px; }
+    header h1 { margin: 0; font-size: 18px; color: #333; }
+
+    #sidebar { position: fixed; top: 0; left: -300px; width: 300px; height: 100%; background: #fff; box-shadow: 2px 0 10px rgba(0,0,0,0.2); transition: left 0.3s ease; z-index: 1000; padding: 20px; box-sizing: border-box; overflow-y: auto; display: flex; flex-direction: column; }
+    #sidebar.open { left: 0; }
+    #menuCloseBtn { font-size: 24px; background: none; border: none; cursor: pointer; color: #999; display: block; text-align: right; width: 100%; margin-bottom: 20px; flex-shrink: 0; }
+    #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); opacity: 0; pointer-events: none; transition: opacity 0.3s ease; z-index: 999; }
+    #overlay.open { opacity: 1; pointer-events: auto; }
+    
+    .menu-section { margin-bottom: 10px; width: 100%; border: none; box-sizing: border-box; }
+    .menu-section h3 { margin: 0 0 10px 0; font-size: 15px; color: #555; }
+    
+    .nav-btn { display: block; width: 100%; padding: 12px; margin-bottom: 10px; background: #fff; border: 2px solid #ddd; color: #555; font-weight: bold; border-radius: 8px; cursor: pointer; transition: 0.2s; text-align: center; text-decoration: none; box-sizing: border-box; }
+    .nav-btn.active { border-color: var(--main-color); color: var(--main-color); background: var(--sub-color); }
+
+    .auth-container { text-align: center; background: #e3f2fd; padding: 15px; border-radius: 10px; box-sizing: border-box; }
+    .auth-container button { padding: 8px; width: 100%; font-weight: bold; cursor: pointer; border-radius: 5px; border: none; background: #1a73e8; color: white; transition: 0.2s; margin-top: 10px; }
+    .auth-container button.logout-btn { background: #dc3545; }
+    #userInfo { font-size: 12px; font-weight: bold; color: #333; display: block; margin-bottom: 5px; }
+    .checkbox-label { display: flex; align-items: center; margin-bottom: 8px; font-size: 14px; cursor: pointer; }
+    .mode-switch { background: var(--sub-color); padding: 10px; border-radius: 8px; border: 2px solid var(--main-color); font-weight: bold; margin-bottom: 15px; }
+
+    #egaoBtn { background: linear-gradient(45deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%); border: 2px solid #ff66a3; border-radius: 8px; padding: 10px; width: 100%; font-weight: bold; color: #d81b60; cursor: pointer; margin-top: 10px; transition: 0.2s; }
+    #egaoBtn:hover { filter: brightness(0.95); transform: scale(0.98); }
+    #egaoResult { display: none; margin-top: 10px; padding: 12px; border-radius: 8px; background: #fff; border: 2px dashed var(--main-color); font-size: 13px; color: #333; line-height: 1.6; text-align: left; transition: 0.3s; }
+    
+    .view-section { padding: 20px; max-width: 1200px; margin: 0 auto; }
+    .page-title { color: var(--main-color); border-bottom: 3px solid var(--sub-color); padding-bottom: 10px; margin-top: 0; display: flex; justify-content: space-between; align-items: center;}
+
+    .policy-content { background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); line-height: 1.8; color: #444; }
+    .policy-content h3 { color: var(--main-color); margin-top: 0px; border-left: 5px solid var(--main-color); padding-left: 10px; }
+  </style>
+</head>
+<body>
+
+  <div id="marqueeContainer"><marquee id="marqueeText" scrollamount="5"></marquee></div>
+
+  <header>
+    <div class="header-left">
+        <button id="menuOpenBtn">☰</button>
+        <h1>ツアマス所持率チェッカー</h1>
+    </div>
+  </header>
+
+  <div id="overlay"></div>
+  
+  <div id="sidebar">
+    <button id="menuCloseBtn">✖</button>
+  </div>
+
+  <main>
+    <div class="view-section active">
+      <div class="page-title">
+          <h2>プライバシーポリシー</h2>
+      </div>
+      <div class="policy-content">
+        <p>ツアマス所持率チェッカー（以下「当サイト」）は、ユーザーの皆様が安心してご利用いただけるよう、以下の通りプライバシーポリシーを定めます。</p>
+        <h3 style="margin-top:20px;">1. 収集する情報と目的</h3>
+        <p>当サイトは、セーブ機能を提供するために「Googleログイン（Firebase Authentication）」を使用しています。取得した認証情報（ユーザーIDなど）は、個人の特定や悪用、第三者への提供には一切使用しません。</p>
+        <h3 style="margin-top:20px;">2. データの保存先</h3>
+        <p>ログインしたユーザーのカード所持データ、メモ、編成データは、Googleが提供する安全なデータベース（Cloud Firestore）にのみ保存されます。他者があなたのデータを閲覧・改ざんすることはできません。</p>
+        <h3 style="margin-top:20px;">3. 動作データの収集</h3>
+        <p>サービスの品質向上のため、Vercelのアクセス解析機能を使用し、個人を特定しない形でページの表示速度などの動作情報を収集しています。</p>
+        <h3 style="margin-top:20px;">4. 免責事項</h3>
+        <p>当サイトは、ファンが個人的に作成した「非公式チェッカー」であり、公式の運営企業様とは一切関係ありません。当サイトの利用により生じたトラブルや損害について、開発者は一切の責任を負いかねます。</p>
+      </div>
+    </div>
+  </main>
+
+  <script type="module">
+    import { siteConfig, filterConfig } from './data.js';
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+    const firebaseConfig = { apiKey: "AIzaSyBBMuCXDKeF7sjBnPN8GqGy3WZ32HMYfQ0", authDomain: "tourmas-checker-b05c1.firebaseapp.com", projectId: "tourmas-checker-b05c1", storageBucket: "tourmas-checker-b05c1.firebasestorage.app", messagingSenderId: "3796099655", appId: "1:3796099655:web:0a01862393e31117ec8762" };
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
+
+    let currentUser = null;
+
+    const getStore = (k, d) => { try { const v = localStorage.getItem(k); const p = v ? JSON.parse(v) : null; return (p && p.length > 0) ? p : d; } catch(e){ return d; } };
+    let menuConfig = getStore('tourmas_menuConfig', [ { id: 'collection', label: 'カード一覧' }, { id: 'formation', label: 'マイ編成メモ' }, { id: 'auth', label: 'アカウント・ログイン' }, { id: 'mode', label: '詳細モード・挙動設定' }, { id: 'series', label: '表示する弾数' }, { id: 'settings', label: 'チェッカー設定' }, { id: 'privacy', label: 'プライバシーポリシー' }, { id: 'egao', label: '笑顔満点占い' } ]);
+    
+    let savedTheme = localStorage.getItem('tourmas_theme') || 'default';
+    let savedNotice = localStorage.getItem('tourmas_notice') !== 'false';
+    let savedPrivacy = localStorage.getItem('tourmas_privacy') === 'true';
+    let isDetailMode = localStorage.getItem('tourmas_detailMode') !== null ? localStorage.getItem('tourmas_detailMode') === 'true' : (localStorage.getItem('tourmas_defaultMode') || 'on') === 'on';
+
+    const themes = { default: { main: '#ff66a3', sub: '#ffebf0' }, as: { main: '#f34f6d', sub: '#fce4e8' }, cg: { main: '#2681c8', sub: '#e4f0f9' }, ml: { main: '#ffc30b', sub: '#fff8e1' }, sidem: { main: '#0fbe94', sub: '#e0f7f1' }, sc: { main: '#8dbbff', sub: '#eef4ff' }, gakumas: { main: '#f39800', sub: '#feeee0' } };
+    document.documentElement.style.setProperty('--main-color', themes[savedTheme].main);
+    document.documentElement.style.setProperty('--sub-color', themes[savedTheme].sub);
+
+    let bdayMessages = [];
+    const today = new Date(); today.setHours(0,0,0,0);
+    filterConfig.idols.forEach(idol => {
+      if(idol.birthday) {
+        const [month, day] = idol.birthday.split('-');
+        let bdayDate = new Date(today.getFullYear(), parseInt(month) - 1, parseInt(day));
+        let diffDays = (today - bdayDate) / (1000 * 60 * 60 * 24);
+        if (diffDays >= 0 && diffDays <= 2) bdayMessages.push(`${idol.name} のバースデー期間！`);
+      }
+    });
+    let finalNotice = siteConfig.noticeText;
+    if (bdayMessages.length > 0) finalNotice += " ｜ " + bdayMessages.join(" ｜ ");
+    const mt = document.getElementById('marqueeText'); if(mt) mt.innerText = finalNotice;
+    const mc = document.getElementById('marqueeContainer'); if(mc) mc.style.display = savedNotice ? 'block' : 'none';
+
+    window.renderSidebarMenu = () => {
+      const sidebar = document.getElementById('sidebar');
+      if(!sidebar) return;
+      sidebar.innerHTML = '<button id="menuCloseBtn">✖</button>';
+      
+      const currentPath = window.location.pathname;
+      const isIndex = currentPath.endsWith('/') || currentPath.endsWith('index.html');
+      const isFormation = currentPath.endsWith('formation.html');
+      const isSettings = currentPath.endsWith('settings.html');
+      const isPrivacy = currentPath.endsWith('privacy.html');
+
+      menuConfig.forEach((item, index) => {
+        let btnHtml = '';
+        if(item.id === 'collection') btnHtml = `<a href="index.html" class="nav-btn ${isIndex ? 'active' : ''}">カード一覧</a>`;
+        else if(item.id === 'formation') btnHtml = `<a href="formation.html" class="nav-btn ${isFormation ? 'active' : ''}">マイ編成メモ</a>`;
+        else if(item.id === 'settings') btnHtml = `<a href="settings.html" class="nav-btn ${isSettings ? 'active' : ''}">チェッカー設定</a>`;
+        else if(item.id === 'privacy') btnHtml = `<a href="privacy.html" class="nav-btn ${isPrivacy ? 'active' : ''}">プライバシーポリシー</a>`;
+        else if(item.id === 'auth') btnHtml = `<div class="auth-container"><span id="userInfo">未ログイン</span><label class="checkbox-label" style="justify-content: center; font-size: 11px; margin-top: 5px;"><input type="checkbox" id="privacyToggle" ${savedPrivacy?'checked':''}> 名前を隠す</label><button id="loginBtn">Googleでログイン</button><button id="logoutBtn" class="logout-btn" style="display:none;">ログアウト</button></div>`;
+        else if(item.id === 'mode') btnHtml = `<div class="mode-switch"><label class="checkbox-label" style="margin: 0;"><input type="checkbox" id="detailModeToggle" ${isDetailMode?'checked':''}> 詳細確認モード</label><label class="checkbox-label" style="margin: 10px 0 0 0; font-size: 12px; font-weight: normal; color: #555;"><input type="checkbox" id="closeOutsideToggle" ${localStorage.getItem('tourmas_closeOutside')!=='false'?'checked':''}> 外枠をタップして閉じる</label></div>`;
+        else if(item.id === 'series') btnHtml = `<div><h3 style="margin: 0 0 10px 0; font-size: 15px; color: #555;">表示する弾数（設定は一覧で）</h3></div>`;
+        else if(item.id === 'egao') btnHtml = `<div><button id="egaoBtn">笑顔満点ですっ</button><div id="egaoResult"></div></div>`;
+        
+        if(btnHtml) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'menu-section';
+            wrapper.style.order = index + 1;
+            wrapper.innerHTML = btnHtml;
+            sidebar.appendChild(wrapper);
+        }
+      });
+
+      document.getElementById('menuCloseBtn').onclick = () => { sidebar.classList.remove('open'); document.getElementById('overlay').classList.remove('open'); };
+      const pt = document.getElementById('privacyToggle');
+      if(pt) pt.addEventListener('change', (e) => { localStorage.setItem('tourmas_privacy', e.target.checked); savedPrivacy = e.target.checked; updateUserInfo(); });
+      const dmt = document.getElementById('detailModeToggle');
+      if(dmt) dmt.addEventListener('change', (e) => { localStorage.setItem('tourmas_detailMode', e.target.checked); isDetailMode = e.target.checked; });
+      const cot = document.getElementById('closeOutsideToggle');
+      if(cot) cot.addEventListener('change', (e) => localStorage.setItem('tourmas_closeOutside', e.target.checked));
+      
+      const lBtn = document.getElementById('loginBtn');
+      if(lBtn) lBtn.addEventListener('click', () => signInWithPopup(auth, provider));
+      const loBtn = document.getElementById('logoutBtn');
+      if(loBtn) loBtn.addEventListener('click', () => signOut(auth));
+
+      const egaoBtn = document.getElementById('egaoBtn');
+      if(egaoBtn) egaoBtn.addEventListener('click', () => {
+        const effects = ["コンボ時のスコアUP", "GOOD以上のスコアUP", "GREAT以上のスコアUP", "PERFECTのスコアUP", "成功判定のコンボ数UP", "すべての判定がPERFECTになる", "GOOD以上がPERFECTになる", "GREATがPERFECTになる", "MISSでもコンボ継続", "コンボ数に応じてスコア獲得", "FEVERゲージ上昇率UP", "判定が長くなる", "MISS時スコアDOWN", "判定が短くなる", "FEVER消費", "SPアピール消費"];
+        const resDiv = document.getElementById('egaoResult');
+        resDiv.innerHTML = `<strong>効果(大)：</strong>${effects[Math.floor(Math.random() * effects.length)]}<br><strong>効果(小)：</strong>${effects[Math.floor(Math.random() * effects.length)]}<br>`; 
+        resDiv.style.display = 'block';
+      });
+    };
+
+    const updateUserInfo = () => {
+      const userInfo = document.getElementById('userInfo');
+      if(!userInfo) return;
+      if (currentUser) { userInfo.innerText = savedPrivacy ? `プロデューサー さん` : `${currentUser.displayName} さん`; } 
+      else { userInfo.innerText = "未ログイン（セーブ不可）"; }
+    };
+
+    window.renderSidebarMenu();
+
+    document.getElementById('menuOpenBtn').onclick = () => { document.getElementById('sidebar').classList.add('open'); document.getElementById('overlay').classList.add('open'); };
+    const closeMenu = () => { document.getElementById('sidebar').classList.remove('open'); document.getElementById('overlay').classList.remove('open'); };
+    document.getElementById('overlay').onclick = closeMenu;
+
+    onAuthStateChanged(auth, async (user) => {
+      currentUser = user || null;
+      renderSidebarMenu(); 
+      
+      const lBtn = document.getElementById('loginBtn');
+      const loBtn = document.getElementById('logoutBtn');
+      if(lBtn) lBtn.style.display = user ? 'none' : 'inline-block';
+      if(loBtn) loBtn.style.display = user ? 'inline-block' : 'none';
+    });
+  </script>
+</body>
+</html>
