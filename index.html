@@ -301,7 +301,7 @@
 
     window.renderSidebarMenu();
 
-    // ★ シリーズの増殖を解消する完璧なソートロジック
+    // ★ どこに書いてあっても確実に seriesList を探し出す処理
     const buildFilters = () => {
       let actualSeriesSet = new Set();
       let hasUnk = false;
@@ -313,15 +313,19 @@
       });
       
       let sortedSeries = [];
-      if (siteConfig.seriesList && Array.isArray(siteConfig.seriesList)) {
-          siteConfig.seriesList.forEach(s => {
-              if (actualSeriesSet.has(s)) {
-                  sortedSeries.push(s);
-                  actualSeriesSet.delete(s); // 追加したものはSetから消す
+      // ★ siteConfig でも filterConfig でもどちらでも対応できるように修正
+      let definedSeries = (siteConfig && siteConfig.seriesList) || (filterConfig && filterConfig.seriesList) || [];
+      if (definedSeries && Array.isArray(definedSeries)) {
+          definedSeries.forEach(s => {
+              let st = s.trim();
+              if (actualSeriesSet.has(st)) {
+                  sortedSeries.push(st);
+                  actualSeriesSet.delete(st); 
               }
           });
       }
-      // 残っているもの（siteConfigに未定義の新しい弾など）を末尾に追加
+      
+      // 残っているもの（未定義の新しい弾など）を末尾に追加
       sortedSeries = sortedSeries.concat(Array.from(actualSeriesSet));
       
       const sfc = $('seriesFilterContainer');
@@ -452,8 +456,6 @@
       arr.forEach(c => {
         if(!c.dataset.number) return;
         const mt = (searchMode === 'partial' ? c.dataset.searchPartial : c.dataset.searchExact).includes(text);
-        
-        // ★ 特別扱いをやめて、シンプルに一致するかどうかで判定
         const ms = cS.length === 0 || cS.includes(c.dataset.series);
         
         const io = c.classList.contains('owned'); const mo = filterOwned === 'all' || (filterOwned === 'owned' && io) || (filterOwned === 'unowned' && !io);

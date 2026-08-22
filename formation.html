@@ -84,7 +84,6 @@
     .shrink-text-md { font-size: 11px !important; letter-spacing: -1px; }
     .shrink-text-sm { font-size: 10px !important; letter-spacing: -1.5px; transform: scaleX(0.95); transform-origin: left center; width: 105% !important; }
     
-    /* カード名のマーキーは残します（全体のお知らせ用とは別物です） */
     .marquee-text { display: inline-block !important; overflow: visible !important; animation: scroll-left 5s linear infinite alternate; }
     @keyframes scroll-left { 0%, 15% { transform: translateX(0); } 85%, 100% { transform: translateX(calc(130px - 100%)); } }
 
@@ -469,7 +468,6 @@
         if (filterPart && data["部位"] !== filterPart) return;
         if (filterRarities && !filterRarities.includes(data["レアリティ"])) return;
         
-        // ★ 特別扱いをやめ、シンプルに文字列比較へ
         const s = (data["シリーズ"] || data["入手手段"] || "未設定").trim();
         if (selectedFilter !== "all" && s !== selectedFilter) return;
         
@@ -540,7 +538,7 @@
           if(msf) {
               msf.innerHTML = '<option value="all">すべての弾</option>';
               
-              // ★ シリーズの増殖を解消する完璧なソートロジック
+              // ★ シリーズの増殖を解消し、かつ data.js の seriesList 順を 100% 守る処理
               let actualSeriesSet = new Set();
               let hasUnknown = false;
               
@@ -551,15 +549,18 @@
               });
               
               let sortedSeries = [];
-              if (siteConfig.seriesList && Array.isArray(siteConfig.seriesList)) {
-                  siteConfig.seriesList.forEach(s => {
-                      if (actualSeriesSet.has(s)) {
-                          sortedSeries.push(s);
-                          actualSeriesSet.delete(s); // 追加したものはSetから消す
+              // ★ siteConfig でも filterConfig でも対応できるように修正！
+              let definedSeries = (siteConfig && siteConfig.seriesList) || (filterConfig && filterConfig.seriesList) || [];
+              if (definedSeries && Array.isArray(definedSeries)) {
+                  definedSeries.forEach(s => {
+                      let st = s.trim();
+                      if (actualSeriesSet.has(st)) {
+                          sortedSeries.push(st);
+                          actualSeriesSet.delete(st); // 追加したものはSetから消す
                       }
                   });
               }
-              // 残っているもの（siteConfigに未定義の新しい弾など）を末尾に追加
+              // 残っているもの（未定義の新しい弾など）を末尾に追加
               sortedSeries = sortedSeries.concat(Array.from(actualSeriesSet));
               
               sortedSeries.forEach(s => msf.innerHTML += `<option value="${s}">${s}</option>`);
