@@ -1,8 +1,8 @@
 // 【data.js】
 
 export const siteConfig = {
-  noticeText: "【お知らせ】aaaa",
-  seriesList: ["S1弾", "筐体第1弾", "筐体第2弾"] // S1弾を追加
+  noticeText: "【お知らせ】完成したよ！！！",
+  seriesList: ["第1弾", "第2弾", "第3弾", "第4弾", "第5弾", "S1弾", "プロモーション", "キャンペーン", "エクストラ", "1stロケテスト", "2stロケテスト"] // S1弾を追加
 };
 
 export const filterConfig = {
@@ -12,27 +12,36 @@ export const filterConfig = {
   brands: ["アイドルマスター", "シンデレラガールズ", "ミリオンライブ！", "SideM", "シャイニーカラーズ", "学園アイドルマスター"],
   targets: ["全員", "特定アイドル", "男性", "女性", "リズムライブ", "クリエイトライブ"],
   parts: ["頭", "顔", "手", "胴", "腰", "脚"],
-  // ▼ 「属性」から「ジャンル」に変更！
   genres: ["スウィート", "スマート", "エナジー", "ワンダー"],
   
   idols: [
     { name: "天海 春香", birthday: "04-03" },
     { name: "如月 千早", birthday: "02-25" },
-    { name: "萩原 雪歩", birthday: "12-24" }, // ▼追加
-    { name: "菊地 真", birthday: "08-29" },   // ▼追加
     { name: "星井 美希", birthday: "11-23" },
+    { name: "水瀬 伊織", birthday: "05-05" },
+    { name: "萩原 雪歩", birthday: "12-24" },
+    { name: "菊地 真", birthday: "08-29" },
     { name: "島村 卯月", birthday: "04-24" },
     { name: "渋谷 凛", birthday: "08-10" },
     { name: "本田 未央", birthday: "12-01" },
+    { name: "神崎 蘭子", birthday: "04-08" },
     { name: "春日 未来", birthday: "06-28" },
     { name: "最上 静香", birthday: "09-14" },
     { name: "伊吹 翼", birthday: "07-30" },
+    { name: "真壁 瑞希", birthday: "01-27" },
     { name: "天道 輝", birthday: "02-23" },
     { name: "桜庭 薫", birthday: "09-24" },
     { name: "柏木 翼", birthday: "06-02" },
+    { name: "硲 道夫", birthday: "01-13" },
     { name: "櫻木 真乃", birthday: "04-25" },
     { name: "風野 灯織", birthday: "03-04" },
     { name: "八宮 めぐる", birthday: "07-22" }
+    { name: "小宮 果穂", birthday: "07-29" }
+    { name: "花海 咲季", birthday: "04-02" }
+    { name: "月村 手毬", birthday: "06-03" }
+    { name: "藤田 ことね", birthday: "04-29" }
+    { name: "紫雲 清夏", birthday: "11-11" }
+    { name: "袖屋 璃空", birthday: "09-13" }
   ]
 };
 // ▼ 3. スプレッドシートから変換したカードデータ
