@@ -7,8 +7,12 @@
   <style>
     :root { --main-color: #ff66a3; --sub-color: #ffebf0; }
     body { font-family: sans-serif; padding: 0; margin: 0; background-color: #f0f0f0; color: #333; }
+    
+    /* ★ ヘッダーを固定するためのラップCSS */
+    .header-fixed-wrap { position: sticky; top: 0; z-index: 900; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
     #marqueeContainer { background: #333; color: #fff; padding: 8px 0; font-size: 14px; font-weight: bold; }
-    header { background: #fff; padding: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: space-between; }
+    header { background: #fff; padding: 15px; display: flex; align-items: center; justify-content: space-between; }
+    
     #menuOpenBtn { font-size: 24px; background: none; border: none; cursor: pointer; color: #555; }
     .header-left { display: flex; align-items: center; gap: 15px; }
     header h1 { margin: 0; font-size: 18px; color: #333; }
@@ -19,13 +23,14 @@
     #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); opacity: 0; pointer-events: none; transition: opacity 0.3s ease; z-index: 999; }
     #overlay.open { opacity: 1; pointer-events: auto; }
     
-    .menu-section { margin-bottom: 10px; width: 100%; border: none; box-sizing: border-box; }
+    .menu-section { margin-bottom: 15px; width: 100%; }
     .menu-section h3 { margin: 0 0 10px 0; font-size: 15px; color: #555; }
     
     .nav-btn { display: block; width: 100%; padding: 12px; margin-bottom: 10px; background: #fff; border: 2px solid #ddd; color: #555; font-weight: bold; border-radius: 8px; cursor: pointer; transition: 0.2s; text-align: center; text-decoration: none; box-sizing: border-box; }
+    .nav-btn:hover { background: #f9f9f9; }
     .nav-btn.active { border-color: var(--main-color); color: var(--main-color); background: var(--sub-color); }
 
-    .auth-container { text-align: center; background: #e3f2fd; padding: 15px; border-radius: 10px; box-sizing: border-box; }
+    .auth-container { text-align: center; background: #e3f2fd; padding: 15px; border-radius: 10px; }
     .auth-container button { padding: 8px; width: 100%; font-weight: bold; cursor: pointer; border-radius: 5px; border: none; background: #1a73e8; color: white; transition: 0.2s; margin-top: 10px; }
     .auth-container button.logout-btn { background: #dc3545; }
     #userInfo { font-size: 12px; font-weight: bold; color: #333; display: block; margin-bottom: 5px; }
@@ -50,18 +55,29 @@
     .settings-list-item button { background:#ccc; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-weight:bold; }
     .settings-list-item button:hover { background:#bbb; }
     .settings-list-item button:disabled { opacity: 0.3; cursor:not-allowed; }
+
+    /* ★ セーブボタンのCSSを追加！ */
+    .cloud-save-btn { background: #1a73e8; color:white; border:none; padding:8px 12px; font-size:14px; font-weight:bold; border-radius:20px; cursor:pointer; box-shadow: 0 2px 5px rgba(26,115,232,0.3); display:none; }
+    .cloud-save-btn.unsaved { animation: pulse 1.5s infinite; background: #e91e63; box-shadow: 0 2px 5px rgba(233,30,99,0.3); }
+    @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+    #toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 10px 20px; border-radius: 30px; z-index: 3000; font-weight: bold; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+    #toast.show { opacity: 1; }
   </style>
 </head>
 <body>
 
-  <div id="marqueeContainer"><marquee id="marqueeText" scrollamount="5"></marquee></div>
-
-  <header>
-    <div class="header-left">
-        <button id="menuOpenBtn">☰</button>
-        <h1>ツアマス所持率チェッカー</h1>
-    </div>
-  </header>
+  <!-- ★ ヘッダーをラップして追従固定！ -->
+  <div class="header-fixed-wrap">
+    <div id="marqueeContainer"><marquee id="marqueeText" scrollamount="5"></marquee></div>
+    <header>
+      <div class="header-left">
+          <button id="menuOpenBtn">☰</button>
+          <h1>ツアマス所持率チェッカー</h1>
+      </div>
+      <!-- ★ 設定画面にもクラウドセーブボタンを設置！ -->
+      <button class="cloud-save-btn" id="cloudSaveBtn" style="display:none;" onclick="triggerCloudSave()">クラウドにセーブ</button>
+    </header>
+  </div>
 
   <div id="overlay"></div>
   <div id="sidebar"></div>
@@ -71,8 +87,9 @@
       <div class="page-title">
           <h2>チェッカー設定</h2>
       </div>
-      <p style="color: #d32f2f; font-size: 12px; margin-bottom: 20px; font-weight:bold;">
-        ※ここの設定項目は、変更した瞬間にご使用のブラウザ（端末）に自動保存されます。クラウドへのセーブボタンを押す必要はありません。
+      <p style="color: #666; font-size: 12px; margin-bottom: 20px;">
+        ※ここの設定項目は、変更した瞬間にご使用のブラウザ（端末）に自動保存されます。<br>
+        <span style="color:#1a73e8; font-weight:bold;">他のスマホやPCに設定を引き継ぎたい場合は、右上の「クラウドにセーブ」を押してください。</span>
       </p>
 
       <div class="policy-content" style="padding:20px; margin-bottom:20px;">
@@ -138,56 +155,66 @@
         </p>
         <div id="menuOrderSettingsContainer"></div>
       </div>
+
+      <div class="policy-content" style="padding:20px;">
+        <div class="setting-header-wrap">
+            <h3 style="margin:0;">4. 絞り込み項目の並び替え・開閉設定</h3>
+            <button class="reset-btn" onclick="resetFilterSettings()">デフォルトに戻す</button>
+        </div>
+        <p style="font-size:12px; color:#666; margin-bottom:15px;">
+          「詳細な絞り込みを開く」を押した時の項目の順番と、最初から開いておくかどうかを設定できます。
+        </p>
+        <div id="filterOrderSettingsContainer"></div>
+      </div>
     </div>
   </main>
+
+  <div id="toast">保存しました</div>
 
   <script type="module">
     import { siteConfig, filterConfig, cardData } from './data.js';
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
     const firebaseConfig = { apiKey: "AIzaSyBBMuCXDKeF7sjBnPN8GqGy3WZ32HMYfQ0", authDomain: "tourmas-checker-b05c1.firebaseapp.com", projectId: "tourmas-checker-b05c1", storageBucket: "tourmas-checker-b05c1.firebasestorage.app", messagingSenderId: "3796099655", appId: "1:3796099655:web:0a01862393e31117ec8762" };
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
+    const db = getFirestore(app);
     const provider = new GoogleAuthProvider();
 
     let currentUser = null;
 
-    const getStore = (k, d) => { try { const v = localStorage.getItem(k); const p = v ? JSON.parse(v) : null; return (p && p.length > 0) ? p : d; } catch(e){ return d; } };
-    
     const defaultModalItems = [{id:'number',label:'番号',show:true},{id:'rarity',label:'レアリティ',show:true},{id:'type',label:'種類',show:true},{id:'appeal',label:'アピール値',show:true},{id:'target',label:'対象／効果対象',show:true},{id:'part',label:'部位',show:true},{id:'genre',label:'ジャンル',show:true},{id:'effect',label:'効果／リズム効果',show:true},{id:'note',label:'備考',show:true},{id:'relax',label:'制限緩和',show:true},{id:'comment',label:'コメント',show:true},{id:'series',label:'入手手段',show:true},{id:'bonus',label:'セットボーナス',show:true},{id:'altcard',label:'別カード',show:true},{id:'color',label:'色違い',show:true},{id:'utsurikomi',label:'写り込み',show:true}];
     const defaultMenuItems = [{id:'collection',label:'カード一覧'},{id:'formation',label:'マイ編成メモ'},{id:'auth',label:'アカウント・ログイン'},{id:'mode',label:'詳細モード・挙動設定'},{id:'series',label:'表示する弾数'},{id:'settings',label:'チェッカー設定'},{id:'privacy',label:'プライバシーポリシー'},{id:'egao',label:'笑顔満点占い'}];
-    
-    let modalConfig = getStore('tourmas_modalConfig', defaultModalItems);
-    let menuConfig = getStore('tourmas_menuConfig', defaultMenuItems);
+    const defaultFilterGroups = [{id:'owned',label:'所持状況',open:true},{id:'wish',label:'欲しいリスト',open:true},{id:'rarity',label:'レアリティ',open:true},{id:'type',label:'カード種類',open:true},{id:'brand',label:'ブランド',open:true},{id:'target',label:'対象・効果',open:true},{id:'part',label:'部位',open:true},{id:'genre',label:'ジャンル',open:true},{id:'idol',label:'アイドル',open:false}];
+
+    let menuConfig = JSON.parse(localStorage.getItem('tourmas_menuConfig')) || defaultMenuItems;
+    let modalConfig = JSON.parse(localStorage.getItem('tourmas_modalConfig')) || defaultModalItems;
+    let filterConfigGroups = JSON.parse(localStorage.getItem('tourmas_filterConfig')) || defaultFilterGroups;
     
     let savedTheme = localStorage.getItem('tourmas_theme') || 'default';
     let savedNotice = localStorage.getItem('tourmas_notice') !== 'false';
     let savedPrivacy = localStorage.getItem('tourmas_privacy') === 'true';
-    let isDetailMode = localStorage.getItem('tourmas_detailMode') !== null ? localStorage.getItem('tourmas_detailMode') === 'true' : (localStorage.getItem('tourmas_defaultMode') || 'on') === 'on';
+    let savedNameStyle = localStorage.getItem('tourmas_nameStyle') || 'ellipsis';
+    let savedDefaultMode = localStorage.getItem('tourmas_defaultMode') || 'on';
+    let isDetailMode = localStorage.getItem('tourmas_detailMode') !== null ? localStorage.getItem('tourmas_detailMode') === 'true' : (savedDefaultMode === 'on');
 
     const themes = { default: { main: '#ff66a3', sub: '#ffebf0' }, as: { main: '#f34f6d', sub: '#fce4e8' }, cg: { main: '#2681c8', sub: '#e4f0f9' }, ml: { main: '#ffc30b', sub: '#fff8e1' }, sidem: { main: '#0fbe94', sub: '#e0f7f1' }, sc: { main: '#8dbbff', sub: '#eef4ff' }, gakumas: { main: '#f39800', sub: '#feeee0' } };
     document.documentElement.style.setProperty('--main-color', themes[savedTheme].main);
     document.documentElement.style.setProperty('--sub-color', themes[savedTheme].sub);
     document.getElementById('marqueeContainer').style.display = savedNotice ? 'block' : 'none';
 
-    window.renderSidebarMenu = () => {
+    const renderSidebarMenu = () => {
       const sidebar = document.getElementById('sidebar');
-      if(!sidebar) return;
       sidebar.innerHTML = '<button id="menuCloseBtn">✖</button>';
       
-      const currentPath = window.location.pathname;
-      const isIndex = currentPath.endsWith('/') || currentPath.endsWith('index.html');
-      const isFormation = currentPath.endsWith('formation.html');
-      const isSettings = currentPath.endsWith('settings.html');
-      const isPrivacy = currentPath.endsWith('privacy.html');
-
       menuConfig.forEach((item, index) => {
         let btnHtml = '';
-        if(item.id === 'collection') btnHtml = `<a href="index.html" class="nav-btn ${isIndex ? 'active' : ''}">カード一覧</a>`;
-        else if(item.id === 'formation') btnHtml = `<a href="formation.html" class="nav-btn ${isFormation ? 'active' : ''}">マイ編成メモ</a>`;
-        else if(item.id === 'settings') btnHtml = `<a href="settings.html" class="nav-btn ${isSettings ? 'active' : ''}">チェッカー設定</a>`;
-        else if(item.id === 'privacy') btnHtml = `<a href="privacy.html" class="nav-btn ${isPrivacy ? 'active' : ''}">プライバシーポリシー</a>`;
+        if(item.id === 'collection') btnHtml = `<a href="index.html" class="nav-btn">カード一覧</a>`;
+        else if(item.id === 'formation') btnHtml = `<a href="formation.html" class="nav-btn">マイ編成メモ</a>`;
+        else if(item.id === 'settings') btnHtml = `<a href="settings.html" class="nav-btn active">チェッカー設定</a>`;
+        else if(item.id === 'privacy') btnHtml = `<a href="privacy.html" class="nav-btn">プライバシーポリシー</a>`;
         else if(item.id === 'auth') btnHtml = `<div class="auth-container"><span id="userInfo">未ログイン</span><label class="checkbox-label" style="justify-content: center; font-size: 11px; margin-top: 5px;"><input type="checkbox" id="privacyToggle" ${savedPrivacy?'checked':''}> 名前を隠す</label><button id="loginBtn">Googleでログイン</button><button id="logoutBtn" class="logout-btn" style="display:none;">ログアウト</button></div>`;
         else if(item.id === 'mode') btnHtml = `<div class="mode-switch"><label class="checkbox-label" style="margin: 0;"><input type="checkbox" id="detailModeToggle" ${isDetailMode?'checked':''}> 詳細確認モード</label><label class="checkbox-label" style="margin: 10px 0 0 0; font-size: 12px; font-weight: normal; color: #555;"><input type="checkbox" id="closeOutsideToggle" ${localStorage.getItem('tourmas_closeOutside')!=='false'?'checked':''}> 外枠をタップして閉じる</label></div>`;
         else if(item.id === 'series') btnHtml = `<div><h3 style="margin: 0 0 10px 0; font-size: 15px; color: #555;">表示する弾数（設定は一覧で）</h3></div>`;
@@ -204,11 +231,11 @@
 
       document.getElementById('menuCloseBtn').onclick = () => { sidebar.classList.remove('open'); document.getElementById('overlay').classList.remove('open'); };
       const pt = document.getElementById('privacyToggle');
-      if(pt) pt.addEventListener('change', (e) => { localStorage.setItem('tourmas_privacy', e.target.checked); savedPrivacy = e.target.checked; updateUserInfo(); });
+      if(pt) pt.addEventListener('change', (e) => { localStorage.setItem('tourmas_privacy', e.target.checked); savedPrivacy = e.target.checked; updateUserInfo(); markAsUnsaved(); });
       const dmt = document.getElementById('detailModeToggle');
-      if(dmt) dmt.addEventListener('change', (e) => { localStorage.setItem('tourmas_detailMode', e.target.checked); isDetailMode = e.target.checked; });
+      if(dmt) dmt.addEventListener('change', (e) => { localStorage.setItem('tourmas_detailMode', e.target.checked); isDetailMode = e.target.checked; markAsUnsaved(); });
       const cot = document.getElementById('closeOutsideToggle');
-      if(cot) cot.addEventListener('change', (e) => localStorage.setItem('tourmas_closeOutside', e.target.checked));
+      if(cot) cot.addEventListener('change', (e) => { localStorage.setItem('tourmas_closeOutside', e.target.checked); markAsUnsaved(); });
       
       const lBtn = document.getElementById('loginBtn');
       if(lBtn) lBtn.addEventListener('click', () => signInWithPopup(auth, provider));
@@ -222,7 +249,6 @@
         resDiv.innerHTML = `<strong>効果(大)：</strong>${effects[Math.floor(Math.random() * effects.length)]}<br><strong>効果(小)：</strong>${effects[Math.floor(Math.random() * effects.length)]}<br>`; 
         resDiv.style.display = 'block';
       });
-      updateUserInfo();
     };
 
     const updateUserInfo = () => {
@@ -231,61 +257,98 @@
       if (currentUser) { userInfo.innerText = savedPrivacy ? `プロデューサー さん` : `${currentUser.displayName} さん`; } 
       else { userInfo.innerText = "未ログイン（セーブ不可）"; }
     };
-    
-    window.renderSidebarMenu();
+
+    // ★ 未保存状態を知らせる処理
+    window.markAsUnsaved = () => {
+      document.querySelectorAll('.cloud-save-btn').forEach(btn => {
+        btn.style.display = 'inline-block';
+        btn.classList.add('unsaved');
+        btn.innerText = "セーブ(未保存)";
+      });
+    };
+
+    // ★ 設定のクラウド保存処理
+    window.triggerCloudSave = async () => {
+      if (!currentUser) return alert("セーブするにはGoogleログインしてください。");
+      const settingsData = {
+        theme: savedTheme, notice: savedNotice, privacy: savedPrivacy, nameStyle: savedNameStyle,
+        defaultMode: document.getElementById('defaultModeSelect').value, freeMemo: document.getElementById('freeMemoToggle').checked,
+        modalConfig, menuConfig, filterConfigGroups
+      };
+      await setDoc(doc(db, "users", currentUser.uid), { settings: settingsData }, { merge: true });
+      
+      document.querySelectorAll('.cloud-save-btn').forEach(btn => {
+        btn.classList.remove('unsaved');
+        btn.innerText = "クラウドにセーブ済";
+      });
+      const toast = document.getElementById('toast');
+      if(toast) { toast.innerText = "クラウドに保存しました！"; toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 2000); }
+    };
 
     document.getElementById('themeSelectInSettings').value = savedTheme;
     document.getElementById('themeSelectInSettings').addEventListener('change', (e) => {
-      localStorage.setItem('tourmas_theme', e.target.value);
-      document.documentElement.style.setProperty('--main-color', themes[e.target.value].main);
-      document.documentElement.style.setProperty('--sub-color', themes[e.target.value].sub);
+      savedTheme = e.target.value;
+      localStorage.setItem('tourmas_theme', savedTheme);
+      document.documentElement.style.setProperty('--main-color', themes[savedTheme].main);
+      document.documentElement.style.setProperty('--sub-color', themes[savedTheme].sub);
+      markAsUnsaved();
     });
 
-    document.getElementById('nameStyleSelect').value = localStorage.getItem('tourmas_nameStyle') || 'ellipsis';
-    document.getElementById('nameStyleSelect').addEventListener('change', (e) => localStorage.setItem('tourmas_nameStyle', e.target.value));
+    document.getElementById('nameStyleSelect').value = savedNameStyle;
+    document.getElementById('nameStyleSelect').addEventListener('change', (e) => {
+      savedNameStyle = e.target.value;
+      localStorage.setItem('tourmas_nameStyle', savedNameStyle);
+      markAsUnsaved();
+    });
 
-    document.getElementById('defaultModeSelect').value = localStorage.getItem('tourmas_defaultMode') || 'on';
+    document.getElementById('defaultModeSelect').value = savedDefaultMode;
     document.getElementById('defaultModeSelect').addEventListener('change', (e) => {
-        localStorage.setItem('tourmas_defaultMode', e.target.value);
-        localStorage.setItem('tourmas_detailMode', e.target.value === 'on');
-        isDetailMode = e.target.value === 'on';
+        savedDefaultMode = e.target.value;
+        localStorage.setItem('tourmas_defaultMode', savedDefaultMode);
+        localStorage.setItem('tourmas_detailMode', savedDefaultMode === 'on');
+        isDetailMode = savedDefaultMode === 'on';
         const dmt = document.getElementById('detailModeToggle');
         if(dmt) dmt.checked = isDetailMode;
+        markAsUnsaved();
     });
 
     document.getElementById('noticeToggleSettings').checked = savedNotice;
     document.getElementById('noticeToggleSettings').addEventListener('change', (e) => {
-      localStorage.setItem('tourmas_notice', e.target.checked);
-      document.getElementById('marqueeContainer').style.display = e.target.checked ? 'block' : 'none';
+      savedNotice = e.target.checked;
+      localStorage.setItem('tourmas_notice', savedNotice);
+      document.getElementById('marqueeContainer').style.display = savedNotice ? 'block' : 'none';
+      markAsUnsaved();
     });
 
     document.getElementById('freeMemoToggle').checked = localStorage.getItem('tourmas_freeMemo') !== 'false';
-    document.getElementById('freeMemoToggle').addEventListener('change', (e) => localStorage.setItem('tourmas_freeMemo', e.target.checked));
+    document.getElementById('freeMemoToggle').addEventListener('change', (e) => {
+      localStorage.setItem('tourmas_freeMemo', e.target.checked);
+      markAsUnsaved();
+    });
 
     window.resetModalSettings = () => {
         modalConfig = JSON.parse(JSON.stringify(defaultModalItems));
         localStorage.setItem('tourmas_modalConfig', JSON.stringify(modalConfig));
         renderModalOrderSettings();
+        markAsUnsaved();
     };
-    
     window.renderModalOrderSettings = () => {
       const container = document.getElementById('modalOrderSettingsContainer');
-      if(!container) return;
       container.innerHTML = '';
       modalConfig.forEach((item, index) => {
         container.innerHTML += `<div class="settings-list-item"><button onclick="moveModalItem(${index}, -1)" style="margin-right:5px;" ${index === 0 ? 'disabled' : ''}>▲</button><button onclick="moveModalItem(${index}, 1)" style="margin-right:15px;" ${index === modalConfig.length - 1 ? 'disabled' : ''}>▼</button><label style="flex:1; cursor:pointer; font-size:14px; font-weight:bold; color:#333;"><input type="checkbox" style="transform:scale(1.2); margin-right:8px;" onchange="toggleModalItem(${index}, this.checked)" ${item.show ? 'checked' : ''}>${item.label}</label></div>`;
       });
     };
-    
     window.moveModalItem = (index, dir) => {
       const temp = modalConfig[index]; modalConfig[index] = modalConfig[index + dir]; modalConfig[index + dir] = temp;
       localStorage.setItem('tourmas_modalConfig', JSON.stringify(modalConfig));
       renderModalOrderSettings();
+      markAsUnsaved();
     };
-    
     window.toggleModalItem = (index, show) => {
       modalConfig[index].show = show;
       localStorage.setItem('tourmas_modalConfig', JSON.stringify(modalConfig));
+      markAsUnsaved();
     };
 
     window.resetMenuSettings = () => {
@@ -293,39 +356,96 @@
         localStorage.setItem('tourmas_menuConfig', JSON.stringify(menuConfig));
         renderMenuOrderSettings();
         renderSidebarMenu();
+        markAsUnsaved();
     };
-    
     window.renderMenuOrderSettings = () => {
       const container = document.getElementById('menuOrderSettingsContainer');
-      if(!container) return;
       container.innerHTML = '';
       menuConfig.forEach((item, index) => {
         container.innerHTML += `<div class="settings-list-item"><button onclick="moveMenuItem(${index}, -1)" style="margin-right:5px;" ${index === 0 ? 'disabled' : ''}>▲</button><button onclick="moveMenuItem(${index}, 1)" style="margin-right:15px;" ${index === menuConfig.length - 1 ? 'disabled' : ''}>▼</button><span style="flex:1; font-size:14px; font-weight:bold; color:#333;">${item.label}</span></div>`;
       });
     };
-    
     window.moveMenuItem = (index, dir) => {
       const temp = menuConfig[index]; menuConfig[index] = menuConfig[index + dir]; menuConfig[index + dir] = temp;
       localStorage.setItem('tourmas_menuConfig', JSON.stringify(menuConfig));
       renderMenuOrderSettings();
       renderSidebarMenu();
+      markAsUnsaved();
+    };
+
+    window.resetFilterSettings = () => {
+        filterConfigGroups = JSON.parse(JSON.stringify(defaultFilterGroups));
+        localStorage.setItem('tourmas_filterConfig', JSON.stringify(filterConfigGroups));
+        renderFilterOrderSettings();
+        markAsUnsaved();
+    };
+    window.renderFilterOrderSettings = () => {
+      const container = document.getElementById('filterOrderSettingsContainer');
+      container.innerHTML = '';
+      filterConfigGroups.forEach((group, index) => {
+        container.innerHTML += `<div class="settings-list-item"><button onclick="moveFilterItem(${index}, -1)" style="margin-right:5px;" ${index === 0 ? 'disabled' : ''}>▲</button><button onclick="moveFilterItem(${index}, 1)" style="margin-right:15px;" ${index === filterConfigGroups.length - 1 ? 'disabled' : ''}>▼</button><label style="flex:1; cursor:pointer; font-size:14px; font-weight:bold; color:#333;"><input type="checkbox" style="transform:scale(1.2); margin-right:8px;" onchange="toggleFilterOpen(${index}, this.checked)" ${group.open ? 'checked' : ''}>${group.label} (最初から開く)</label></div>`;
+      });
+    };
+    window.moveFilterItem = (index, dir) => {
+      const temp = filterConfigGroups[index]; filterConfigGroups[index] = filterConfigGroups[index + dir]; filterConfigGroups[index + dir] = temp;
+      localStorage.setItem('tourmas_filterConfig', JSON.stringify(filterConfigGroups));
+      renderFilterOrderSettings();
+      markAsUnsaved();
+    };
+    window.toggleFilterOpen = (index, openStatus) => {
+      filterConfigGroups[index].open = openStatus;
+      localStorage.setItem('tourmas_filterConfig', JSON.stringify(filterConfigGroups));
+      markAsUnsaved();
     };
 
     document.getElementById('menuOpenBtn').onclick = () => { document.getElementById('sidebar').classList.add('open'); document.getElementById('overlay').classList.add('open'); };
-    document.getElementById('overlay').onclick = () => { document.getElementById('sidebar').classList.remove('open'); document.getElementById('overlay').classList.remove('open'); };
 
-    // ★ 初期描画
-    window.renderModalOrderSettings();
-    window.renderMenuOrderSettings();
+    window.addEventListener('DOMContentLoaded', () => {
+        renderModalOrderSettings();
+        renderMenuOrderSettings();
+        renderFilterOrderSettings();
+    });
 
     onAuthStateChanged(auth, async (user) => {
       currentUser = user || null;
+      if (user) {
+        // ★ ログイン時に設定データをクラウドから復元
+        const docSnap = await getDoc(doc(db, "users", user.uid));
+        if (docSnap.exists() && docSnap.data().settings) {
+           const s = docSnap.data().settings;
+           if(s.theme) { savedTheme = s.theme; localStorage.setItem('tourmas_theme', s.theme); }
+           if(s.notice !== undefined) { savedNotice = s.notice; localStorage.setItem('tourmas_notice', s.notice); }
+           if(s.privacy !== undefined) { savedPrivacy = s.privacy; localStorage.setItem('tourmas_privacy', s.privacy); }
+           if(s.nameStyle) { savedNameStyle = s.nameStyle; localStorage.setItem('tourmas_nameStyle', s.nameStyle); }
+           if(s.defaultMode) { savedDefaultMode = s.defaultMode; localStorage.setItem('tourmas_defaultMode', s.defaultMode); isDetailMode = s.defaultMode==='on'; localStorage.setItem('tourmas_detailMode', isDetailMode); }
+           if(s.freeMemo !== undefined) { localStorage.setItem('tourmas_freeMemo', s.freeMemo); }
+           if(s.modalConfig) { modalConfig = s.modalConfig; localStorage.setItem('tourmas_modalConfig', JSON.stringify(modalConfig)); }
+           if(s.menuConfig) { menuConfig = s.menuConfig; localStorage.setItem('tourmas_menuConfig', JSON.stringify(menuConfig)); }
+           if(s.filterConfigGroups) { filterConfigGroups = s.filterConfigGroups; localStorage.setItem('tourmas_filterConfig', JSON.stringify(filterConfigGroups)); }
+           
+           document.documentElement.style.setProperty('--main-color', themes[savedTheme].main);
+           document.documentElement.style.setProperty('--sub-color', themes[savedTheme].sub);
+           document.getElementById('marqueeContainer').style.display = savedNotice ? 'block' : 'none';
+           
+           document.getElementById('themeSelectInSettings').value = savedTheme;
+           document.getElementById('nameStyleSelect').value = savedNameStyle;
+           document.getElementById('defaultModeSelect').value = savedDefaultMode;
+           document.getElementById('noticeToggleSettings').checked = savedNotice;
+           document.getElementById('freeMemoToggle').checked = s.freeMemo !== false;
+           renderModalOrderSettings();
+           renderMenuOrderSettings();
+           renderFilterOrderSettings();
+        }
+      }
+      
       renderSidebarMenu(); 
+      updateUserInfo();
       
       const lBtn = document.getElementById('loginBtn');
       const loBtn = document.getElementById('logoutBtn');
       if(lBtn) lBtn.style.display = user ? 'none' : 'inline-block';
       if(loBtn) loBtn.style.display = user ? 'inline-block' : 'none';
+      document.querySelectorAll('.cloud-save-btn').forEach(btn => btn.style.display = user ? 'inline-block' : 'none');
     });
   </script>
 </body>
