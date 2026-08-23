@@ -211,22 +211,26 @@
         const [month, day] = idol.birthday.split('-');
         let bdayDate = new Date(today.getFullYear(), parseInt(month) - 1, parseInt(day));
         let diffDays = (today - bdayDate) / (1000 * 60 * 60 * 24);
-        
-        // ★ 袖屋璃空ちゃんの誕生日（初日限定）対応
         if (idol.name === "袖屋 璃空") {
             if (diffDays === 0) bdayMessages.push(`${idol.name} のお誕生日！`);
         } else {
-            // 他のアイドルは前後を含めてお祝い
             if (diffDays >= 0 && diffDays <= 2) bdayMessages.push(`${idol.name} のバースデー期間！`);
         }
       }
     });
+    
+    // ★ ここで長さをもとに速度を自動計算 (80px/秒)
     let finalNotice = siteConfig.noticeText;
     if (bdayMessages.length > 0) finalNotice += " ｜ " + bdayMessages.join(" ｜ ");
     const mt = document.getElementById('marqueeText');
-    if(mt) mt.innerText = finalNotice;
     const mc = document.getElementById('marqueeContainer');
-    if(mc) mc.style.display = savedNotice ? 'block' : 'none';
+    if(mt) mt.innerText = finalNotice;
+    if(mc) {
+      mc.style.display = savedNotice ? 'block' : 'none';
+      if (savedNotice && mt) {
+        mt.style.animationDuration = (mt.offsetWidth / 80) + 's';
+      }
+    }
 
     // ★ スクロール貫通を防ぐ魔法の処理
     let currentScrollY = 0;
@@ -470,8 +474,6 @@
 
           idolArray.forEach(idol => {
               if (selectedFilter !== "all" && idol.brand !== selectedFilter) return;
-              
-              // ★ 袖屋 璃空ちゃんは現状編成できないため非表示（今後編成可能になったらこの1行を消してください）
               if (idol.name === "袖屋 璃空") return;
               
               const cardDiv = document.createElement('div');
@@ -587,7 +589,6 @@
           if(msf) {
               msf.innerHTML = '<option value="all">すべての弾</option>';
               
-              // ★ 完全に data.js の順番と文字列の一致のみで表示する
               let actualSeriesSet = new Set();
               let hasUnknown = false;
               
@@ -608,7 +609,6 @@
                       }
                   });
               }
-              // 残っているもの（未定義の新しい弾など）を末尾に追加
               sortedSeries = sortedSeries.concat(Array.from(actualSeriesSet));
               
               sortedSeries.forEach(s => msf.innerHTML += `<option value="${s}">${s}</option>`);
@@ -619,7 +619,6 @@
       if(msf) msf.value = "all"; 
       window.renderSelectModalList();
       
-      // ★ モーダル展開時にスクロールをロック
       document.getElementById('cardSelectModal')?.classList.add('open');
       lockScroll();
     };
@@ -627,7 +626,6 @@
     const msfListener = document.getElementById('modalFilterSelect');
     if (msfListener) msfListener.addEventListener('change', () => window.renderSelectModalList());
 
-    // ★ モーダルを閉じたときにスクロールロックを解除する
     const csCloseBtn = document.getElementById('cardSelectCloseBtn');
     if(csCloseBtn) csCloseBtn.onclick = () => { 
         document.getElementById('cardSelectModal')?.classList.remove('open'); 

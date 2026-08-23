@@ -243,7 +243,6 @@
     cardData.forEach(c => { if (c["アイドル名"] && c["シリーズブランド名"] && !idolBrandMap.has(c["アイドル名"])) idolBrandMap.set(c["アイドル名"], c["シリーズブランド名"]); });
     filterConfig.idols.forEach(idol => { if (!idolBrandMap.has(idol.name)) idolBrandMap.set(idol.name, "アイドルマスター"); });
 
-    // ★ 袖屋 璃空ちゃんの誕生日（当日限定）対応
     let bdayMessages = [];
     const today = new Date(); today.setHours(0,0,0,0);
     filterConfig.idols.forEach(idol => {
@@ -260,10 +259,18 @@
       }
     });
     
+    // ★ ここで長さをもとに速度を自動計算 (80px/秒)
     let finalNotice = siteConfig.noticeText;
     if (bdayMessages.length > 0) finalNotice += " ｜ " + bdayMessages.join(" ｜ ");
-    if($('marqueeText')) $('marqueeText').innerText = finalNotice;
-    if($('marqueeContainer')) $('marqueeContainer').style.display = savedNotice ? 'block' : 'none';
+    const mt = $('marqueeText');
+    const mc = $('marqueeContainer');
+    if(mt) mt.innerText = finalNotice;
+    if(mc) {
+      mc.style.display = savedNotice ? 'block' : 'none';
+      if(savedNotice && mt) {
+        mt.style.animationDuration = (mt.offsetWidth / 80) + 's';
+      }
+    }
 
     // ★ スクロール貫通を防ぐ魔法の処理
     let currentScrollY = 0;

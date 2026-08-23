@@ -10,7 +10,12 @@
     body { font-family: sans-serif; padding: 0; margin: 0; background-color: #f0f0f0; color: #333; }
     
     .header-fixed-wrap { position: sticky; top: 0; z-index: 900; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-    #marqueeContainer { background: #333; color: #fff; padding: 8px 0; font-size: 14px; font-weight: bold; }
+    
+    /* ★ 古いmarqueeを削除し、最新のアニメーションにアップデート */
+    #marqueeContainer { background: #333; color: #fff; padding: 8px 0; font-size: 14px; font-weight: bold; overflow: hidden; white-space: nowrap; position: relative; }
+    .marquee-content { display: inline-block; padding-left: 100%; animation: marquee 15s linear infinite; }
+    @keyframes marquee { 0% { transform: translate(0, 0); } 100% { transform: translate(-100%, 0); } }
+    
     header { background: #fff; padding: 15px; display: flex; align-items: center; justify-content: space-between; }
     
     #menuOpenBtn { font-size: 24px; background: none; border: none; cursor: pointer; color: #555; }
@@ -66,7 +71,7 @@
 <body>
 
   <div class="header-fixed-wrap">
-    <div id="marqueeContainer"><marquee id="marqueeText" scrollamount="5"></marquee></div>
+    <div id="marqueeContainer"><div class="marquee-content" id="marqueeText"></div></div>
     <header>
       <div class="header-left">
           <button id="menuOpenBtn">☰</button>
@@ -190,7 +195,33 @@
     const themes = { default: { main: '#ff66a3', sub: '#ffebf0' }, as: { main: '#f34f6d', sub: '#fce4e8' }, cg: { main: '#2681c8', sub: '#e4f0f9' }, ml: { main: '#ffc30b', sub: '#fff8e1' }, sidem: { main: '#0fbe94', sub: '#e0f7f1' }, sc: { main: '#8dbbff', sub: '#eef4ff' }, gakumas: { main: '#f39800', sub: '#feeee0' } };
     document.documentElement.style.setProperty('--main-color', themes[savedTheme].main);
     document.documentElement.style.setProperty('--sub-color', themes[savedTheme].sub);
-    document.getElementById('marqueeContainer').style.display = savedNotice ? 'block' : 'none';
+
+    // ★ ここで長さをもとに速度を自動計算 (80px/秒)
+    let bdayMessages = [];
+    const today = new Date(); today.setHours(0,0,0,0);
+    filterConfig.idols.forEach(idol => {
+      if(idol.birthday) {
+        const [month, day] = idol.birthday.split('-');
+        let bdayDate = new Date(today.getFullYear(), parseInt(month) - 1, parseInt(day));
+        let diffDays = (today - bdayDate) / (1000 * 60 * 60 * 24);
+        if (idol.name === "袖屋 璃空") {
+            if (diffDays === 0) bdayMessages.push(`${idol.name} のお誕生日！`);
+        } else {
+            if (diffDays >= 0 && diffDays <= 2) bdayMessages.push(`${idol.name} のバースデー期間！`);
+        }
+      }
+    });
+    let finalNotice = siteConfig.noticeText;
+    if (bdayMessages.length > 0) finalNotice += " ｜ " + bdayMessages.join(" ｜ ");
+    const mt = document.getElementById('marqueeText');
+    const mc = document.getElementById('marqueeContainer');
+    if(mt) mt.innerText = finalNotice;
+    if(mc) {
+      mc.style.display = savedNotice ? 'block' : 'none';
+      if (savedNotice && mt) {
+        mt.style.animationDuration = (mt.offsetWidth / 80) + 's';
+      }
+    }
 
     window.renderSidebarMenu = () => {
       const sidebar = document.getElementById('sidebar');
@@ -261,7 +292,6 @@
       });
     };
 
-    // ★ セーブ時のエラー検知を追加！
     window.triggerCloudSave = async () => {
       if (!currentUser) return alert("セーブするにはGoogleログインしてください。");
       const settingsData = {
@@ -321,7 +351,14 @@
     document.getElementById('noticeToggleSettings').addEventListener('change', (e) => {
       savedNotice = e.target.checked;
       localStorage.setItem('tourmas_notice', savedNotice);
-      document.getElementById('marqueeContainer').style.display = savedNotice ? 'block' : 'none';
+      const mc = document.getElementById('marqueeContainer');
+      const mt = document.getElementById('marqueeText');
+      if(mc) {
+        mc.style.display = savedNotice ? 'block' : 'none';
+        if (savedNotice && mt) {
+          mt.style.animationDuration = (mt.offsetWidth / 80) + 's';
+        }
+      }
       window.markAsUnsaved();
     });
 
@@ -408,7 +445,15 @@
            
            document.documentElement.style.setProperty('--main-color', themes[savedTheme].main);
            document.documentElement.style.setProperty('--sub-color', themes[savedTheme].sub);
-           document.getElementById('marqueeContainer').style.display = savedNotice ? 'block' : 'none';
+           
+           const mc = document.getElementById('marqueeContainer');
+           const mt = document.getElementById('marqueeText');
+           if(mc) {
+               mc.style.display = savedNotice ? 'block' : 'none';
+               if(savedNotice && mt) {
+                   mt.style.animationDuration = (mt.offsetWidth / 80) + 's';
+               }
+           }
            
            document.getElementById('themeSelectInSettings').value = savedTheme;
            document.getElementById('nameStyleSelect').value = savedNameStyle;
