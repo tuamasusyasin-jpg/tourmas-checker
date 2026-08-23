@@ -23,7 +23,8 @@
 
     #sidebar { position: fixed; top: 0; left: -300px; width: 300px; height: 100%; background: #fff; box-shadow: 2px 0 10px rgba(0,0,0,0.2); transition: left 0.3s ease; z-index: 1000; padding: 20px; box-sizing: border-box; overflow-y: auto; display: flex; flex-direction: column; }
     #sidebar.open { left: 0; }
-    #menuCloseBtn { font-size: 24px; background: none; border: none; cursor: pointer; color: #999; text-align: right; width: 100%; margin-bottom: 20px; }
+    /* ★ サイドメニューの×ボタンも押しやすく */
+    #menuCloseBtn { font-size: 24px; background: none; border: none; cursor: pointer; color: #999; text-align: right; width: 100%; margin-bottom: 20px; padding: 15px; margin-right: -15px;}
     #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); opacity: 0; pointer-events: none; transition: opacity 0.3s ease; z-index: 999; }
     #overlay.open { opacity: 1; pointer-events: auto; }
     
@@ -74,7 +75,6 @@
     @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
 
     .card-list { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; }
-    /* ★ box-sizingを追加して、枠線がはみ出ないように修正 */
     .card { box-sizing: border-box; border: 3px solid #ccc; border-radius: 12px; width: 160px; aspect-ratio: 378 / 533; cursor: pointer; background-color: #999; position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; }
     .card-info { background: rgba(255, 255, 255, 0.95); padding: 10px; text-align: center; border-top: 1px solid #eee; overflow: hidden; z-index: 2;}
     .card-info h4, .card-info p { margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
@@ -99,11 +99,14 @@
     .idol-badge p { margin: 0; font-size: 10px; color: #888; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .idol-badge h4 { margin: 5px 0 0 0; font-size: 16px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-    /* ★ スクロールが引っかからないように、モーダルをページ全体としてスクロールさせる構造に変更 */
+    /* ★ スクロール引っ掛かり防止 */
     #cardSelectModal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2100; display: none; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 20px 0; box-sizing: border-box; }
     #cardSelectModal.open { display: block; }
-    #cardSelectModal .modal-content { background: #fff; border-radius: 15px; width: 92%; max-width: 1050px; margin: 0 auto; position: relative; padding: 40px 20px; box-sizing: border-box; }
-    .modal-close { position: absolute; top: 15px; right: 20px; font-size: 28px; background: none; border: none; cursor: pointer; color: #999; z-index: 20; }
+    #cardSelectModal .modal-content { display: flex; flex-direction: column; background: #fff; border-radius: 15px; width: 92%; max-width: 1050px; margin: 0 auto; position: relative; padding: 40px 20px; box-sizing: border-box; }
+    
+    /* ★ ×ボタンの当たり判定拡大 */
+    .modal-close { position: absolute; top: 15px; right: 20px; font-size: 28px; background: none; border: none; cursor: pointer; color: #999; z-index: 20; padding: 15px; margin: -15px;}
+    
     #cardSelectList { overflow-y: visible; padding: 10px 0; display:flex; flex-wrap:wrap; gap:10px; justify-content:center; }
     
     #toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 10px 20px; border-radius: 30px; z-index: 3000; font-weight: bold; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
@@ -208,7 +211,14 @@
         const [month, day] = idol.birthday.split('-');
         let bdayDate = new Date(today.getFullYear(), parseInt(month) - 1, parseInt(day));
         let diffDays = (today - bdayDate) / (1000 * 60 * 60 * 24);
-        if (diffDays >= 0 && diffDays <= 2) bdayMessages.push(`${idol.name} のバースデー期間！`);
+        
+        // ★ 袖屋璃空ちゃんの誕生日（初日限定）対応
+        if (idol.name === "袖屋 璃空") {
+            if (diffDays === 0) bdayMessages.push(`${idol.name} のお誕生日！`);
+        } else {
+            // 他のアイドルは前後を含めてお祝い
+            if (diffDays >= 0 && diffDays <= 2) bdayMessages.push(`${idol.name} のバースデー期間！`);
+        }
       }
     });
     let finalNotice = siteConfig.noticeText;
@@ -217,6 +227,21 @@
     if(mt) mt.innerText = finalNotice;
     const mc = document.getElementById('marqueeContainer');
     if(mc) mc.style.display = savedNotice ? 'block' : 'none';
+
+    // ★ スクロール貫通を防ぐ魔法の処理
+    let currentScrollY = 0;
+    const lockScroll = () => {
+        currentScrollY = window.scrollY;
+        document.body.style.position = 'fixed';
+        document.body.style.top = `-${currentScrollY}px`;
+        document.body.style.width = '100%';
+    };
+    const unlockScroll = () => {
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.body.style.width = '';
+        window.scrollTo(0, currentScrollY);
+    };
 
     window.renderSidebarMenu = () => {
       const sidebar = document.getElementById('sidebar');
@@ -242,7 +267,7 @@
         }
       });
 
-      document.getElementById('menuCloseBtn').onclick = () => { sidebar.classList.remove('open'); document.getElementById('overlay').classList.remove('open'); document.body.style.overflow = ''; };
+      document.getElementById('menuCloseBtn').onclick = () => { sidebar.classList.remove('open'); document.getElementById('overlay').classList.remove('open'); unlockScroll(); };
       const pt = document.getElementById('privacyToggle');
       if(pt) pt.addEventListener('change', (e) => { localStorage.setItem('tourmas_privacy', e.target.checked); savedPrivacy = e.target.checked; updateUserInfo(); });
       const dmt = document.getElementById('detailModeToggle');
@@ -445,13 +470,17 @@
 
           idolArray.forEach(idol => {
               if (selectedFilter !== "all" && idol.brand !== selectedFilter) return;
+              
+              // ★ 袖屋 璃空ちゃんは現状編成できないため非表示（今後編成可能になったらこの1行を消してください）
+              if (idol.name === "袖屋 璃空") return;
+              
               const cardDiv = document.createElement('div');
               cardDiv.className = 'idol-badge';
               cardDiv.innerHTML = `<p>${idol.brand}</p><h4>${idol.name}</h4>`;
               cardDiv.onclick = () => {
                   window.updateFormationData(idx, field, subfield, idol.name);
                   document.getElementById('cardSelectModal')?.classList.remove('open');
-                  document.body.style.overflow = '';
+                  unlockScroll();
                   window.renderFormations();
               };
               list.appendChild(cardDiv);
@@ -520,7 +549,7 @@
           const val = `[${data["レアリティ"]}] ${mainText}`;
           window.updateFormationData(idx, field, subfield, val);
           document.getElementById('cardSelectModal')?.classList.remove('open');
-          document.body.style.overflow = '';
+          unlockScroll();
           window.renderFormations();
         };
         list.appendChild(cardDiv);
@@ -590,9 +619,9 @@
       if(msf) msf.value = "all"; 
       window.renderSelectModalList();
       
-      // ★ モーダルを開いた時に背景のスクロールをロックする
+      // ★ モーダル展開時にスクロールをロック
       document.getElementById('cardSelectModal')?.classList.add('open');
-      document.body.style.overflow = 'hidden';
+      lockScroll();
     };
 
     const msfListener = document.getElementById('modalFilterSelect');
@@ -602,7 +631,7 @@
     const csCloseBtn = document.getElementById('cardSelectCloseBtn');
     if(csCloseBtn) csCloseBtn.onclick = () => { 
         document.getElementById('cardSelectModal')?.classList.remove('open'); 
-        document.body.style.overflow = ''; 
+        unlockScroll();
     };
 
     const csClearBtn = document.getElementById('cardSelectClearBtn');
@@ -613,7 +642,7 @@
           window.renderFormations();
         }
         document.getElementById('cardSelectModal')?.classList.remove('open');
-        document.body.style.overflow = '';
+        unlockScroll();
       };
     }
     
@@ -622,15 +651,14 @@
       cardSelectModal.addEventListener('click', (e) => {
         if (e.target === cardSelectModal && localStorage.getItem('tourmas_closeOutside') !== 'false') {
           cardSelectModal.classList.remove('open');
-          document.body.style.overflow = '';
+          unlockScroll();
         }
       });
     }
 
-    // ★ サイドメニュー展開時のスクロールロック設定
     const menuOpenBtn = document.getElementById('menuOpenBtn');
-    if(menuOpenBtn) menuOpenBtn.onclick = () => { document.getElementById('sidebar')?.classList.add('open'); document.getElementById('overlay')?.classList.add('open'); document.body.style.overflow = 'hidden'; };
-    const closeMenu = () => { document.getElementById('sidebar')?.classList.remove('open'); document.getElementById('overlay')?.classList.remove('open'); document.body.style.overflow = ''; };
+    if(menuOpenBtn) menuOpenBtn.onclick = () => { document.getElementById('sidebar')?.classList.add('open'); document.getElementById('overlay')?.classList.add('open'); lockScroll(); };
+    const closeMenu = () => { document.getElementById('sidebar')?.classList.remove('open'); document.getElementById('overlay')?.classList.remove('open'); unlockScroll(); };
     const menuCloseBtn = document.getElementById('menuCloseBtn');
     if(menuCloseBtn) menuCloseBtn.onclick = closeMenu;
     const overlay = document.getElementById('overlay');
