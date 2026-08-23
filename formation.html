@@ -74,7 +74,8 @@
     @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
 
     .card-list { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; }
-    .card { border: 3px solid #ccc; border-radius: 12px; width: 160px; aspect-ratio: 378 / 533; cursor: pointer; background-color: #999; position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; }
+    /* ★ box-sizingを追加して、枠線がはみ出ないように修正 */
+    .card { box-sizing: border-box; border: 3px solid #ccc; border-radius: 12px; width: 160px; aspect-ratio: 378 / 533; cursor: pointer; background-color: #999; position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; }
     .card-info { background: rgba(255, 255, 255, 0.95); padding: 10px; text-align: center; border-top: 1px solid #eee; overflow: hidden; z-index: 2;}
     .card-info h4, .card-info p { margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
     .card-info h4 { font-size: 14px; line-height: 1.2; font-weight: bold; }
@@ -98,20 +99,21 @@
     .idol-badge p { margin: 0; font-size: 10px; color: #888; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .idol-badge h4 { margin: 5px 0 0 0; font-size: 16px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-    /* ★ スクロール貫通防止のため overscroll-behavior を追加 */
-    #cardSelectModal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2100; display: none; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; overscroll-behavior: none; }
-    #cardSelectModal.open { display: flex; }
-    #cardSelectModal .modal-content { display: flex; flex-direction: column; max-height: 90vh; background: #fff; border-radius: 15px; width: 100%; max-width: 1050px; position: relative; padding: 40px 30px; box-sizing: border-box; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+    /* ★ スクロールが引っかからないように、モーダルをページ全体としてスクロールさせる構造に変更 */
+    #cardSelectModal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2100; display: none; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 20px 0; box-sizing: border-box; }
+    #cardSelectModal.open { display: block; }
+    #cardSelectModal .modal-content { background: #fff; border-radius: 15px; width: 92%; max-width: 1050px; margin: 0 auto; position: relative; padding: 40px 20px; box-sizing: border-box; }
     .modal-close { position: absolute; top: 15px; right: 20px; font-size: 28px; background: none; border: none; cursor: pointer; color: #999; z-index: 20; }
-    #cardSelectList { overflow-y: auto; padding: 10px; flex: 1; display:flex; flex-wrap:wrap; gap:10px; justify-content:center; }
+    #cardSelectList { overflow-y: visible; padding: 10px 0; display:flex; flex-wrap:wrap; gap:10px; justify-content:center; }
     
     #toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 10px 20px; border-radius: 30px; z-index: 3000; font-weight: bold; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
     #toast.show { opacity: 1; }
 
-    /* ★ スマホ画面でカードを3列にするレスポンシブ対応 */
+    /* ★ スマホ画面でキッチリ3列にする調整 */
     @media (max-width: 500px) {
-      .card-list { gap: 8px; }
-      .card { width: calc(33.333% - 6px); min-width: unset; border-width: 2px; border-radius: 8px; }
+      .view-section { padding: 10px; }
+      .card-list { gap: 5px; }
+      .card { width: calc(33.333% - 4px); min-width: unset; border-width: 2px; border-radius: 8px; }
       .card-info { padding: 6px; }
       .card-info h4 { font-size: 11px; }
       .card-info p { font-size: 9px; margin-top: 3px; }
@@ -142,7 +144,7 @@
           <h2>マイ編成メモ</h2>
       </div>
       <p style="color: #666; font-size: 14px; margin-bottom: 20px;">
-        理想の編成を記録できます。枠をタップすると所持・未所持に関わらず全てのデータから検索・選択できます。
+        スコアアタック用の理想の編成を記録できます。枠をタップすると所持・未所持に関わらず全てのデータから検索・選択できます。
       </p>
       <div id="formationListContainer"></div>
       <button id="addFormationBtn" onclick="addFormation()">＋ 新しい編成を記録する</button>
@@ -556,13 +558,14 @@
           if(msf) {
               msf.innerHTML = '<option value="all">すべての弾</option>';
               
+              // ★ 完全に data.js の順番と文字列の一致のみで表示する
               let actualSeriesSet = new Set();
               let hasUnknown = false;
               
               cardData.forEach(c => {
-                let s = c["シリーズ"] || c["入手手段"];
-                if (!s || s.trim() === "") { hasUnknown = true; }
-                else { actualSeriesSet.add(s.trim()); }
+                let s = (c["シリーズ"] || c["入手手段"] || "").trim();
+                if (s === "") { hasUnknown = true; }
+                else { actualSeriesSet.add(s); }
               });
               
               let sortedSeries = [];
@@ -570,13 +573,13 @@
               if (definedSeries && Array.isArray(definedSeries)) {
                   definedSeries.forEach(s => {
                       let st = s.trim();
-                      let matched = Array.from(actualSeriesSet).filter(actual => actual.includes(st) || st.includes(actual));
-                      matched.forEach(m => {
-                          sortedSeries.push(m);
-                          actualSeriesSet.delete(m); 
-                      });
+                      if (actualSeriesSet.has(st)) {
+                          sortedSeries.push(st);
+                          actualSeriesSet.delete(st); 
+                      }
                   });
               }
+              // 残っているもの（未定義の新しい弾など）を末尾に追加
               sortedSeries = sortedSeries.concat(Array.from(actualSeriesSet));
               
               sortedSeries.forEach(s => msf.innerHTML += `<option value="${s}">${s}</option>`);
