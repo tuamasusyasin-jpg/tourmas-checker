@@ -21,7 +21,8 @@
     .header-left { display: flex; align-items: center; gap: 15px; }
     header h1 { margin: 0; font-size: 18px; }
 
-    #sidebar { position: fixed; top: 0; left: -300px; width: 300px; height: 100%; background: #fff; box-shadow: 2px 0 10px rgba(0,0,0,0.2); transition: left 0.3s ease; z-index: 1000; padding: 20px; box-sizing: border-box; overflow-y: auto; display: flex; flex-direction: column; }
+    /* ★ サイドメニューにもスクロール貫通防止＆なめらかスクロールを追加！ */
+    #sidebar { position: fixed; top: 0; left: -300px; width: 300px; height: 100%; background: #fff; box-shadow: 2px 0 10px rgba(0,0,0,0.2); transition: left 0.3s ease; z-index: 1000; padding: 20px; box-sizing: border-box; overflow-y: auto; display: flex; flex-direction: column; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
     #sidebar.open { left: 0; }
     #menuCloseBtn { font-size: 24px; background: none; border: none; cursor: pointer; color: #999; text-align: right; width: 100%; margin-bottom: 20px; padding: 15px; margin-right: -15px;}
     #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); opacity: 0; pointer-events: none; transition: opacity 0.3s ease; z-index: 999; }
@@ -96,12 +97,9 @@
     .card.owned::after { background-color: rgba(0, 0, 0, 0); }
     .wish-star { position: absolute; top: 5px; right: 5px; color: #ffeb3b; text-shadow: 0 0 3px #000; font-size: 16px; z-index: 10; font-weight: bold; }
 
-    /* ★ スクロールが引っかからないように調整 */
-    #detailModal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; display: none; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 20px 0; box-sizing: border-box; }
+    #detailModal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; display: none; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 20px 0; box-sizing: border-box; overscroll-behavior: none; }
     #detailModal.open { display: block; }
-    .modal-content { background: #fff; border-radius: 15px; width: 92%; max-width: 1050px; margin: 0 auto; position: relative; padding: 40px 20px; box-sizing: border-box; }
-    
-    /* ★ ×ボタンのタップ当たり判定を大きく広げる魔法 */
+    .modal-content { background: #fff; border-radius: 15px; width: 92%; max-width: 1050px; margin: 0 auto; position: relative; padding: 40px 20px; box-sizing: border-box; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
     .modal-close { position: absolute; top: 15px; right: 20px; font-size: 28px; background: none; border: none; cursor: pointer; color: #999; z-index: 20; padding: 15px; margin: -15px; }
     
     .modal-layout { display: flex; flex-wrap: wrap; gap: 40px; margin-top: 10px; align-items: center; justify-content: center; }
@@ -217,11 +215,19 @@
     const app = initializeApp({ apiKey: "AIzaSyBBMuCXDKeF7sjBnPN8GqGy3WZ32HMYfQ0", authDomain: "tourmas-checker-b05c1.firebaseapp.com", projectId: "tourmas-checker-b05c1", storageBucket: "tourmas-checker-b05c1.firebasestorage.app", messagingSenderId: "3796099655", appId: "1:3796099655:web:0a01862393e31117ec8762" });
     const auth = getAuth(app); const db = getFirestore(app); const provider = new GoogleAuthProvider();
 
-    let currentUser = null, ownedCardIds = new Set(), userCardDetails = {}, userFormations = [], hasUnsavedChanges = false;
+    let currentUser = null, ownedCardIds = new Set(), userCardDetails = {}, userFormations = [], hasUnsavedChanges = false, seriesSetForModal = new Set(); 
     
     const getStore = (k, d) => { try { const v = localStorage.getItem(k); const p = v ? JSON.parse(v) : null; return (p && p.length > 0) ? p : d; } catch(e){ return d; } };
     const setStore = (k, v) => localStorage.setItem(k, JSON.stringify(v));
     
+    try {
+      const localData = JSON.parse(localStorage.getItem('tourmas_cardDetails') || '{}');
+      userCardDetails = localData;
+      Object.keys(localData).forEach(k => {
+        if (localData[k].count > 0) ownedCardIds.add(k);
+      });
+    } catch(e) {}
+
     const dModal = [{id:'number',label:'番号',show:true},{id:'rarity',label:'レアリティ',show:true},{id:'type',label:'種類',show:true},{id:'appeal',label:'アピール値',show:true},{id:'target',label:'対象／効果対象',show:true},{id:'part',label:'部位',show:true},{id:'genre',label:'ジャンル',show:true},{id:'effect',label:'効果／リズム効果',show:true},{id:'note',label:'備考',show:true},{id:'relax',label:'制限緩和',show:true},{id:'comment',label:'コメント',show:true},{id:'series',label:'入手手段',show:true},{id:'bonus',label:'セットボーナス',show:true},{id:'altcard',label:'別カード',show:true},{id:'color',label:'色違い',show:true},{id:'utsurikomi',label:'写り込み',show:true}];
     const dMenu = [{id:'collection',label:'カード一覧'},{id:'formation',label:'マイ編成メモ'},{id:'auth',label:'アカウント・ログイン'},{id:'mode',label:'詳細モード・挙動設定'},{id:'series',label:'表示する弾数'},{id:'settings',label:'チェッカー設定'},{id:'privacy',label:'プライバシーポリシー'},{id:'egao',label:'笑顔満点占い'}];
     
@@ -250,7 +256,6 @@
         const [month, day] = idol.birthday.split('-');
         let bdayDate = new Date(today.getFullYear(), parseInt(month) - 1, parseInt(day));
         let diffDays = (today - bdayDate) / (1000 * 60 * 60 * 24);
-        
         if (idol.name === "袖屋 璃空") {
             if (diffDays === 0) bdayMessages.push(`${idol.name} のお誕生日！`);
         } else {
@@ -259,7 +264,6 @@
       }
     });
     
-    // ★ ここで長さをもとに速度を自動計算 (80px/秒)
     let finalNotice = siteConfig.noticeText;
     if (bdayMessages.length > 0) finalNotice += " ｜ " + bdayMessages.join(" ｜ ");
     const mt = $('marqueeText');
@@ -272,7 +276,6 @@
       }
     }
 
-    // ★ スクロール貫通を防ぐ魔法の処理
     let currentScrollY = 0;
     const lockScroll = () => {
         currentScrollY = window.scrollY;
@@ -292,20 +295,42 @@
       if(!sidebar) return;
       sidebar.innerHTML = '<button id="menuCloseBtn">✖</button>';
       
+      const currentPath = window.location.pathname;
+      const isIndex = currentPath.endsWith('/') || currentPath.endsWith('index.html');
+      const isFormation = currentPath.endsWith('formation.html');
+      const isSettings = currentPath.endsWith('settings.html');
+      const isPrivacy = currentPath.endsWith('privacy.html');
+
       menuConfig.forEach((item, index) => {
         let btnHtml = '';
-        if(item.id === 'collection') btnHtml = `<a href="index.html" class="nav-btn active">カード一覧</a>`;
-        else if(item.id === 'formation') btnHtml = `<a href="formation.html" class="nav-btn">マイ編成メモ</a>`;
-        else if(item.id === 'settings') btnHtml = `<a href="settings.html" class="nav-btn">チェッカー設定</a>`;
-        else if(item.id === 'privacy') btnHtml = `<a href="privacy.html" class="nav-btn">プライバシーポリシー</a>`;
-        else if(item.id === 'auth') btnHtml = `<div class="auth-container"><span id="userInfo">未ログイン</span><label class="checkbox-label" style="justify-content: center; font-size: 11px; margin-top: 5px;"><input type="checkbox" id="privacyToggle" ${savedPrivacy?'checked':''}> 名前を隠す</label><button id="loginBtn">Googleでログイン</button><button id="logoutBtn" class="logout-btn" style="display:none;">ログアウト</button></div>`;
-        else if(item.id === 'mode') btnHtml = `<div class="mode-switch"><label class="checkbox-label" style="margin: 0;"><input type="checkbox" id="detailModeToggle" ${isDetailMode?'checked':''}> 詳細確認モード</label><label class="checkbox-label" style="margin: 10px 0 0 0; font-size: 12px; font-weight: normal; color: #555;"><input type="checkbox" id="closeOutsideToggle" ${localStorage.getItem('tourmas_closeOutside')!=='false'?'checked':''}> 外枠をタップして閉じる</label></div>`;
-        else if(item.id === 'series') btnHtml = `<h3 style="margin: 0 0 10px 0; font-size: 15px; color: #555;">表示する弾数</h3><div id="seriesFilterContainer" style="display:flex; flex-direction:column;"></div>`;
-        else if(item.id === 'egao') btnHtml = `<div><button id="egaoBtn">笑顔満点ですっ</button><div id="egaoResult"></div></div>`;
+        let extraClass = '';
+        
+        if(item.id === 'collection') btnHtml = `<a href="index.html" class="nav-btn ${isIndex ? 'active' : ''}">カード一覧</a>`;
+        else if(item.id === 'formation') btnHtml = `<a href="formation.html" class="nav-btn ${isFormation ? 'active' : ''}">マイ編成メモ</a>`;
+        else if(item.id === 'settings') btnHtml = `<a href="settings.html" class="nav-btn ${isSettings ? 'active' : ''}">チェッカー設定</a>`;
+        else if(item.id === 'privacy') btnHtml = `<a href="privacy.html" class="nav-btn ${isPrivacy ? 'active' : ''}">プライバシーポリシー</a>`;
+        else if(item.id === 'auth') {
+            extraClass = 'auth-container';
+            btnHtml = `<span id="userInfo">未ログイン</span><label class="checkbox-label" style="justify-content: center; font-size: 11px; margin-top: 5px;"><input type="checkbox" id="privacyToggle" ${savedPrivacy?'checked':''}> 名前を隠す</label><button id="loginBtn">Googleでログイン</button><button id="logoutBtn" class="logout-btn" style="display:none;">ログアウト</button>`;
+        }
+        else if(item.id === 'mode') {
+            extraClass = 'mode-switch';
+            btnHtml = `<label class="checkbox-label" style="margin: 0;"><input type="checkbox" id="detailModeToggle" ${isDetailMode?'checked':''}> 詳細確認モード</label><label class="checkbox-label" style="margin: 10px 0 0 0; font-size: 12px; font-weight: normal; color: #555;"><input type="checkbox" id="closeOutsideToggle" ${localStorage.getItem('tourmas_closeOutside')!=='false'?'checked':''}> 外枠をタップして閉じる</label>`;
+        }
+        else if(item.id === 'series') {
+            if (isIndex) {
+                btnHtml = `<h3 style="margin: 0 0 10px 0; font-size: 15px; color: #555;">表示する弾数</h3><div id="seriesFilterContainer" style="display:flex; flex-direction:column;"></div>`;
+            } else {
+                btnHtml = `<h3 style="margin: 0 0 10px 0; font-size: 15px; color: #555;">表示する弾数（設定は一覧で）</h3>`;
+            }
+        }
+        else if(item.id === 'egao') {
+            btnHtml = `<button id="egaoBtn">笑顔満点ですっ</button><div id="egaoResult"></div>`;
+        }
         
         if(btnHtml) {
             const wrapper = document.createElement('div');
-            wrapper.className = 'menu-section';
+            wrapper.className = `menu-section ${extraClass}`;
             wrapper.style.order = index + 1;
             wrapper.innerHTML = btnHtml;
             sidebar.appendChild(wrapper);
@@ -387,38 +412,12 @@
           const isActive = idx === 0 ? 'active' : '';
           tabsHtml += `<button class="filter-tab-btn ${isActive}" data-target="pane-${g.id}">${g.label}</button>`;
           let inH = "";
-          
           if (g.id === 'owned') inH = `<label class="filter-btn-label"><input type="radio" name="filterOwned" value="all" checked> すべて表示</label><label class="filter-btn-label"><input type="radio" name="filterOwned" value="owned"> 持っている</label><label class="filter-btn-label"><input type="radio" name="filterOwned" value="unowned"> 持っていない</label>`;
           else if (g.id === 'wish') inH = `<label class="filter-btn-label"><input type="radio" name="filterWish" value="0" checked> 指定なし</label><label class="filter-btn-label"><input type="radio" name="filterWish" value="1"> ★1以上</label><label class="filter-btn-label"><input type="radio" name="filterWish" value="2"> ★2以上</label><label class="filter-btn-label"><input type="radio" name="filterWish" value="3"> ★3以上</label><label class="filter-btn-label"><input type="radio" name="filterWish" value="4"> ★4以上</label><label class="filter-btn-label"><input type="radio" name="filterWish" value="5"> ★5のみ</label>`;
-          else if (g.id === 'idol') {
-              let idolByBrand = {};
-              filterConfig.idols.forEach(idol => {
-                  let brand = idol.brand || idolBrandMap.get(idol.name) || "アイドルマスター";
-                  if (!idolByBrand[brand]) idolByBrand[brand] = [];
-                  idolByBrand[brand].push(idol);
-              });
-              
-              filterConfig.brands.forEach(brand => {
-                  if (idolByBrand[brand] && idolByBrand[brand].length > 0) {
-                      inH += `<div style="width:100%; margin-top:8px;"><div style="font-size:13px; font-weight:bold; color:var(--main-color); margin-bottom:4px;">${brand}</div><div style="width:40px; height:3px; background:var(--main-color); border-radius:2px; opacity:0.3; margin-bottom:8px;"></div></div>`;
-                      idolByBrand[brand].forEach(idol => {
-                          inH += `<label class="filter-btn-label"><input type="checkbox" class="advanced-filter filter-idol" value="${idol.name}"> ${idol.name}</label>`;
-                      });
-                  }
-              });
-              
-              Object.keys(idolByBrand).filter(b => !filterConfig.brands.includes(b)).forEach(brand => {
-                  inH += `<div style="width:100%; margin-top:8px;"><div style="font-size:13px; font-weight:bold; color:#777; margin-bottom:4px;">${brand}</div><div style="width:40px; height:3px; background:#777; border-radius:2px; opacity:0.3; margin-bottom:8px;"></div></div>`;
-                  idolByBrand[brand].forEach(idol => {
-                      inH += `<label class="filter-btn-label"><input type="checkbox" class="advanced-filter filter-idol" value="${idol.name}"> ${idol.name}</label>`;
-                  });
-              });
-          }
           else {
-              let arr = []; if(g.id === 'rarity') arr = filterConfig.rarities; if(g.id === 'type') arr = filterConfig.types; if(g.id === 'brand') arr = filterConfig.brands; if(g.id === 'target') arr = filterConfig.targets; if(g.id === 'part') arr = filterConfig.parts; if(g.id === 'genre') arr = filterConfig.genres;
+              let arr = []; if(g.id === 'rarity') arr = filterConfig.rarities; if(g.id === 'type') arr = filterConfig.types; if(g.id === 'brand') arr = filterConfig.brands; if(g.id === 'target') arr = filterConfig.targets; if(g.id === 'part') arr = filterConfig.parts; if(g.id === 'genre') arr = filterConfig.genres; if(g.id === 'idol') arr = filterConfig.idols;
               arr.forEach(i => inH += `<label class="filter-btn-label"><input type="checkbox" class="advanced-filter filter-${g.id}" value="${typeof i === 'object' ? i.name : i}"> ${typeof i === 'object' ? i.name : i}</label>`);
           }
-          
           contentsHtml += `<div id="pane-${g.id}" class="filter-content-pane ${isActive}"><div class="filter-grid">${inH}</div></div>`;
         });
         
@@ -449,7 +448,7 @@
         
         cardDiv.dataset.number = data["番号"]; cardDiv.dataset.imgNum = data["カード表"] ? parseInt(data["カード表"].match(/\d+/)?.[0] || 99999) : 99999;
         cardDiv.dataset.vocal = parseInt(data["アピール値（Vocal)"]) || 0; cardDiv.dataset.dance = parseInt(data["アピール値（Dance）"]) || 0; cardDiv.dataset.visual = parseInt(data["アピール値（Visual）"]) || 0;
-        cardDiv.dataset.wish = userCardDetails[data["番号"]]?.wish || 0; cardDiv.dataset.rarity = data["レアリティ"] || ""; cardDiv.dataset.type = data["種類"] || ""; cardDiv.dataset.brand = data["シリーズブランド名"] || ""; cardDiv.dataset.idol = data["アイドル名"] || ""; cardDiv.dataset.series = (data["シリーズ"] || data["入手手段"] || "未設定").trim(); cardDiv.dataset.target = data["対象アイドル／サポート効果対象"] || ""; cardDiv.dataset.part = data["部位"] || ""; cardDiv.dataset.genre = data["ジャンル"] || ""; 
+        cardDiv.dataset.wish = userCardDetails[data["番号"]]?.wish || 0; cardDiv.dataset.rarity = data["レアリティ"] || ""; cardDiv.dataset.type = data["種類"] || ""; cardDiv.dataset.brand = data["シリーズブランド名"] || ""; cardDiv.dataset.idol = data["アイドル名"] || ""; cardDiv.dataset.series = data["シリーズ"] || data["入手手段"] || "未設定"; cardDiv.dataset.target = data["対象アイドル／サポート効果対象"] || ""; cardDiv.dataset.part = data["部位"] || ""; cardDiv.dataset.genre = data["ジャンル"] || ""; 
 
         const searchItems = [ data["レアリティ"], data["種類"], data["ジャンル"], data["写り込み"], data["タグ"], data["対象アイドル／サポート効果対象"], data["部位"], data["セットボーナス"], data["サポート効果／リズムライブ効果"] ].filter(Boolean);
         let appealTags = [];
@@ -472,10 +471,7 @@
           if (isDetailMode) { openModal(data); } else {
             if (ownedCardIds.has(data["番号"])) { ownedCardIds.delete(data["番号"]); cardDiv.classList.remove('owned'); if (userCardDetails[data["番号"]]) userCardDetails[data["番号"]].count = 0; } 
             else { ownedCardIds.add(data["番号"]); cardDiv.classList.add('owned'); if (!userCardDetails[data["番号"]]) userCardDetails[data["番号"]] = { count: 1, memo: "", wish: 0 }; else userCardDetails[data["番号"]].count = 1; }
-            
-            localStorage.setItem('tourmas_cardDetails', JSON.stringify(userCardDetails));
-            localStorage.setItem('tourmas_ownedCards', JSON.stringify(Array.from(ownedCardIds)));
-            
+            localStorage.setItem('tourmas_cardDetails', JSON.stringify(userCardDetails)); 
             window.applyFiltersAndSort(); markAsUnsaved(); 
           }
         };
@@ -527,10 +523,7 @@
       const cId = currentModalCardData["番号"], cV = parseInt($('modalCount').value) || 0, wV = parseInt($('modalWish').value) || 0, mV = $('modalMemo').value;
       if (cV > 0) ownedCardIds.add(cId); else ownedCardIds.delete(cId);
       userCardDetails[cId] = { count: cV, memo: mV, wish: wV };
-      
-      localStorage.setItem('tourmas_cardDetails', JSON.stringify(userCardDetails));
-      localStorage.setItem('tourmas_ownedCards', JSON.stringify(Array.from(ownedCardIds)));
-      
+      localStorage.setItem('tourmas_cardDetails', JSON.stringify(userCardDetails)); 
       markAsUnsaved(); window.renderCards(); 
     };
     $('modalCount').addEventListener('change', window.updateLocalMemory); $('modalWish').addEventListener('change', window.updateLocalMemory);
@@ -552,6 +545,7 @@
         if (item.id === 'number') v = data["番号"]; else if (item.id === 'rarity') v = data["レアリティ"]; else if (item.id === 'type') v = data["種類"]; else if (item.id === 'genre') v = data["ジャンル"];
         else if (item.id === 'appeal') { const vV = data["アピール値（Vocal)"] || 0, dV = data["アピール値（Dance）"] || 0, viV = data["アピール値（Visual）"] || 0; if (vV||dV||viV) v = `<span style="color:#e91e63">Vo: ${vV}</span> / <span style="color:#2196f3">Da: ${dV}</span> / <span style="color:#ffc107">Vi: ${viV}</span>`; }
         else if (item.id === 'target') v = data["対象アイドル／サポート効果対象"]; else if (item.id === 'part') v = data["部位"]; else if (item.id === 'effect') v = data["サポート効果／リズムライブ効果"]; else if (item.id === 'note') v = (data["備考"] || "").replace(/,/g, '<br>'); else if (item.id === 'relax') v = data["制限緩和"]; else if (item.id === 'comment') v = data["キャラコメント"] || data["コメント"]; else if (item.id === 'series') v = data["シリーズ"] || data["入手手段"];
+        
         else if (item.id === 'bonus') { 
           if (data["セットボーナス"]) {
             const bonuses = data["セットボーナス"].split(',').map(b => b.trim()).filter(b => b !== '');
@@ -565,7 +559,6 @@
       const ud = userCardDetails[data["番号"]] || { count: (ownedCardIds.has(data["番号"]) ? 1 : 0), memo: "", wish: 0 };
       $('modalCount').value = ud.count; $('modalWish').value = ud.wish; $('modalMemo').value = ud.memo;
       
-      // ★ モーダル展開時にスクロールをロック
       $('detailModal').classList.add('open');
       lockScroll();
 
