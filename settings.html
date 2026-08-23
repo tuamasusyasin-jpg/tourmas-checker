@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <title>チェッカー設定 - ツアマス所持率チェッカー</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- ★ ズーム防止の設定を追加 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <style>
     :root { --main-color: #ff66a3; --sub-color: #ffebf0; }
     body { font-family: sans-serif; padding: 0; margin: 0; background-color: #f0f0f0; color: #333; }
     
-    /* ★ ヘッダー固定CSS */
     .header-fixed-wrap { position: sticky; top: 0; z-index: 900; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
     #marqueeContainer { background: #333; color: #fff; padding: 8px 0; font-size: 14px; font-weight: bold; }
     header { background: #fff; padding: 15px; display: flex; align-items: center; justify-content: space-between; }
@@ -56,7 +56,6 @@
     .settings-list-item button:hover { background:#bbb; }
     .settings-list-item button:disabled { opacity: 0.3; cursor:not-allowed; }
 
-    /* ★ セーブボタン用CSS */
     .cloud-save-btn { background: #1a73e8; color:white; border:none; padding:8px 12px; font-size:14px; font-weight:bold; border-radius:20px; cursor:pointer; box-shadow: 0 2px 5px rgba(26,115,232,0.3); display:none; }
     .cloud-save-btn.unsaved { animation: pulse 1.5s infinite; background: #e91e63; box-shadow: 0 2px 5px rgba(233,30,99,0.3); }
     @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
@@ -66,7 +65,6 @@
 </head>
 <body>
 
-  <!-- ★ ヘッダーをラップして追従固定 -->
   <div class="header-fixed-wrap">
     <div id="marqueeContainer"><marquee id="marqueeText" scrollamount="5"></marquee></div>
     <header>
@@ -74,7 +72,6 @@
           <button id="menuOpenBtn">☰</button>
           <h1>ツアマス所持率チェッカー</h1>
       </div>
-      <!-- ★ 設定画面にもクラウドセーブボタンを設置 -->
       <button class="cloud-save-btn" id="cloudSaveBtn" style="display:none;" onclick="triggerCloudSave()">クラウドにセーブ</button>
     </header>
   </div>
@@ -97,7 +94,8 @@
         
         <div style="margin-bottom:15px;">
           <label style="font-weight:bold; display:block; margin-bottom:5px;">テーマカラー</label>
-          <select id="themeSelectInSettings" style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ccc; font-weight: bold;">
+          <!-- ★ ズーム防止のためにfont-sizeを16pxに変更 -->
+          <select id="themeSelectInSettings" style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ccc; font-weight: bold; font-size:16px;">
             <option value="default">デフォルト (ピンク)</option>
             <option value="as">アイドルマスター (赤)</option>
             <option value="cg">シンデレラガールズ (青)</option>
@@ -110,7 +108,7 @@
 
         <div style="margin-bottom:15px;">
           <label style="font-weight:bold; display:block; margin-bottom:5px;">長いカード名の表示方法</label>
-          <select id="nameStyleSelect" style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ccc; font-weight: bold;">
+          <select id="nameStyleSelect" style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ccc; font-weight: bold; font-size:16px;">
             <option value="ellipsis">「...」で省略する (デフォルト)</option>
             <option value="shrink">意地でも1行に縮小して表示する</option>
             <option value="marquee">自動で横スクロール（ヨーヨー）させる</option>
@@ -119,7 +117,7 @@
 
         <div style="margin-bottom:15px;">
           <label style="font-weight:bold; display:block; margin-bottom:5px;">ログイン直後のカードタップの挙動</label>
-          <select id="defaultModeSelect" style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ccc; font-weight: bold;">
+          <select id="defaultModeSelect" style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ccc; font-weight: bold; font-size:16px;">
             <option value="on">詳細確認モード (ON: カードの詳細を見る)</option>
             <option value="off">所持チェックモード (OFF: 所持/未所持を切り替える)</option>
           </select>
@@ -255,7 +253,6 @@
       else { userInfo.innerText = "未ログイン（セーブ不可）"; }
     };
     
-    // ★ セーブボタン用関数
     window.markAsUnsaved = () => {
       document.querySelectorAll('.cloud-save-btn').forEach(btn => {
         btn.style.display = 'inline-block';
@@ -264,6 +261,7 @@
       });
     };
 
+    // ★ セーブ時のエラー検知を追加！
     window.triggerCloudSave = async () => {
       if (!currentUser) return alert("セーブするにはGoogleログインしてください。");
       const settingsData = {
@@ -277,14 +275,19 @@
         menuConfig: menuConfig
       };
       
-      await setDoc(doc(db, "users", currentUser.uid), { settings: settingsData }, { merge: true });
-      
-      document.querySelectorAll('.cloud-save-btn').forEach(btn => {
-        btn.classList.remove('unsaved');
-        btn.innerText = "クラウドにセーブ済";
-      });
-      const toast = document.getElementById('toast');
-      if(toast) { toast.innerText = "クラウドに保存しました！"; toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 2000); }
+      try {
+        await setDoc(doc(db, "users", currentUser.uid), { settings: settingsData }, { merge: true });
+        
+        document.querySelectorAll('.cloud-save-btn').forEach(btn => {
+          btn.classList.remove('unsaved');
+          btn.innerText = "クラウドにセーブ済";
+        });
+        const toast = document.getElementById('toast');
+        if(toast) { toast.innerText = "クラウドに保存しました！"; toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 2000); }
+      } catch (error) {
+        console.error("Save Error:", error);
+        alert("セーブに失敗しました。通信エラーか、1日のセーブ回数上限に達した可能性があります。");
+      }
     };
 
     document.getElementById('themeSelectInSettings').value = savedTheme;
@@ -391,7 +394,6 @@
     onAuthStateChanged(auth, async (user) => {
       currentUser = user || null;
       if (user) {
-        // ★ ログイン時に設定データをクラウドから復元
         const docSnap = await getDoc(doc(db, "users", user.uid));
         if (docSnap.exists() && docSnap.data().settings) {
            const s = docSnap.data().settings;
