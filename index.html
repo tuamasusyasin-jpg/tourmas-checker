@@ -378,8 +378,32 @@
 
     window.renderSidebarMenu();
 
-    const buildFilters = () => {
-// ★ 復活させた seriesFilterContainer に中身を流し込む
+const buildFilters = () => {
+      // ① ユーザーさんが確認してくれた「弾を綺麗に並び替える処理」
+      let actualSeriesSet = new Set();
+      let hasUnk = false;
+      
+      cardData.forEach(c => { 
+          let s = (c["シリーズ"] || c["入手手段"] || "").trim(); 
+          if (s === "") { hasUnk = true; } 
+          else { actualSeriesSet.add(s); } 
+      });
+      
+      let sortedSeries = [];
+      let definedSeries = (siteConfig && siteConfig.seriesList) || (filterConfig && filterConfig.seriesList) || [];
+      if (definedSeries && Array.isArray(definedSeries)) {
+          definedSeries.forEach(s => {
+              let st = s.trim();
+              let matched = Array.from(actualSeriesSet).filter(actual => actual.includes(st) || st.includes(actual));
+              matched.forEach(m => {
+                  sortedSeries.push(m);
+                  actualSeriesSet.delete(m); 
+              });
+          });
+      }
+      sortedSeries = sortedSeries.concat(Array.from(actualSeriesSet));
+      
+      // ② 新しく追加した「チェック状態を記憶する」処理
       const sfc = $('seriesFilterContainer');
       if(sfc) {
           // ★ ローカルストレージから「非表示設定（チェックを外した弾）」を読み込む
@@ -413,7 +437,40 @@
               window.applyFiltersAndSort();
           }));
       }
+
+      // ③ 残りの各種フィルター（レアリティやブランドなど）を作る処理
+      const panel = $('filterPanelBody');
+      if(panel) {
+        const filterGroups = [{id:'owned',label:'所持状況'},{id:'wish',label:'欲しい度'},{id:'rarity',label:'レアリティ'},{id:'type',label:'種類'},{id:'brand',label:'ブランド'},{id:'target',label:'対象・効果'},{id:'part',label:'部位'},{id:'genre',label:'ジャンル'},{id:'idol',label:'アイドル'}];
+        let tabsHtml = '<div class="filter-tabs">';
+        let contentsHtml = '<div class="filter-contents">';
+        
+        filterGroups.forEach((g, idx) => {
+          const isActive = idx === 0 ? 'active' : '';
+          tabsHtml += `<button class="filter-tab-btn ${isActive}" data-target="pane-${g.id}">${g.label}</button>`;
+          let inH = "";
+          if (g.id === 'owned') inH = `<label class="filter-btn-label"><input type="radio" name="filterOwned" value="all" checked> すべて表示</label><label class="filter-btn-label"><input type="radio" name="filterOwned" value="owned"> 持っている</label><label class="filter-btn-label"><input type="radio" name="filterOwned" value="unowned"> 持っていない</label>`;
+          else if (g.id === 'wish') inH = `<label class="filter-btn-label"><input type="radio" name="filterWish" value="0" checked> 指定なし</label><label class="filter-btn-label"><input type="radio" name="filterWish" value="1"> ★1以上</label><label class="filter-btn-label"><input type="radio" name="filterWish" value="2"> ★2以上</label><label class="filter-btn-label"><input type="radio" name="filterWish" value="3"> ★3以上</label><label class="filter-btn-label"><input type="radio" name="filterWish" value="4"> ★4以上</label><label class="filter-btn-label"><input type="radio" name="filterWish" value="5"> ★5のみ</label>`;
+          else {
+              let arr = []; if(g.id === 'rarity') arr = filterConfig.rarities; if(g.id === 'type') arr = filterConfig.types; if(g.id === 'brand') arr = filterConfig.brands; if(g.id === 'target') arr = filterConfig.targets; if(g.id === 'part') arr = filterConfig.parts; if(g.id === 'genre') arr = filterConfig.genres; if(g.id === 'idol') arr = filterConfig.idols;
+              arr.forEach(i => inH += `<label class="filter-btn-label"><input type="checkbox" class="advanced-filter filter-${g.id}" value="${typeof i === 'object' ? i.name : i}"> ${typeof i === 'object' ? i.name : i}</label>`);
+          }
+          contentsHtml += `<div id="pane-${g.id}" class="filter-content-pane ${isActive}"><div class="filter-grid">${inH}</div></div>`;
+        });
+        
+        panel.innerHTML = tabsHtml + '</div>' + contentsHtml + '</div>';
+
+        document.querySelectorAll('.filter-tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.filter-tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.filter-content-pane').forEach(p => p.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById(btn.dataset.target).classList.add('active');
+            });
+        });
+        $$('input[name="filterOwned"], input[name="filterWish"], .advanced-filter').forEach(r => r.addEventListener('change', window.applyFiltersAndSort));
       }
+    };
       
       sortedSeries = sortedSeries.concat(Array.from(actualSeriesSet));
       
