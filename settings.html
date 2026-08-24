@@ -69,7 +69,13 @@
   </style>
 </head>
 <body>
-
+<div id="errorModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; justify-content:center; align-items:center; padding:20px; box-sizing:border-box;">
+    <div style="background:#fff; border:3px solid #dc3545; padding:20px 30px; border-radius:12px; max-width:100%; width:320px; text-align:center;">
+      <h3 style="color:#dc3545; margin-top:0; font-size:18px;">⚠️ セーブ失敗</h3>
+      <p id="errorMessage" style="font-size:14px; line-height:1.5; color:#333; margin-bottom:20px; font-weight:bold; white-space:pre-wrap;"></p>
+      <button onclick="document.getElementById('errorModal').style.display='none'" style="padding:10px 30px; background:#555; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">閉じる</button>
+    </div>
+  </div>
   <div class="header-fixed-wrap">
     <div id="marqueeContainer"><div class="marquee-content" id="marqueeText"></div></div>
     <header>
@@ -317,19 +323,32 @@ window.triggerCloudSave = async () => {
         });
         const toast = document.getElementById('toast');
         if(toast) { toast.innerText = "クラウドに保存しました！"; toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 5000); }
-      } catch (error) {
+} catch (error) {
         console.error("Save Error:", error);
         saveBtns.forEach(btn => {
             btn.disabled = false;
             btn.innerText = "セーブ(未保存)";
         });
 
+        // エラー内容に応じたメッセージを設定
+        let msg = "";
         if (error.message === "timeout") {
-            alert("セーブに失敗しました。通信環境が不安定か、サーバーからの応答がありません。");
+            msg = "通信環境が不安定か、サーバーからの応答がありません。";
         } else if (error.code === "resource-exhausted" || error.message.includes("Quota")) {
-            alert("【警告】1日のセーブ回数上限（2万回）に達しました！明日までクラウドセーブはできません。");
+            msg = "1日のセーブ回数上限（2万回）に達しました！\n明日までクラウドセーブはできません。";
         } else {
-            alert("セーブに失敗しました。\n詳細: " + error.message);
+            msg = "通信エラーの可能性があります。\n詳細: " + error.message;
+        }
+        
+        // 自前のエラー画面にメッセージを入れて表示する
+        const eModal = document.getElementById('errorModal');
+        const eMsg = document.getElementById('errorMessage');
+        if (eModal && eMsg) {
+            eMsg.innerText = msg;
+            eModal.style.display = 'flex';
+        } else {
+            // 万が一エラー画面が見つからない時のための保険
+            alert("セーブに失敗しました。\n" + msg);
         }
       }
     };
