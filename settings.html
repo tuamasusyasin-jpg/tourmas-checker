@@ -305,15 +305,17 @@ window.triggerCloudSave = async () => {
       saveBtns.forEach(btn => { btn.disabled = true; btn.innerText = "セーブ中..."; });
 
       try {
+        // ★ エラーの原因だった filterConfigGroups を削除しました！
         const settingsData = {
           theme: savedTheme, notice: savedNotice, privacy: savedPrivacy, nameStyle: savedNameStyle,
           defaultMode: document.getElementById('defaultModeSelect').value, freeMemo: document.getElementById('freeMemoToggle').checked,
-          modalConfig, menuConfig, filterConfigGroups
+          modalConfig, menuConfig
         };
 
         const savePromise = setDoc(doc(db, "users", currentUser.uid), { settings: settingsData }, { merge: true });
         
-        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), 10000));
+        // ★ スマホ回線対策で15秒（15000）に延長！
+        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), 15000));
         await Promise.race([savePromise, timeoutPromise]);
         
         saveBtns.forEach(btn => {
@@ -322,32 +324,30 @@ window.triggerCloudSave = async () => {
             btn.innerText = "クラウドにセーブ済";
         });
         const toast = document.getElementById('toast');
-        if(toast) { toast.innerText = "クラウドに保存しました！"; toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 5000); }
-} catch (error) {
+        if(toast) { toast.innerText = "クラウドに保存しました！"; toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 2000); }
+      } catch (error) {
         console.error("Save Error:", error);
         saveBtns.forEach(btn => {
             btn.disabled = false;
             btn.innerText = "セーブ(未保存)";
         });
 
-        // エラー内容に応じたメッセージを設定
+        // 自前のエラー画面の呼び出し
         let msg = "";
         if (error.message === "timeout") {
-            msg = "通信環境が不安定か、サーバーからの応答がありません。";
+            msg = "スマホの通信環境が不安定か、時間がかかりすぎています。電波の良いところで再度お試しください。";
         } else if (error.code === "resource-exhausted" || error.message.includes("Quota")) {
             msg = "1日のセーブ回数上限（2万回）に達しました！\n明日までクラウドセーブはできません。";
         } else {
             msg = "通信エラーの可能性があります。\n詳細: " + error.message;
         }
         
-        // 自前のエラー画面にメッセージを入れて表示する
         const eModal = document.getElementById('errorModal');
         const eMsg = document.getElementById('errorMessage');
         if (eModal && eMsg) {
             eMsg.innerText = msg;
             eModal.style.display = 'flex';
         } else {
-            // 万が一エラー画面が見つからない時のための保険
             alert("セーブに失敗しました。\n" + msg);
         }
       }

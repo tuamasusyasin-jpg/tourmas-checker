@@ -536,69 +536,65 @@
     if($('sortSelect')) $('sortSelect').addEventListener('change', window.applyFiltersAndSort);
     if($('sortOrderBtn')) $('sortOrderBtn').addEventListener('click', () => { const b = $('sortOrderBtn'); if (b.dataset.order === 'asc') { b.dataset.order = 'desc'; b.innerText = "降順 ▼"; } else { b.dataset.order = 'asc'; b.innerText = "昇順 ▲"; } window.applyFiltersAndSort(); });
 window.triggerCloudSave = async () => {
-  if (!currentUser) return alert("セーブするにはGoogleログインしてください。");
+      if (!currentUser) return alert("セーブするにはGoogleログインしてください。");
 
-  // 連打防止（ボタンを無効化して待機状態にする）
-  const saveBtns = document.querySelectorAll('.cloud-save-btn');
-  saveBtns.forEach(btn => {
-      btn.disabled = true;
-      btn.innerText = "セーブ中...";
-  });
+      const saveBtns = document.querySelectorAll('.cloud-save-btn');
+      saveBtns.forEach(btn => {
+          btn.disabled = true;
+          btn.innerText = "セーブ中...";
+      });
 
-  try {
-    const cleanCardDetails = JSON.parse(JSON.stringify(userCardDetails || {}));
-    const cleanFormations = JSON.parse(JSON.stringify(userFormations || []));
+      try {
+        const cleanCardDetails = JSON.parse(JSON.stringify(userCardDetails || {}));
+        const cleanFormations = JSON.parse(JSON.stringify(userFormations || []));
 
-    // セーブ処理
-    const savePromise = setDoc(doc(db, "users", currentUser.uid), {
-      ownedCards: Array.from(ownedCardIds),
-      cardDetails: cleanCardDetails,
-      formations: cleanFormations
-    }, { merge: true });
+        const savePromise = setDoc(doc(db, "users", currentUser.uid), {
+          ownedCards: Array.from(ownedCardIds),
+          cardDetails: cleanCardDetails,
+          formations: cleanFormations
+        }, { merge: true });
 
-    // 10秒でタイムアウトさせる処理（無言フリーズ対策）
-    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), 5000));
-    
-    await Promise.race([savePromise, timeoutPromise]);
+        // ★ スマホ回線対策で15秒（15000）に延長！
+        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), 15000));
+        
+        await Promise.race([savePromise, timeoutPromise]);
 
-    hasUnsavedChanges = false;
-    saveBtns.forEach(btn => {
-        btn.disabled = false;
-        btn.classList.remove('unsaved');
-        btn.innerText = "クラウドにセーブ済";
-    });
-    const toast = document.getElementById('toast');
-    if(toast) { toast.innerText = "クラウドに保存しました！"; toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 2000); }
-    
-} catch (error) {
+        hasUnsavedChanges = false;
+        saveBtns.forEach(btn => {
+            btn.disabled = false;
+            btn.classList.remove('unsaved');
+            btn.innerText = "クラウドにセーブ済";
+        });
+        const toast = document.getElementById('toast');
+        if(toast) { toast.innerText = "クラウドに保存しました！"; toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 2000); }
+        
+      } catch (error) {
         console.error("Save Error:", error);
         saveBtns.forEach(btn => {
             btn.disabled = false;
             btn.innerText = "セーブ(未保存)";
         });
 
-        // エラー内容に応じたメッセージを設定
+        // 自前のエラー画面の呼び出し
         let msg = "";
         if (error.message === "timeout") {
-            msg = "通信環境が不安定か、サーバーからの応答がありません。";
+            msg = "スマホの通信環境が不安定か、時間がかかりすぎています。電波の良いところで再度お試しください。";
         } else if (error.code === "resource-exhausted" || error.message.includes("Quota")) {
             msg = "1日のセーブ回数上限（2万回）に達しました！\n明日までクラウドセーブはできません。";
         } else {
             msg = "通信エラーの可能性があります。\n詳細: " + error.message;
         }
         
-        // 自前のエラー画面にメッセージを入れて表示する
         const eModal = document.getElementById('errorModal');
         const eMsg = document.getElementById('errorMessage');
         if (eModal && eMsg) {
             eMsg.innerText = msg;
             eModal.style.display = 'flex';
         } else {
-            // 万が一エラー画面が見つからない時のための保険
             alert("セーブに失敗しました。\n" + msg);
         }
       }
-};
+    };
     
     window.markAsUnsaved = () => {
       hasUnsavedChanges = true;
