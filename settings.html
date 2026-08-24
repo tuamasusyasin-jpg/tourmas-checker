@@ -292,34 +292,47 @@
       });
     };
 
-    window.triggerCloudSave = async () => {
+window.triggerCloudSave = async () => {
       if (!currentUser) return alert("セーブするにはGoogleログインしてください。");
-      const settingsData = {
-        theme: savedTheme,
-        notice: savedNotice,
-        privacy: savedPrivacy,
-        nameStyle: savedNameStyle,
-        defaultMode: savedDefaultMode,
-        freeMemo: document.getElementById('freeMemoToggle').checked,
-        modalConfig: modalConfig,
-        menuConfig: menuConfig
-      };
       
+      const saveBtns = document.querySelectorAll('.cloud-save-btn');
+      saveBtns.forEach(btn => { btn.disabled = true; btn.innerText = "セーブ中..."; });
+
       try {
-        await setDoc(doc(db, "users", currentUser.uid), { settings: settingsData }, { merge: true });
+        const settingsData = {
+          theme: savedTheme, notice: savedNotice, privacy: savedPrivacy, nameStyle: savedNameStyle,
+          defaultMode: document.getElementById('defaultModeSelect').value, freeMemo: document.getElementById('freeMemoToggle').checked,
+          modalConfig, menuConfig, filterConfigGroups
+        };
+
+        const savePromise = setDoc(doc(db, "users", currentUser.uid), { settings: settingsData }, { merge: true });
         
-        document.querySelectorAll('.cloud-save-btn').forEach(btn => {
-          btn.classList.remove('unsaved');
-          btn.innerText = "クラウドにセーブ済";
+        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), 10000));
+        await Promise.race([savePromise, timeoutPromise]);
+        
+        saveBtns.forEach(btn => {
+            btn.disabled = false;
+            btn.classList.remove('unsaved');
+            btn.innerText = "クラウドにセーブ済";
         });
         const toast = document.getElementById('toast');
         if(toast) { toast.innerText = "クラウドに保存しました！"; toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 2000); }
       } catch (error) {
         console.error("Save Error:", error);
-        alert("セーブに失敗しました。通信エラーか、1日のセーブ回数上限に達した可能性があります。");
+        saveBtns.forEach(btn => {
+            btn.disabled = false;
+            btn.innerText = "セーブ(未保存)";
+        });
+
+        if (error.message === "timeout") {
+            alert("セーブに失敗しました。通信環境が不安定か、サーバーからの応答がありません。");
+        } else if (error.code === "resource-exhausted" || error.message.includes("Quota")) {
+            alert("【警告】1日のセーブ回数上限（2万回）に達しました！明日までクラウドセーブはできません。");
+        } else {
+            alert("セーブに失敗しました。\n詳細: " + error.message);
+        }
       }
     };
-
     document.getElementById('themeSelectInSettings').value = savedTheme;
     document.getElementById('themeSelectInSettings').addEventListener('change', (e) => {
       savedTheme = e.target.value;

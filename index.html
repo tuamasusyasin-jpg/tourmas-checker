@@ -529,43 +529,58 @@
     $$('input[name="searchMode"]').forEach(r => r.addEventListener('change', window.applyFiltersAndSort));
     if($('sortSelect')) $('sortSelect').addEventListener('change', window.applyFiltersAndSort);
     if($('sortOrderBtn')) $('sortOrderBtn').addEventListener('click', () => { const b = $('sortOrderBtn'); if (b.dataset.order === 'asc') { b.dataset.order = 'desc'; b.innerText = "降順 ▼"; } else { b.dataset.order = 'asc'; b.innerText = "昇順 ▲"; } window.applyFiltersAndSort(); });
+window.triggerCloudSave = async () => {
+  if (!currentUser) return alert("セーブするにはGoogleログインしてください。");
 
-    window.updateLocalMemory = () => {
-      if (!currentModalCardData) return;
-      const cId = currentModalCardData["番号"], cV = parseInt($('modalCount').value) || 0, wV = parseInt($('modalWish').value) || 0, mV = $('modalMemo').value;
-      if (cV > 0) ownedCardIds.add(cId); else ownedCardIds.delete(cId);
-      userCardDetails[cId] = { count: cV, memo: mV, wish: wV };
-      localStorage.setItem('tourmas_cardDetails', JSON.stringify(userCardDetails)); 
-      localStorage.setItem('tourmas_ownedCards', JSON.stringify(Array.from(ownedCardIds)));
-      
-      window.markAsUnsaved(); window.renderCards(); 
-    };
+  // 連打防止（ボタンを無効化して待機状態にする）
+  const saveBtns = document.querySelectorAll('.cloud-save-btn');
+  saveBtns.forEach(btn => {
+      btn.disabled = true;
+      btn.innerText = "セーブ中...";
+  });
+
+  try {
+    const cleanCardDetails = JSON.parse(JSON.stringify(userCardDetails || {}));
+    const cleanFormations = JSON.parse(JSON.stringify(userFormations || []));
+
+    // セーブ処理
+    const savePromise = setDoc(doc(db, "users", currentUser.uid), {
+      ownedCards: Array.from(ownedCardIds),
+      cardDetails: cleanCardDetails,
+      formations: cleanFormations
+    }, { merge: true });
+
+    // 10秒でタイムアウトさせる処理（無言フリーズ対策）
+    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), 10000));
     
-    // ★ セーブボタン用関数
-    window.triggerCloudSave = async () => {
-      if (!currentUser) return alert("セーブするにはGoogleログインしてください。");
-      try {
-        const cleanCardDetails = JSON.parse(JSON.stringify(userCardDetails || {}));
-        const cleanFormations = JSON.parse(JSON.stringify(userFormations || []));
+    await Promise.race([savePromise, timeoutPromise]);
 
-        await setDoc(doc(db, "users", currentUser.uid), {
-          ownedCards: Array.from(ownedCardIds),
-          cardDetails: cleanCardDetails,
-          formations: cleanFormations
-        }, { merge: true });
+    hasUnsavedChanges = false;
+    saveBtns.forEach(btn => {
+        btn.disabled = false;
+        btn.classList.remove('unsaved');
+        btn.innerText = "クラウドにセーブ済";
+    });
+    const toast = document.getElementById('toast');
+    if(toast) { toast.innerText = "クラウドに保存しました！"; toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 2000); }
+    
+  } catch (error) {
+    console.error("Save Error:", error);
+    saveBtns.forEach(btn => {
+        btn.disabled = false;
+        btn.innerText = "セーブ(未保存)";
+    });
 
-        hasUnsavedChanges = false;
-        $$('.cloud-save-btn').forEach(btn => {
-            btn.classList.remove('unsaved');
-            btn.innerText = "クラウドにセーブ済";
-        });
-        const toast = $('toast');
-        if(toast) { toast.innerText = "クラウドに保存しました！"; toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 2000); }
-      } catch(e) {
-        console.error("Save Error:", e);
-        alert("セーブに失敗しました。通信エラーの可能性があります。\n詳細: " + e.message);
-      }
-    };
+    // エラー内容に応じたメッセージの出し分け
+    if (error.message === "timeout") {
+        alert("セーブに失敗しました。通信環境が不安定か、サーバーからの応答がありません。");
+    } else if (error.code === "resource-exhausted" || error.message.includes("Quota")) {
+        alert("【警告】1日のセーブ回数上限（2万回）に達しました！明日までクラウドセーブはできません。");
+    } else {
+        alert("セーブに失敗しました。通信エラーの可能性があります。\n詳細: " + error.message);
+    }
+  }
+};
     
     window.markAsUnsaved = () => {
       hasUnsavedChanges = true;
