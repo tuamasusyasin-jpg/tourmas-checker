@@ -3,19 +3,28 @@
 <head>
   <meta charset="UTF-8">
   <title>ツアマス所持率チェッカー - カード一覧</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- ★ ズーム防止の設定 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <style>
     :root { --main-color: #ff66a3; --sub-color: #ffebf0; }
     body { font-family: sans-serif; padding: 0; margin: 0; background-color: #f0f0f0; color: #333; }
-    #marqueeContainer { background: #333; color: #fff; padding: 8px 0; font-size: 14px; font-weight: bold; }
-    header { background: #fff; padding: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: space-between; }
+    
+    .header-fixed-wrap { position: sticky; top: 0; z-index: 900; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    
+    #marqueeContainer { background: #333; color: #fff; padding: 8px 0; font-size: 14px; font-weight: bold; overflow: hidden; white-space: nowrap; position: relative; }
+    .marquee-content { display: inline-block; padding-left: 100%; animation: marquee 15s linear infinite; }
+    @keyframes marquee { 0% { transform: translate(0, 0); } 100% { transform: translate(-100%, 0); } }
+
+    header { background: #fff; padding: 15px; display: flex; align-items: center; justify-content: space-between; }
+    
     #menuOpenBtn { font-size: 24px; background: none; border: none; cursor: pointer; color: #555; }
     .header-left { display: flex; align-items: center; gap: 15px; }
     header h1 { margin: 0; font-size: 18px; }
 
-    #sidebar { position: fixed; top: 0; left: -300px; width: 300px; height: 100%; background: #fff; box-shadow: 2px 0 10px rgba(0,0,0,0.2); transition: left 0.3s ease; z-index: 1000; padding: 20px; box-sizing: border-box; overflow-y: auto; display: flex; flex-direction: column; }
+    /* ★ サイドメニュー */
+    #sidebar { position: fixed; top: 0; left: -300px; width: 300px; height: 100%; background: #fff; box-shadow: 2px 0 10px rgba(0,0,0,0.2); transition: left 0.3s ease; z-index: 1000; padding: 20px; box-sizing: border-box; overflow-y: auto; display: flex; flex-direction: column; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
     #sidebar.open { left: 0; }
-    #menuCloseBtn { font-size: 24px; background: none; border: none; cursor: pointer; color: #999; text-align: right; width: 100%; margin-bottom: 20px; }
+    #menuCloseBtn { font-size: 24px; background: none; border: none; cursor: pointer; color: #999; text-align: right; width: 100%; margin-bottom: 20px; padding: 15px; margin-right: -15px;}
     #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); opacity: 0; pointer-events: none; transition: opacity 0.3s ease; z-index: 999; }
     #overlay.open { opacity: 1; pointer-events: auto; }
     
@@ -40,11 +49,11 @@
     #counterDisplay { color: var(--main-color); font-size: 22px; margin-top: 0; }
     #totalCountDisplay { font-size: 16px; color: #666; margin-left: 15px; display: inline-block; }
     .search-area { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-bottom: 10px; align-items: center; }
-    #searchInput { padding: 10px 20px; width: 100%; max-width: 350px; font-size: 15px; border-radius: 30px; border: 2px solid #ddd; outline: none; }
+    #searchInput { padding: 10px 20px; width: 100%; max-width: 350px; font-size: 16px; border-radius: 30px; border: 2px solid #ddd; outline: none; }
     .search-toggles { display: flex; gap: 15px; font-size: 13px; color: #555; }
     .sort-controls { display: flex; gap: 5px; margin-top: 10px; justify-content: center; align-items: center; }
-    .sort-controls select, .sort-controls button { padding: 8px 12px; font-size: 14px; border-radius: 20px; border: 1px solid #ccc; outline: none; cursor: pointer; background: #fff; }
-    .sort-controls button { background: #555; color: white; font-weight: bold; border: none; }
+    .sort-controls select, .sort-controls button { padding: 8px 12px; font-size: 16px; border-radius: 20px; border: 1px solid #ccc; outline: none; cursor: pointer; background: #fff; }
+    .sort-controls button { background: #555; color: white; font-weight: bold; border: none; font-size: 14px; }
     
     .cloud-save-btn { background: #1a73e8; color:white; border:none; padding:8px 12px; font-size:14px; font-weight:bold; border-radius:20px; cursor:pointer; box-shadow: 0 2px 5px rgba(26,115,232,0.3); display:none; }
     .cloud-save-btn.unsaved { animation: pulse 1.5s infinite; background: #e91e63; box-shadow: 0 2px 5px rgba(233,30,99,0.3); }
@@ -55,23 +64,22 @@
     #filterPanel { max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out; background: #fff; border-radius: 15px; text-align: left; margin: 15px auto 20px auto; max-width: 650px; padding: 0 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
     #filterPanel.open { max-height: 5000px; padding: 20px; }
     
-    .filter-tabs { display: flex; overflow-x: auto; gap: 4px; border-bottom: 2px solid var(--main-color); margin-bottom: 10px; padding-bottom: 0; }
-    .filter-tabs::-webkit-scrollbar { height: 6px; }
-    .filter-tabs::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
-    .filter-tab-btn { white-space: nowrap; padding: 8px 12px; background: #eee; border: none; border-radius: 6px 6px 0 0; cursor: pointer; font-size: 12px; font-weight: bold; color: #666; transition: 0.2s; }
+    .filter-tabs { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; border-bottom: 2px solid var(--sub-color); margin-bottom: 15px; padding-bottom: 12px; }
+    .filter-tab-btn { white-space: nowrap; padding: 8px 12px; background: #eee; border: none; border-radius: 20px; cursor: pointer; font-size: 12px; font-weight: bold; color: #666; transition: 0.2s; }
     .filter-tab-btn:hover { background: #ddd; }
-    .filter-tab-btn.active { background: var(--main-color); color: white; }
+    .filter-tab-btn.active { background: var(--main-color); color: white; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    
     .filter-content-pane { display: none; }
     .filter-content-pane.active { display: block; animation: fadeIn 0.3s ease; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
     
-    .filter-grid { display: flex; flex-wrap: wrap; gap: 6px; padding: 5px 0; }
+    .filter-grid { display: flex; flex-wrap: wrap; gap: 6px; padding: 5px 0; align-items: center; }
     .filter-btn-label { display: inline-block; padding: 4px 12px; border-radius: 20px; border: 1px solid #ccc; background: #fafafa; font-size: 11px; cursor: pointer; transition: 0.2s; user-select: none; }
     .filter-btn-label input { display: none; }
     .filter-btn-label:has(input:checked) { background: var(--main-color); color: white; border-color: var(--main-color); font-weight: bold; }
 
     .card-list { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; }
-    .card { border: 3px solid #ccc; border-radius: 12px; width: 160px; aspect-ratio: 378 / 533; cursor: pointer; background-color: #999; position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; }
+    .card { box-sizing: border-box; border: 3px solid #ccc; border-radius: 12px; width: 160px; aspect-ratio: 378 / 533; cursor: pointer; background-color: #999; position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; }
     .card-info { background: rgba(255, 255, 255, 0.95); padding: 10px; text-align: center; border-top: 1px solid #eee; overflow: hidden; z-index: 2; }
     .card-info h4, .card-info p { margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
     .card-info h4 { font-size: 14px; line-height: 1.2; font-weight: bold; }
@@ -89,10 +97,10 @@
     .card.owned::after { background-color: rgba(0, 0, 0, 0); }
     .wish-star { position: absolute; top: 5px; right: 5px; color: #ffeb3b; text-shadow: 0 0 3px #000; font-size: 16px; z-index: 10; font-weight: bold; }
 
-    #detailModal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; display: none; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; }
-    #detailModal.open { display: flex; }
-    .modal-content { background: #fff; border-radius: 15px; width: 100%; max-width: 1050px; max-height: 90vh; overflow-y: auto; position: relative; padding: 40px 30px; box-sizing: border-box; }
-    .modal-close { position: absolute; top: 15px; right: 20px; font-size: 28px; background: none; border: none; cursor: pointer; color: #999; z-index: 20; }
+    #detailModal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; display: none; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 20px 0; box-sizing: border-box; overscroll-behavior: none; }
+    #detailModal.open { display: block; }
+    .modal-content { background: #fff; border-radius: 15px; width: 92%; max-width: 1050px; margin: 0 auto; position: relative; padding: 40px 20px; box-sizing: border-box; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+    .modal-close { position: absolute; top: 15px; right: 20px; font-size: 28px; background: none; border: none; cursor: pointer; color: #999; z-index: 20; padding: 15px; margin: -15px; }
     
     .modal-layout { display: flex; flex-wrap: wrap; gap: 40px; margin-top: 10px; align-items: center; justify-content: center; }
     .modal-images { flex: 1 1 400px; max-width: 460px; display: flex; flex-direction: row; gap: 15px; justify-content: center; align-items: center; }
@@ -111,24 +119,37 @@
     .user-input-area h4 { margin: 0 0 10px 0; color: #0056b3; }
     .input-row { display: flex; align-items: center; margin-bottom: 10px; }
     .input-row label { width: 80px; font-weight: bold; }
-    .input-row input, .input-row select { width: 100px; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
-    .input-row textarea { flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 4px; height: 60px; resize: vertical; font-size: 14px; }
+    .input-row input, .input-row select { width: 100px; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 16px; }
+    .input-row textarea { flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 4px; height: 60px; resize: vertical; font-size: 16px; }
     
     #toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 10px 20px; border-radius: 30px; z-index: 3000; font-weight: bold; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
     #toast.show { opacity: 1; }
+
+    /* ★ スマホ画面調整 */
+    @media (max-width: 500px) {
+      .view-section { padding: 10px; }
+      .card-list { gap: 5px; }
+      .card { width: calc(33.333% - 4px); min-width: unset; border-width: 2px; border-radius: 8px; }
+      .card-info { padding: 6px; }
+      .card-info h4 { font-size: 11px; }
+      .card-info p { font-size: 9px; margin-top: 3px; }
+      .rarity-badge { font-size: 9px; padding: 2px 4px; top: 3px; left: 3px; }
+      .wish-star { font-size: 12px; top: 3px; right: 3px; }
+    }
   </style>
 </head>
 <body>
 
-  <div id="marqueeContainer"><marquee id="marqueeText" scrollamount="5"></marquee></div>
-
-  <header>
-    <div class="header-left">
-        <button id="menuOpenBtn">☰</button>
-        <h1>ツアマス所持率チェッカー</h1>
-    </div>
-    <button class="cloud-save-btn" id="cloudSaveBtn" style="display:none;" onclick="triggerCloudSave()">クラウドにセーブ</button>
-  </header>
+  <div class="header-fixed-wrap">
+    <div id="marqueeContainer"><div class="marquee-content" id="marqueeText"></div></div>
+    <header>
+      <div class="header-left">
+          <button id="menuOpenBtn">☰</button>
+          <h1>ツアマス所持率チェッカー</h1>
+      </div>
+      <button class="cloud-save-btn" id="cloudSaveBtn" style="display:none;" onclick="triggerCloudSave()">クラウドにセーブ</button>
+    </header>
+  </div>
 
   <div id="overlay"></div>
   <div id="sidebar"></div>
@@ -138,7 +159,7 @@
       <div class="controls">
         <h2 id="counterDisplay">所持数: 0 / 0種 (0%) <span id="totalCountDisplay">総枚数: 0枚</span></h2>
         <div class="search-area">
-          <input type="text" id="searchInput" placeholder="検索ワード(例: Vo, 長くなる)を入力...">
+          <input type="text" id="searchInput" placeholder="検索ワードを入力...">
           <div class="search-toggles">
             <label><input type="radio" name="searchMode" value="exact" checked> 基本情報のみ</label>
             <label><input type="radio" name="searchMode" value="partial"> 関連情報も含める</label>
@@ -200,6 +221,14 @@
     const getStore = (k, d) => { try { const v = localStorage.getItem(k); const p = v ? JSON.parse(v) : null; return (p && p.length > 0) ? p : d; } catch(e){ return d; } };
     const setStore = (k, v) => localStorage.setItem(k, JSON.stringify(v));
     
+    try {
+      const localData = JSON.parse(localStorage.getItem('tourmas_cardDetails') || '{}');
+      userCardDetails = localData;
+      Object.keys(localData).forEach(k => {
+        if (localData[k].count > 0) ownedCardIds.add(k);
+      });
+    } catch(e) {}
+
     const dModal = [{id:'number',label:'番号',show:true},{id:'rarity',label:'レアリティ',show:true},{id:'type',label:'種類',show:true},{id:'appeal',label:'アピール値',show:true},{id:'target',label:'対象／効果対象',show:true},{id:'part',label:'部位',show:true},{id:'genre',label:'ジャンル',show:true},{id:'effect',label:'効果／リズム効果',show:true},{id:'note',label:'備考',show:true},{id:'relax',label:'制限緩和',show:true},{id:'comment',label:'コメント',show:true},{id:'series',label:'入手手段',show:true},{id:'bonus',label:'セットボーナス',show:true},{id:'altcard',label:'別カード',show:true},{id:'color',label:'色違い',show:true},{id:'utsurikomi',label:'写り込み',show:true}];
     const dMenu = [{id:'collection',label:'カード一覧'},{id:'formation',label:'マイ編成メモ'},{id:'auth',label:'アカウント・ログイン'},{id:'mode',label:'詳細モード・挙動設定'},{id:'series',label:'表示する弾数'},{id:'settings',label:'チェッカー設定'},{id:'privacy',label:'プライバシーポリシー'},{id:'egao',label:'笑顔満点占い'}];
     
@@ -216,6 +245,11 @@
     document.documentElement.style.setProperty('--main-color', themes[savedTheme].main);
     document.documentElement.style.setProperty('--sub-color', themes[savedTheme].sub);
 
+    const idolBrandMap = new Map();
+    filterConfig.idols.forEach(idol => { if (idol.brand) idolBrandMap.set(idol.name, idol.brand); });
+    cardData.forEach(c => { if (c["アイドル名"] && c["シリーズブランド名"] && !idolBrandMap.has(c["アイドル名"])) idolBrandMap.set(c["アイドル名"], c["シリーズブランド名"]); });
+    filterConfig.idols.forEach(idol => { if (!idolBrandMap.has(idol.name)) idolBrandMap.set(idol.name, "アイドルマスター"); });
+
     let bdayMessages = [];
     const today = new Date(); today.setHours(0,0,0,0);
     filterConfig.idols.forEach(idol => {
@@ -223,64 +257,39 @@
         const [month, day] = idol.birthday.split('-');
         let bdayDate = new Date(today.getFullYear(), parseInt(month) - 1, parseInt(day));
         let diffDays = (today - bdayDate) / (1000 * 60 * 60 * 24);
-        if (diffDays >= 0 && diffDays <= 2) bdayMessages.push(`${idol.name} のバースデー期間！`);
+        
+        if (idol.name === "袖屋 璃空") {
+            if (diffDays === 0) bdayMessages.push(`${idol.name} のお誕生日！`);
+        } else {
+            if (diffDays >= 0 && diffDays <= 2) bdayMessages.push(`${idol.name} のバースデー期間！`);
+        }
       }
     });
+    
     let finalNotice = siteConfig.noticeText;
     if (bdayMessages.length > 0) finalNotice += " ｜ " + bdayMessages.join(" ｜ ");
-    if($('marqueeText')) $('marqueeText').innerText = finalNotice;
-    if($('marqueeContainer')) $('marqueeContainer').style.display = savedNotice ? 'block' : 'none';
+    const mt = $('marqueeText');
+    const mc = $('marqueeContainer');
+    if(mt) mt.innerText = finalNotice;
+    if(mc) {
+      mc.style.display = savedNotice ? 'block' : 'none';
+      if(savedNotice && mt) {
+        mt.style.animationDuration = (mt.offsetWidth / 80) + 's';
+      }
+    }
 
-    // ★ 未保存状態を管理・表示する関数をグローバルに定義
-    window.markAsUnsaved = () => {
-      hasUnsavedChanges = true;
-      $$('.cloud-save-btn').forEach(btn => { 
-        btn.style.display = 'inline-block'; 
-        btn.classList.add('unsaved'); 
-        btn.innerText = "セーブ(未保存)"; 
-      });
+    let currentScrollY = 0;
+    const lockScroll = () => {
+        currentScrollY = window.scrollY;
+        document.body.style.position = 'fixed';
+        document.body.style.top = `-${currentScrollY}px`;
+        document.body.style.width = '100%';
     };
-
-    // ★ クラウドセーブ機能（エラー落ち回避のためのtry-catch＆データクリーンアップ追加）
-    window.triggerCloudSave = async () => {
-      if (!currentUser) {
-        alert("セーブするにはGoogleログインしてください。");
-        return;
-      }
-      
-      try {
-        // モーダルが開いている場合は、入力中のメモや欲しい度を先に確定させる
-        const detailModal = document.getElementById('detailModal');
-        if (detailModal && detailModal.classList.contains('open')) {
-            window.updateLocalMemory();
-        }
-
-        // Firestoreは「undefined」が混ざっていると無言でエラー落ちするため、確実にJSONでクリーンアップする
-        const cleanCardDetails = JSON.parse(JSON.stringify(userCardDetails || {}));
-        const cleanFormations = JSON.parse(JSON.stringify(userFormations || []));
-
-        await setDoc(doc(db, "users", currentUser.uid), {
-          ownedCards: Array.from(ownedCardIds),
-          cardDetails: cleanCardDetails,
-          formations: cleanFormations
-        }, { merge: true });
-
-        hasUnsavedChanges = false;
-        $$('.cloud-save-btn').forEach(btn => {
-            btn.classList.remove('unsaved');
-            btn.innerText = "クラウドにセーブ済";
-        });
-
-        const toast = $('toast');
-        if(toast) {
-            toast.innerText = "クラウドに保存しました！";
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 2000);
-        }
-      } catch(e) {
-        console.error("Save Error:", e);
-        alert("セーブに失敗しました。通信エラーかデータの形式エラーの可能性があります。\n詳細: " + e.message);
-      }
+    const unlockScroll = () => {
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.body.style.width = '';
+        window.scrollTo(0, currentScrollY);
     };
 
     window.renderSidebarMenu = () => {
@@ -288,27 +297,50 @@
       if(!sidebar) return;
       sidebar.innerHTML = '<button id="menuCloseBtn">✖</button>';
       
+      const currentPath = window.location.pathname;
+      const isIndex = currentPath.endsWith('/') || currentPath.endsWith('index.html');
+      const isFormation = currentPath.endsWith('formation.html');
+      const isSettings = currentPath.endsWith('settings.html');
+      const isPrivacy = currentPath.endsWith('privacy.html');
+
       menuConfig.forEach((item, index) => {
         let btnHtml = '';
-        if(item.id === 'collection') btnHtml = `<a href="index.html" class="nav-btn active">カード一覧</a>`;
-        else if(item.id === 'formation') btnHtml = `<a href="formation.html" class="nav-btn">マイ編成メモ</a>`;
-        else if(item.id === 'settings') btnHtml = `<a href="settings.html" class="nav-btn">チェッカー設定</a>`;
-        else if(item.id === 'privacy') btnHtml = `<a href="privacy.html" class="nav-btn">プライバシーポリシー</a>`;
-        else if(item.id === 'auth') btnHtml = `<div class="auth-container"><span id="userInfo">未ログイン</span><label class="checkbox-label" style="justify-content: center; font-size: 11px; margin-top: 5px;"><input type="checkbox" id="privacyToggle" ${savedPrivacy?'checked':''}> 名前を隠す</label><button id="loginBtn">Googleでログイン</button><button id="logoutBtn" class="logout-btn" style="display:none;">ログアウト</button></div>`;
-        else if(item.id === 'mode') btnHtml = `<div class="mode-switch"><label class="checkbox-label" style="margin: 0;"><input type="checkbox" id="detailModeToggle" ${isDetailMode?'checked':''}> 詳細確認モード</label><label class="checkbox-label" style="margin: 10px 0 0 0; font-size: 12px; font-weight: normal; color: #555;"><input type="checkbox" id="closeOutsideToggle" ${localStorage.getItem('tourmas_closeOutside')!=='false'?'checked':''}> 外枠をタップして閉じる</label></div>`;
-        else if(item.id === 'series') btnHtml = `<div><h3 style="margin: 0 0 10px 0; font-size: 15px; color: #555;">表示する弾数（設定は一覧で）</h3></div>`;
-        else if(item.id === 'egao') btnHtml = `<div><button id="egaoBtn">笑顔満点ですっ</button><div id="egaoResult"></div></div>`;
+        let extraClass = '';
+        
+        if(item.id === 'collection') btnHtml = `<a href="index.html" class="nav-btn ${isIndex ? 'active' : ''}">カード一覧</a>`;
+        else if(item.id === 'formation') btnHtml = `<a href="formation.html" class="nav-btn ${isFormation ? 'active' : ''}">マイ編成メモ</a>`;
+        else if(item.id === 'settings') btnHtml = `<a href="settings.html" class="nav-btn ${isSettings ? 'active' : ''}">チェッカー設定</a>`;
+        else if(item.id === 'privacy') btnHtml = `<a href="privacy.html" class="nav-btn ${isPrivacy ? 'active' : ''}">プライバシーポリシー</a>`;
+        else if(item.id === 'auth') {
+            extraClass = 'auth-container';
+            btnHtml = `<span id="userInfo">未ログイン</span><label class="checkbox-label" style="justify-content: center; font-size: 11px; margin-top: 5px;"><input type="checkbox" id="privacyToggle" ${savedPrivacy?'checked':''}> 名前を隠す</label><button id="loginBtn">Googleでログイン</button><button id="logoutBtn" class="logout-btn" style="display:none;">ログアウト</button>`;
+        }
+        else if(item.id === 'mode') {
+            extraClass = 'mode-switch';
+            btnHtml = `<label class="checkbox-label" style="margin: 0;"><input type="checkbox" id="detailModeToggle" ${isDetailMode?'checked':''}> 詳細確認モード</label><label class="checkbox-label" style="margin: 10px 0 0 0; font-size: 12px; font-weight: normal; color: #555;"><input type="checkbox" id="closeOutsideToggle" ${localStorage.getItem('tourmas_closeOutside')!=='false'?'checked':''}> 外枠をタップして閉じる</label>`;
+        }
+        else if(item.id === 'series') {
+            // ★ ここが前回消し飛んでいた重要な行です！！
+            if (isIndex) {
+                btnHtml = `<h3 style="margin: 0 0 10px 0; font-size: 15px; color: #555;">表示する弾数</h3><div id="seriesFilterContainer" style="display:flex; flex-direction:column;"></div>`;
+            } else {
+                btnHtml = `<h3 style="margin: 0 0 10px 0; font-size: 15px; color: #555;">表示する弾数（設定は一覧で）</h3>`;
+            }
+        }
+        else if(item.id === 'egao') {
+            btnHtml = `<button id="egaoBtn">笑顔満点ですっ</button><div id="egaoResult"></div>`;
+        }
         
         if(btnHtml) {
             const wrapper = document.createElement('div');
-            wrapper.className = 'menu-section';
+            wrapper.className = `menu-section ${extraClass}`;
             wrapper.style.order = index + 1;
             wrapper.innerHTML = btnHtml;
             sidebar.appendChild(wrapper);
         }
       });
 
-      document.getElementById('menuCloseBtn').onclick = () => { sidebar.classList.remove('open'); document.getElementById('overlay').classList.remove('open'); };
+      document.getElementById('menuCloseBtn').onclick = () => { sidebar.classList.remove('open'); document.getElementById('overlay').classList.remove('open'); unlockScroll(); };
       const pt = document.getElementById('privacyToggle');
       if(pt) pt.addEventListener('change', (e) => { localStorage.setItem('tourmas_privacy', e.target.checked); savedPrivacy = e.target.checked; updateUserInfo(); });
       const dmt = document.getElementById('detailModeToggle');
@@ -332,21 +364,44 @@
     };
 
     const updateUserInfo = () => {
-      const userInfo = document.getElementById('userInfo'); if(!userInfo) return;
+      const userInfo = document.getElementById('userInfo');
+      if(!userInfo) return;
       if (currentUser) { userInfo.innerText = savedPrivacy ? `プロデューサー さん` : `${currentUser.displayName} さん`; } 
       else { userInfo.innerText = "未ログイン（セーブ不可）"; }
     };
-    
+
     window.renderSidebarMenu();
 
     const buildFilters = () => {
-      seriesSetForModal.clear(); let hasRare = false, hasUnk = false;
-      cardData.forEach(c => { let s = c["シリーズ"] || c["入手手段"]; if (!s || s === "") { hasUnk = true; return; } if (s.includes("ツアーズレア")) hasRare = true; else seriesSetForModal.add(s); });
+      let actualSeriesSet = new Set();
+      let hasUnk = false;
       
+      cardData.forEach(c => { 
+          let s = (c["シリーズ"] || c["入手手段"] || "").trim(); 
+          if (s === "") { hasUnk = true; } 
+          else { actualSeriesSet.add(s); } 
+      });
+      
+      let sortedSeries = [];
+      let definedSeries = (siteConfig && siteConfig.seriesList) || (filterConfig && filterConfig.seriesList) || [];
+      if (definedSeries && Array.isArray(definedSeries)) {
+          definedSeries.forEach(s => {
+              let st = s.trim();
+              let matched = Array.from(actualSeriesSet).filter(actual => actual.includes(st) || st.includes(actual));
+              matched.forEach(m => {
+                  sortedSeries.push(m);
+                  actualSeriesSet.delete(m); 
+              });
+          });
+      }
+      
+      sortedSeries = sortedSeries.concat(Array.from(actualSeriesSet));
+      
+      // ★ 復活させた seriesFilterContainer に中身を流し込む
       const sfc = $('seriesFilterContainer');
       if(sfc) {
-          let sh = ''; Array.from(seriesSetForModal).forEach(s => sh += `<label class="checkbox-label"><input type="checkbox" class="series-filter" value="${s}" checked> ${s}</label>`);
-          if(hasRare) sh += `<label class="checkbox-label" style="font-weight:bold; color:var(--main-color);"><input type="checkbox" class="series-filter" value="ツアーズレア" checked> ツアーズレア (全弾一括)</label>`;
+          let sh = ''; 
+          sortedSeries.forEach(s => sh += `<label class="checkbox-label"><input type="checkbox" class="series-filter" value="${s}" checked> ${s}</label>`);
           if(hasUnk) sh += `<label class="checkbox-label" style="color:#888;"><input type="checkbox" class="series-filter" value="未設定" checked> 未設定（追加予定）</label>`;
           sfc.innerHTML = sh;
           $$('.series-filter').forEach(cb => cb.addEventListener('change', window.applyFiltersAndSort));
@@ -422,12 +477,11 @@
             if (ownedCardIds.has(data["番号"])) { ownedCardIds.delete(data["番号"]); cardDiv.classList.remove('owned'); if (userCardDetails[data["番号"]]) userCardDetails[data["番号"]].count = 0; } 
             else { ownedCardIds.add(data["番号"]); cardDiv.classList.add('owned'); if (!userCardDetails[data["番号"]]) userCardDetails[data["番号"]] = { count: 1, memo: "", wish: 0 }; else userCardDetails[data["番号"]].count = 1; }
             
-            // 所持状況をローカルにも即座に保存・同期する
-            localStorage.setItem('tourmas_cardDetails', JSON.stringify(userCardDetails));
+            // ★ ローカルストレージにも即同期して、リロードしても消えないようにする！
+            localStorage.setItem('tourmas_cardDetails', JSON.stringify(userCardDetails)); 
             localStorage.setItem('tourmas_ownedCards', JSON.stringify(Array.from(ownedCardIds)));
             
-            window.applyFiltersAndSort(); 
-            window.markAsUnsaved(); 
+            window.applyFiltersAndSort(); markAsUnsaved(); 
           }
         };
         container.appendChild(cardDiv);
@@ -441,13 +495,17 @@
       const filterOwned = document.querySelector('input[name="filterOwned"]:checked').value;
       const filterWish = parseInt(document.querySelector('input[name="filterWish"]:checked').value);
       const getChecked = c => { const ch = Array.from(document.querySelectorAll(`.${c}:checked`)).map(cb => cb.value); return ch.length > 0 ? ch : null; };
-      const cR = getChecked('filter-rarity'), cT = getChecked('filter-type'), cB = getChecked('filter-brand'), cTa = getChecked('filter-target'), cP = getChecked('filter-part'), cG = getChecked('filter-genre'), cI = getChecked('filter-idol'), cS = Array.from($$('.series-filter:checked')).map(cb => cb.value);
+      const cR = getChecked('filter-rarity'), cT = getChecked('filter-type'), cB = getChecked('filter-brand'), cTa = getChecked('filter-target'), cP = getChecked('filter-part'), cG = getChecked('filter-genre'), cI = getChecked('filter-idol');
+      const cS = Array.from($$('.series-filter:checked')).map(cb => cb.value);
       
       let arr = Array.from($$('.card')), vis = 0, ownVis = 0, tot = 0;
       arr.forEach(c => {
         if(!c.dataset.number) return;
         const mt = (searchMode === 'partial' ? c.dataset.searchPartial : c.dataset.searchExact).includes(text);
-        const ms = cS.some(s => s === "ツアーズレア" ? c.dataset.series.includes("ツアーズレア") : c.dataset.series === s);
+        
+        // ★ ここもエラーにならないように修正！ cS が空の場合でも全て消えないようにする
+        const ms = cS.length === 0 || cS.some(s => s === "ツアーズレア" ? c.dataset.series.includes("ツアーズレア") : c.dataset.series === s);
+        
         const io = c.classList.contains('owned'); const mo = filterOwned === 'all' || (filterOwned === 'owned' && io) || (filterOwned === 'unowned' && !io);
         const mw = filterWish === 0 || (filterWish === 5 ? c.dataset.wish == 5 : c.dataset.wish >= filterWish);
         if (mt && ms && (!cR || cR.includes(c.dataset.rarity)) && (!cT || cT.includes(c.dataset.type)) && (!cB || cB.includes(c.dataset.brand)) && (!cTa || cTa.some(t => c.dataset.target.includes(t))) && (!cP || cP.includes(c.dataset.part)) && (!cG || cG.includes(c.dataset.genre)) && (!cI || cI.includes(c.dataset.idol)) && mo && mw) {
@@ -477,13 +535,47 @@
       const cId = currentModalCardData["番号"], cV = parseInt($('modalCount').value) || 0, wV = parseInt($('modalWish').value) || 0, mV = $('modalMemo').value;
       if (cV > 0) ownedCardIds.add(cId); else ownedCardIds.delete(cId);
       userCardDetails[cId] = { count: cV, memo: mV, wish: wV };
-      
-      localStorage.setItem('tourmas_cardDetails', JSON.stringify(userCardDetails));
+      localStorage.setItem('tourmas_cardDetails', JSON.stringify(userCardDetails)); 
       localStorage.setItem('tourmas_ownedCards', JSON.stringify(Array.from(ownedCardIds)));
       
-      window.markAsUnsaved(); 
-      window.renderCards(); 
+      window.markAsUnsaved(); window.renderCards(); 
     };
+    
+    // ★ セーブボタン用関数
+    window.triggerCloudSave = async () => {
+      if (!currentUser) return alert("セーブするにはGoogleログインしてください。");
+      try {
+        const cleanCardDetails = JSON.parse(JSON.stringify(userCardDetails || {}));
+        const cleanFormations = JSON.parse(JSON.stringify(userFormations || []));
+
+        await setDoc(doc(db, "users", currentUser.uid), {
+          ownedCards: Array.from(ownedCardIds),
+          cardDetails: cleanCardDetails,
+          formations: cleanFormations
+        }, { merge: true });
+
+        hasUnsavedChanges = false;
+        $$('.cloud-save-btn').forEach(btn => {
+            btn.classList.remove('unsaved');
+            btn.innerText = "クラウドにセーブ済";
+        });
+        const toast = $('toast');
+        if(toast) { toast.innerText = "クラウドに保存しました！"; toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 2000); }
+      } catch(e) {
+        console.error("Save Error:", e);
+        alert("セーブに失敗しました。通信エラーの可能性があります。\n詳細: " + e.message);
+      }
+    };
+    
+    window.markAsUnsaved = () => {
+      hasUnsavedChanges = true;
+      $$('.cloud-save-btn').forEach(btn => {
+        btn.style.display = 'inline-block';
+        btn.classList.add('unsaved');
+        btn.innerText = "セーブ(未保存)";
+      });
+    };
+
     $('modalCount').addEventListener('change', window.updateLocalMemory); $('modalWish').addEventListener('change', window.updateLocalMemory);
     let mtId; $('modalMemo').addEventListener('input', () => { clearTimeout(mtId); mtId = setTimeout(window.updateLocalMemory, 500); });
 
@@ -516,42 +608,42 @@
       
       const ud = userCardDetails[data["番号"]] || { count: (ownedCardIds.has(data["番号"]) ? 1 : 0), memo: "", wish: 0 };
       $('modalCount').value = ud.count; $('modalWish').value = ud.wish; $('modalMemo').value = ud.memo;
+      
       $('detailModal').classList.add('open');
+      lockScroll();
 
       tb.querySelectorAll('.card-link-btn:not(.disabled):not(.set-bonus-link)').forEach(b => { b.onclick = () => { const tD = cardData.find(c => c["番号"] === b.dataset.targetId); if (tD) { window.updateLocalMemory(); openModal(tD); } }; });
-      tb.querySelectorAll('.set-bonus-link').forEach(b => { b.onclick = () => { window.updateLocalMemory(); $('detailModal').classList.remove('open'); document.querySelector('input[name="searchMode"][value="partial"]').checked = true; $('searchInput').value = b.dataset.bonus; window.applyFiltersAndSort(); }; });
+      tb.querySelectorAll('.set-bonus-link').forEach(b => { b.onclick = () => { window.updateLocalMemory(); $('detailModal').classList.remove('open'); unlockScroll(); document.querySelector('input[name="searchMode"][value="partial"]').checked = true; $('searchInput').value = b.dataset.bonus; window.applyFiltersAndSort(); }; });
     };
 
-    $('modalCloseBtn').onclick = () => $('detailModal').classList.remove('open');
-    $('detailModal').addEventListener('click', (e) => { if (e.target === $('detailModal') && localStorage.getItem('tourmas_closeOutside') !== 'false') $('detailModal').classList.remove('open'); });
+    $('modalCloseBtn').onclick = () => { 
+        $('detailModal').classList.remove('open'); 
+        unlockScroll(); 
+    };
+    
+    $('detailModal').addEventListener('click', (e) => { 
+        if (e.target === $('detailModal') && localStorage.getItem('tourmas_closeOutside') !== 'false') {
+            $('detailModal').classList.remove('open'); 
+            unlockScroll(); 
+        }
+    });
 
-    $('menuOpenBtn').onclick = () => { $('sidebar').classList.add('open'); $('overlay').classList.add('open'); };
-    const closeMenu = () => { $('sidebar').classList.remove('open'); $('overlay').classList.remove('open'); };
+    $('menuOpenBtn').onclick = () => { $('sidebar').classList.add('open'); $('overlay').classList.add('open'); lockScroll(); };
+    const closeMenu = () => { $('sidebar').classList.remove('open'); $('overlay').classList.remove('open'); unlockScroll(); };
     $('overlay').onclick = closeMenu;
 
     onAuthStateChanged(auth, async (user) => {
       currentUser = user || null;
       if (user) {
-        try {
-            const docSnap = await getDoc(doc(db, "users", user.uid));
-            if (docSnap.exists()) { 
-                ownedCardIds = new Set(docSnap.data().ownedCards || []); 
-                userCardDetails = docSnap.data().cardDetails || {}; 
-                userFormations = docSnap.data().formations || []; 
-                
-                // ★ Firebaseから取得した最新データをローカルにも同期！
-                localStorage.setItem('tourmas_cardDetails', JSON.stringify(userCardDetails));
-                localStorage.setItem('tourmas_ownedCards', JSON.stringify(Array.from(ownedCardIds)));
-            } else {
-                // ★ 初回ログイン時：ローカルでポチポチしたデータを消さないための引き継ぎ
-                userCardDetails = JSON.parse(localStorage.getItem('tourmas_cardDetails')) || {};
-                ownedCardIds = new Set(JSON.parse(localStorage.getItem('tourmas_ownedCards')) || []);
-            }
-        } catch(e) {
-            console.error("Auth Fetch Error:", e);
+        const docSnap = await getDoc(doc(db, "users", user.uid));
+        if (docSnap.exists()) { 
+            ownedCardIds = new Set(docSnap.data().ownedCards || []); 
+            userCardDetails = docSnap.data().cardDetails || {}; 
+            userFormations = docSnap.data().formations || []; 
+            localStorage.setItem('tourmas_cardDetails', JSON.stringify(userCardDetails));
+            localStorage.setItem('tourmas_ownedCards', JSON.stringify(Array.from(ownedCardIds)));
         }
       } else {
-         // ★ 未ログイン時はローカルストレージから読み込む
          try {
            userCardDetails = JSON.parse(localStorage.getItem('tourmas_cardDetails')) || {};
            ownedCardIds = new Set(JSON.parse(localStorage.getItem('tourmas_ownedCards')) || []);
@@ -569,4 +661,4 @@
     });
   </script>
 </body>
-</html>s
+</html>
