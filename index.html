@@ -379,26 +379,40 @@
     window.renderSidebarMenu();
 
     const buildFilters = () => {
-      let actualSeriesSet = new Set();
-      let hasUnk = false;
-      
-      cardData.forEach(c => { 
-          let s = (c["シリーズ"] || c["入手手段"] || "").trim(); 
-          if (s === "") { hasUnk = true; } 
-          else { actualSeriesSet.add(s); } 
-      });
-      
-      let sortedSeries = [];
-      let definedSeries = (siteConfig && siteConfig.seriesList) || (filterConfig && filterConfig.seriesList) || [];
-      if (definedSeries && Array.isArray(definedSeries)) {
-          definedSeries.forEach(s => {
-              let st = s.trim();
-              let matched = Array.from(actualSeriesSet).filter(actual => actual.includes(st) || st.includes(actual));
-              matched.forEach(m => {
-                  sortedSeries.push(m);
-                  actualSeriesSet.delete(m); 
-              });
+// ★ 復活させた seriesFilterContainer に中身を流し込む
+      const sfc = $('seriesFilterContainer');
+      if(sfc) {
+          // ★ ローカルストレージから「非表示設定（チェックを外した弾）」を読み込む
+          let hiddenSeries = getStore('tourmas_hiddenSeries', []);
+          
+          let sh = ''; 
+          sortedSeries.forEach(s => {
+              // ★ 非表示リストに入っていなければ checked を付ける
+              const isChecked = hiddenSeries.includes(s) ? '' : 'checked';
+              sh += `<label class="checkbox-label"><input type="checkbox" class="series-filter" value="${s}" ${isChecked}> ${s}</label>`;
           });
+          if(hasUnk) {
+              const unkChecked = hiddenSeries.includes("未設定") ? '' : 'checked';
+              sh += `<label class="checkbox-label" style="color:#888;"><input type="checkbox" class="series-filter" value="未設定" ${unkChecked}> 未設定（追加予定）</label>`;
+          }
+          sfc.innerHTML = sh;
+          
+          $$('.series-filter').forEach(cb => cb.addEventListener('change', (e) => {
+              // ★ チェック状態が変わったらローカルストレージを更新
+              let currentHidden = getStore('tourmas_hiddenSeries', []);
+              if (!e.target.checked) {
+                  // チェックが外れたら非表示リストに追加
+                  if (!currentHidden.includes(e.target.value)) currentHidden.push(e.target.value);
+              } else {
+                  // チェックされたら非表示リストから削除
+                  currentHidden = currentHidden.filter(v => v !== e.target.value);
+              }
+              setStore('tourmas_hiddenSeries', currentHidden);
+              
+              // リストを再描画
+              window.applyFiltersAndSort();
+          }));
+      }
       }
       
       sortedSeries = sortedSeries.concat(Array.from(actualSeriesSet));
