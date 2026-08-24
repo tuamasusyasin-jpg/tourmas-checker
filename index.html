@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <title>ツアマス所持率チェッカー - カード一覧</title>
-  <!-- ★ ズーム防止の設定 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <style>
     :root { --main-color: #ff66a3; --sub-color: #ffebf0; }
@@ -21,7 +20,6 @@
     .header-left { display: flex; align-items: center; gap: 15px; }
     header h1 { margin: 0; font-size: 18px; }
 
-    /* ★ サイドメニュー */
     #sidebar { position: fixed; top: 0; left: -300px; width: 300px; height: 100%; background: #fff; box-shadow: 2px 0 10px rgba(0,0,0,0.2); transition: left 0.3s ease; z-index: 1000; padding: 20px; box-sizing: border-box; overflow-y: auto; display: flex; flex-direction: column; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
     #sidebar.open { left: 0; }
     #menuCloseBtn { font-size: 24px; background: none; border: none; cursor: pointer; color: #999; text-align: right; width: 100%; margin-bottom: 20px; padding: 15px; margin-right: -15px;}
@@ -326,7 +324,6 @@
             btnHtml = `<label class="checkbox-label" style="margin: 0;"><input type="checkbox" id="detailModeToggle" ${isDetailMode?'checked':''}> 詳細確認モード</label><label class="checkbox-label" style="margin: 10px 0 0 0; font-size: 12px; font-weight: normal; color: #555;"><input type="checkbox" id="closeOutsideToggle" ${localStorage.getItem('tourmas_closeOutside')!=='false'?'checked':''}> 外枠をタップして閉じる</label>`;
         }
         else if(item.id === 'series') {
-            // ★ ここが前回消し飛んでいた重要な行です！！
             if (isIndex) {
                 btnHtml = `<h3 style="margin: 0 0 10px 0; font-size: 15px; color: #555;">表示する弾数</h3><div id="seriesFilterContainer" style="display:flex; flex-direction:column;"></div>`;
             } else {
@@ -378,8 +375,7 @@
 
     window.renderSidebarMenu();
 
-const buildFilters = () => {
-      // ① ユーザーさんが確認してくれた「弾を綺麗に並び替える処理」
+    const buildFilters = () => {
       let actualSeriesSet = new Set();
       let hasUnk = false;
       
@@ -401,17 +397,15 @@ const buildFilters = () => {
               });
           });
       }
+      
       sortedSeries = sortedSeries.concat(Array.from(actualSeriesSet));
       
-      // ② 新しく追加した「チェック状態を記憶する」処理
       const sfc = $('seriesFilterContainer');
       if(sfc) {
-          // ★ ローカルストレージから「非表示設定（チェックを外した弾）」を読み込む
           let hiddenSeries = getStore('tourmas_hiddenSeries', []);
           
           let sh = ''; 
           sortedSeries.forEach(s => {
-              // ★ 非表示リストに入っていなければ checked を付ける
               const isChecked = hiddenSeries.includes(s) ? '' : 'checked';
               sh += `<label class="checkbox-label"><input type="checkbox" class="series-filter" value="${s}" ${isChecked}> ${s}</label>`;
           });
@@ -422,66 +416,15 @@ const buildFilters = () => {
           sfc.innerHTML = sh;
           
           $$('.series-filter').forEach(cb => cb.addEventListener('change', (e) => {
-              // ★ チェック状態が変わったらローカルストレージを更新
               let currentHidden = getStore('tourmas_hiddenSeries', []);
               if (!e.target.checked) {
-                  // チェックが外れたら非表示リストに追加
                   if (!currentHidden.includes(e.target.value)) currentHidden.push(e.target.value);
               } else {
-                  // チェックされたら非表示リストから削除
                   currentHidden = currentHidden.filter(v => v !== e.target.value);
               }
               setStore('tourmas_hiddenSeries', currentHidden);
-              
-              // リストを再描画
               window.applyFiltersAndSort();
           }));
-      }
-
-      // ③ 残りの各種フィルター（レアリティやブランドなど）を作る処理
-      const panel = $('filterPanelBody');
-      if(panel) {
-        const filterGroups = [{id:'owned',label:'所持状況'},{id:'wish',label:'欲しい度'},{id:'rarity',label:'レアリティ'},{id:'type',label:'種類'},{id:'brand',label:'ブランド'},{id:'target',label:'対象・効果'},{id:'part',label:'部位'},{id:'genre',label:'ジャンル'},{id:'idol',label:'アイドル'}];
-        let tabsHtml = '<div class="filter-tabs">';
-        let contentsHtml = '<div class="filter-contents">';
-        
-        filterGroups.forEach((g, idx) => {
-          const isActive = idx === 0 ? 'active' : '';
-          tabsHtml += `<button class="filter-tab-btn ${isActive}" data-target="pane-${g.id}">${g.label}</button>`;
-          let inH = "";
-          if (g.id === 'owned') inH = `<label class="filter-btn-label"><input type="radio" name="filterOwned" value="all" checked> すべて表示</label><label class="filter-btn-label"><input type="radio" name="filterOwned" value="owned"> 持っている</label><label class="filter-btn-label"><input type="radio" name="filterOwned" value="unowned"> 持っていない</label>`;
-          else if (g.id === 'wish') inH = `<label class="filter-btn-label"><input type="radio" name="filterWish" value="0" checked> 指定なし</label><label class="filter-btn-label"><input type="radio" name="filterWish" value="1"> ★1以上</label><label class="filter-btn-label"><input type="radio" name="filterWish" value="2"> ★2以上</label><label class="filter-btn-label"><input type="radio" name="filterWish" value="3"> ★3以上</label><label class="filter-btn-label"><input type="radio" name="filterWish" value="4"> ★4以上</label><label class="filter-btn-label"><input type="radio" name="filterWish" value="5"> ★5のみ</label>`;
-          else {
-              let arr = []; if(g.id === 'rarity') arr = filterConfig.rarities; if(g.id === 'type') arr = filterConfig.types; if(g.id === 'brand') arr = filterConfig.brands; if(g.id === 'target') arr = filterConfig.targets; if(g.id === 'part') arr = filterConfig.parts; if(g.id === 'genre') arr = filterConfig.genres; if(g.id === 'idol') arr = filterConfig.idols;
-              arr.forEach(i => inH += `<label class="filter-btn-label"><input type="checkbox" class="advanced-filter filter-${g.id}" value="${typeof i === 'object' ? i.name : i}"> ${typeof i === 'object' ? i.name : i}</label>`);
-          }
-          contentsHtml += `<div id="pane-${g.id}" class="filter-content-pane ${isActive}"><div class="filter-grid">${inH}</div></div>`;
-        });
-        
-        panel.innerHTML = tabsHtml + '</div>' + contentsHtml + '</div>';
-
-        document.querySelectorAll('.filter-tab-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.filter-tab-btn').forEach(b => b.classList.remove('active'));
-                document.querySelectorAll('.filter-content-pane').forEach(p => p.classList.remove('active'));
-                btn.classList.add('active');
-                document.getElementById(btn.dataset.target).classList.add('active');
-            });
-        });
-        $$('input[name="filterOwned"], input[name="filterWish"], .advanced-filter').forEach(r => r.addEventListener('change', window.applyFiltersAndSort));
-      }
-    };
-      
-      sortedSeries = sortedSeries.concat(Array.from(actualSeriesSet));
-      
-      // ★ 復活させた seriesFilterContainer に中身を流し込む
-      const sfc = $('seriesFilterContainer');
-      if(sfc) {
-          let sh = ''; 
-          sortedSeries.forEach(s => sh += `<label class="checkbox-label"><input type="checkbox" class="series-filter" value="${s}" checked> ${s}</label>`);
-          if(hasUnk) sh += `<label class="checkbox-label" style="color:#888;"><input type="checkbox" class="series-filter" value="未設定" checked> 未設定（追加予定）</label>`;
-          sfc.innerHTML = sh;
-          $$('.series-filter').forEach(cb => cb.addEventListener('change', window.applyFiltersAndSort));
       }
 
       const panel = $('filterPanelBody');
@@ -554,8 +497,7 @@ const buildFilters = () => {
             if (ownedCardIds.has(data["番号"])) { ownedCardIds.delete(data["番号"]); cardDiv.classList.remove('owned'); if (userCardDetails[data["番号"]]) userCardDetails[data["番号"]].count = 0; } 
             else { ownedCardIds.add(data["番号"]); cardDiv.classList.add('owned'); if (!userCardDetails[data["番号"]]) userCardDetails[data["番号"]] = { count: 1, memo: "", wish: 0 }; else userCardDetails[data["番号"]].count = 1; }
             
-            // ★ ローカルストレージにも即同期して、リロードしても消えないようにする！
-            localStorage.setItem('tourmas_cardDetails', JSON.stringify(userCardDetails)); 
+            localStorage.setItem('tourmas_cardDetails', JSON.stringify(userCardDetails));
             localStorage.setItem('tourmas_ownedCards', JSON.stringify(Array.from(ownedCardIds)));
             
             window.applyFiltersAndSort(); markAsUnsaved(); 
@@ -573,15 +515,15 @@ const buildFilters = () => {
       const filterWish = parseInt(document.querySelector('input[name="filterWish"]:checked').value);
       const getChecked = c => { const ch = Array.from(document.querySelectorAll(`.${c}:checked`)).map(cb => cb.value); return ch.length > 0 ? ch : null; };
       const cR = getChecked('filter-rarity'), cT = getChecked('filter-type'), cB = getChecked('filter-brand'), cTa = getChecked('filter-target'), cP = getChecked('filter-part'), cG = getChecked('filter-genre'), cI = getChecked('filter-idol');
-      const cS = Array.from($$('.series-filter:checked')).map(cb => cb.value);
+      
+      const sfc = document.getElementById('seriesFilterContainer');
+      const cS = sfc ? Array.from(document.querySelectorAll('.series-filter:checked')).map(cb => cb.value) : null;
       
       let arr = Array.from($$('.card')), vis = 0, ownVis = 0, tot = 0;
       arr.forEach(c => {
         if(!c.dataset.number) return;
         const mt = (searchMode === 'partial' ? c.dataset.searchPartial : c.dataset.searchExact).includes(text);
-        
-        // ★ ここもエラーにならないように修正！ cS が空の場合でも全て消えないようにする
-        const ms = cS.length === 0 || cS.some(s => s === "ツアーズレア" ? c.dataset.series.includes("ツアーズレア") : c.dataset.series === s);
+        const ms = !cS || cS.length === 0 || cS.some(s => s === "ツアーズレア" ? c.dataset.series.includes("ツアーズレア") : c.dataset.series === s);
         
         const io = c.classList.contains('owned'); const mo = filterOwned === 'all' || (filterOwned === 'owned' && io) || (filterOwned === 'unowned' && !io);
         const mw = filterWish === 0 || (filterWish === 5 ? c.dataset.wish == 5 : c.dataset.wish >= filterWish);
@@ -607,65 +549,63 @@ const buildFilters = () => {
     if($('sortSelect')) $('sortSelect').addEventListener('change', window.applyFiltersAndSort);
     if($('sortOrderBtn')) $('sortOrderBtn').addEventListener('click', () => { const b = $('sortOrderBtn'); if (b.dataset.order === 'asc') { b.dataset.order = 'desc'; b.innerText = "降順 ▼"; } else { b.dataset.order = 'asc'; b.innerText = "昇順 ▲"; } window.applyFiltersAndSort(); });
 window.triggerCloudSave = async () => {
-      if (!currentUser) return alert("セーブするにはGoogleログインしてください。");
+  if (!currentUser) return alert("セーブするにはGoogleログインしてください。");
 
-      const saveBtns = document.querySelectorAll('.cloud-save-btn');
-      saveBtns.forEach(btn => {
-          btn.disabled = true;
-          btn.innerText = "セーブ中...";
-      });
+  const saveBtns = document.querySelectorAll('.cloud-save-btn');
+  saveBtns.forEach(btn => {
+      btn.disabled = true;
+      btn.innerText = "セーブ中...";
+  });
 
-      try {
-        const cleanCardDetails = JSON.parse(JSON.stringify(userCardDetails || {}));
-        const cleanFormations = JSON.parse(JSON.stringify(userFormations || []));
+  try {
+    const cleanCardDetails = JSON.parse(JSON.stringify(userCardDetails || {}));
+    const cleanFormations = JSON.parse(JSON.stringify(userFormations || []));
 
-        const savePromise = setDoc(doc(db, "users", currentUser.uid), {
-          ownedCards: Array.from(ownedCardIds),
-          cardDetails: cleanCardDetails,
-          formations: cleanFormations
-        }, { merge: true });
+    const savePromise = setDoc(doc(db, "users", currentUser.uid), {
+      ownedCards: Array.from(ownedCardIds),
+      cardDetails: cleanCardDetails,
+      formations: cleanFormations
+    }, { merge: true });
 
-        // ★ スマホ回線対策で15秒（15000）に延長！
-        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), 15000));
-        
-        await Promise.race([savePromise, timeoutPromise]);
+    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), 15000));
+    
+    await Promise.race([savePromise, timeoutPromise]);
 
-        hasUnsavedChanges = false;
-        saveBtns.forEach(btn => {
-            btn.disabled = false;
-            btn.classList.remove('unsaved');
-            btn.innerText = "クラウドにセーブ済";
-        });
-        const toast = document.getElementById('toast');
-        if(toast) { toast.innerText = "クラウドに保存しました！"; toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 2000); }
-        
-      } catch (error) {
-        console.error("Save Error:", error);
-        saveBtns.forEach(btn => {
-            btn.disabled = false;
-            btn.innerText = "セーブ(未保存)";
-        });
+    hasUnsavedChanges = false;
+    saveBtns.forEach(btn => {
+        btn.disabled = false;
+        btn.classList.remove('unsaved');
+        btn.innerText = "クラウドにセーブ済";
+    });
+    const toast = document.getElementById('toast');
+    if(toast) { toast.innerText = "クラウドに保存しました！"; toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 2000); }
+    
+  } catch (error) {
+    console.error("Save Error:", error);
+    saveBtns.forEach(btn => {
+        btn.disabled = false;
+        btn.innerText = "セーブ(未保存)";
+    });
 
-        // 自前のエラー画面の呼び出し
-        let msg = "";
-        if (error.message === "timeout") {
-            msg = "スマホの通信環境が不安定か、時間がかかりすぎています。電波の良いところで再度お試しください。";
-        } else if (error.code === "resource-exhausted" || error.message.includes("Quota")) {
-            msg = "1日のセーブ回数上限（2万回）に達しました！\n明日までクラウドセーブはできません。";
-        } else {
-            msg = "通信エラーの可能性があります。\n詳細: " + error.message;
-        }
-        
-        const eModal = document.getElementById('errorModal');
-        const eMsg = document.getElementById('errorMessage');
-        if (eModal && eMsg) {
-            eMsg.innerText = msg;
-            eModal.style.display = 'flex';
-        } else {
-            alert("セーブに失敗しました。\n" + msg);
-        }
-      }
-    };
+    let msg = "";
+    if (error.message === "timeout") {
+        msg = "スマホの通信環境が不安定か、時間がかかりすぎています。電波の良いところで再度お試しください。";
+    } else if (error.code === "resource-exhausted" || error.message.includes("Quota")) {
+        msg = "1日のセーブ回数上限（2万回）に達しました！\n明日までクラウドセーブはできません。";
+    } else {
+        msg = "通信エラーの可能性があります。\n詳細: " + error.message;
+    }
+    
+    const eModal = document.getElementById('errorModal');
+    const eMsg = document.getElementById('errorMessage');
+    if (eModal && eMsg) {
+        eMsg.innerText = msg;
+        eModal.style.display = 'flex';
+    } else {
+        alert("セーブに失敗しました。\n" + msg);
+    }
+  }
+};
     
     window.markAsUnsaved = () => {
       hasUnsavedChanges = true;
