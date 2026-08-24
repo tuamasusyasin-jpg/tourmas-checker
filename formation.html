@@ -309,7 +309,7 @@ window.triggerCloudSave = async () => {
           formations: cleanFormations 
         }, { merge: true });
 
-        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), 10000));
+        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), 5000));
         await Promise.race([savePromise, timeoutPromise]);
         
         hasUnsavedChanges = false;

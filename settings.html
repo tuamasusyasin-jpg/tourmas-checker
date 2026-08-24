@@ -316,7 +316,7 @@ window.triggerCloudSave = async () => {
             btn.innerText = "クラウドにセーブ済";
         });
         const toast = document.getElementById('toast');
-        if(toast) { toast.innerText = "クラウドに保存しました！"; toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 2000); }
+        if(toast) { toast.innerText = "クラウドに保存しました！"; toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 5000); }
       } catch (error) {
         console.error("Save Error:", error);
         saveBtns.forEach(btn => {

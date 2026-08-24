@@ -551,7 +551,7 @@ window.triggerCloudSave = async () => {
     }, { merge: true });
 
     // 10秒でタイムアウトさせる処理（無言フリーズ対策）
-    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), 10000));
+    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), 5000));
     
     await Promise.race([savePromise, timeoutPromise]);
 
