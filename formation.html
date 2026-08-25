@@ -122,13 +122,27 @@
   </style>
 </head>
 <body>
+<!-- ★ エラーモーダル -->
 <div id="errorModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; justify-content:center; align-items:center; padding:20px; box-sizing:border-box;">
     <div style="background:#fff; border:3px solid #dc3545; padding:20px 30px; border-radius:12px; max-width:100%; width:320px; text-align:center;">
       <h3 style="color:#dc3545; margin-top:0; font-size:18px;">⚠️ セーブ失敗</h3>
       <p id="errorMessage" style="font-size:14px; line-height:1.5; color:#333; margin-bottom:20px; font-weight:bold; white-space:pre-wrap;"></p>
       <button onclick="document.getElementById('errorModal').style.display='none'" style="padding:10px 30px; background:#555; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">閉じる</button>
     </div>
+</div>
+
+<!-- ★ 削除確認モーダル（追加） -->
+<div id="deleteConfirmModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; justify-content:center; align-items:center; padding:20px; box-sizing:border-box;">
+  <div style="background:#fff; border:3px solid #dc3545; padding:20px 30px; border-radius:12px; max-width:100%; width:320px; text-align:center;">
+    <h3 style="color:#dc3545; margin-top:0; font-size:18px;">⚠️ 編成の削除</h3>
+    <p style="font-size:14px; line-height:1.5; color:#333; margin-bottom:20px; font-weight:bold;">この編成を本当に削除しますか？</p>
+    <div style="display:flex; gap:10px; justify-content:center;">
+      <button onclick="document.getElementById('deleteConfirmModal').style.display='none'" style="padding:10px 20px; background:#555; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer; flex:1;">キャンセル</button>
+      <button onclick="executeDeleteFormation()" style="padding:10px 20px; background:#dc3545; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer; flex:1;">削除する</button>
+    </div>
   </div>
+</div>
+
   <div class="header-fixed-wrap">
     <div id="marqueeContainer"><div class="marquee-content" id="marqueeText"></div></div>
     <header>
@@ -302,7 +316,7 @@
       else { userInfo.innerText = "未ログイン（セーブ不可）"; }
     };
 
-window.triggerCloudSave = async () => {
+    window.triggerCloudSave = async () => {
       if (!currentUser) return alert("セーブするにはGoogleログインしてください。");
       
       const saveBtns = document.querySelectorAll('.cloud-save-btn');
@@ -315,7 +329,6 @@ window.triggerCloudSave = async () => {
           formations: cleanFormations 
         }, { merge: true });
 
-        // ★ スマホ回線対策で15秒（15000）に延長！
         const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), 15000));
         await Promise.race([savePromise, timeoutPromise]);
         
@@ -334,7 +347,6 @@ window.triggerCloudSave = async () => {
             btn.innerText = "セーブ(未保存)";
         });
 
-        // 自前のエラー画面の呼び出し
         let msg = "";
         if (error.message === "timeout") {
             msg = "スマホの通信環境が不安定か、時間がかかりすぎています。電波の良いところで再度お試しください。";
@@ -374,12 +386,24 @@ window.triggerCloudSave = async () => {
       window.markAsUnsaved();
     };
 
+    // ★ 削除確認用変数
+    let pendingDeleteIndex = -1;
+
+    // ★ 削除ボタンが押された時の処理（確認画面を出す）
     window.deleteFormation = (index) => {
-      if(confirm("この編成を削除しますか？")) {
-        userFormations.splice(index, 1);
+      pendingDeleteIndex = index;
+      document.getElementById('deleteConfirmModal').style.display = 'flex';
+    };
+
+    // ★ 確認画面で「削除する」が押された時の実行処理
+    window.executeDeleteFormation = () => {
+      if (pendingDeleteIndex > -1) {
+        userFormations.splice(pendingDeleteIndex, 1);
         window.renderFormations();
         window.markAsUnsaved();
+        pendingDeleteIndex = -1;
       }
+      document.getElementById('deleteConfirmModal').style.display = 'none';
     };
 
     window.addFormation = () => {
