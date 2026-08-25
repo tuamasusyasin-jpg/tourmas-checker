@@ -137,7 +137,8 @@
   </style>
 </head>
 <body>
-<!-- ★ エラーモーダル -->
+
+<!-- ★ 1. エラーモーダル -->
 <div id="errorModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; justify-content:center; align-items:center; padding:20px; box-sizing:border-box;">
   <div style="background:#fff; border:3px solid #dc3545; padding:20px 30px; border-radius:12px; max-width:100%; width:320px; text-align:center;">
     <h3 style="color:#dc3545; margin-top:0; font-size:18px;">セーブ失敗</h3>
@@ -146,7 +147,7 @@
   </div>
 </div>
 
-<!-- ★ ログイン必須モーダル（外に出して独立させました！） -->
+<!-- ★ 2. ログイン必須モーダル -->
 <div id="loginRequiredModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; justify-content:center; align-items:center; padding:20px; box-sizing:border-box;">
   <div style="background:#fff; border:3px solid #1a73e8; padding:20px 30px; border-radius:12px; max-width:100%; width:320px; text-align:center;">
     <h3 style="color:#1a73e8; margin-top:0; font-size:18px;">ログインが必要です</h3>
@@ -154,6 +155,20 @@
     <button onclick="document.getElementById('loginRequiredModal').style.display='none'" style="padding:10px 30px; background:#555; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">閉じる</button>
   </div>
 </div>
+
+<!-- ★ 3. 削除確認モーダル（マイ編成メモ用・他のページにあっても無害です） -->
+<div id="deleteConfirmModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; justify-content:center; align-items:center; padding:20px; box-sizing:border-box;">
+  <div style="background:#fff; border:3px solid #dc3545; padding:20px 30px; border-radius:12px; max-width:100%; width:320px; text-align:center;">
+    <h3 style="color:#dc3545; margin-top:0; font-size:18px;">編成の削除</h3>
+    <p style="font-size:14px; line-height:1.5; color:#333; margin-bottom:20px; font-weight:bold;">この編成を本当に削除しますか？</p>
+    <div style="display:flex; gap:10px; justify-content:center;">
+      <button onclick="document.getElementById('deleteConfirmModal').style.display='none'" style="padding:10px 20px; background:#555; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer; flex:1;">キャンセル</button>
+      <button onclick="executeDeleteFormation()" style="padding:10px 20px; background:#dc3545; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer; flex:1;">削除する</button>
+    </div>
+  </div>
+</div>
+
+  <div class="header-fixed-wrap">
     <div style="background:#fff; border:3px solid #dc3545; padding:20px 30px; border-radius:12px; max-width:100%; width:320px; text-align:center;">
       <h3 style="color:#dc3545; margin-top:0; font-size:18px;">セーブ失敗</h3>
       <p id="errorMessage" style="font-size:14px; line-height:1.5; color:#333; margin-bottom:20px; font-weight:bold; white-space:pre-wrap;"></p>
