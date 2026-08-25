@@ -585,15 +585,13 @@ if (!currentUser) {
   });
 
   try {
-    const cleanCardDetails = JSON.parse(JSON.stringify(userCardDetails || {}));
-    const cleanFormations = JSON.parse(JSON.stringify(userFormations || []));
+const cleanCardDetails = JSON.parse(JSON.stringify(userCardDetails || {}));
 
-    const savePromise = setDoc(doc(db, "users", currentUser.uid), {
-      ownedCards: Array.from(ownedCardIds),
-      cardDetails: cleanCardDetails,
-      formations: cleanFormations,
-      hiddenSeries: getStore('tourmas_hiddenSeries', []) // ★この1行を追加！
-    }, { merge: true });
+const savePromise = setDoc(doc(db, "users", currentUser.uid), {
+  ownedCards: Array.from(ownedCardIds),
+  cardDetails: cleanCardDetails,
+  hiddenSeries: getStore('tourmas_hiddenSeries', []) 
+}, { merge: true });
 
     const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), 15000));
     
