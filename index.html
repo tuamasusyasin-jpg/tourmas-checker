@@ -565,6 +565,7 @@ window.triggerCloudSave = async () => {
       ownedCards: Array.from(ownedCardIds),
       cardDetails: cleanCardDetails,
       formations: cleanFormations
+      hiddenSeries: getStore('tourmas_hiddenSeries', []) // ★この1行を追加！
     }, { merge: true });
 
     const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), 15000));
@@ -677,9 +678,12 @@ window.triggerCloudSave = async () => {
       if (user) {
         const docSnap = await getDoc(doc(db, "users", user.uid));
         if (docSnap.exists()) { 
+            const data = docSnap.data(); // ★ docSnap.data()を変数に入れると綺麗です
             ownedCardIds = new Set(docSnap.data().ownedCards || []); 
             userCardDetails = docSnap.data().cardDetails || {}; 
             userFormations = docSnap.data().formations || []; 
+// ★クラウドのデータがあれば、ローカルに記憶させる（この1行を追加！）
+            if (data.hiddenSeries) { localStorage.setItem('tourmas_hiddenSeries', JSON.stringify(data.hiddenSeries)); }
             localStorage.setItem('tourmas_cardDetails', JSON.stringify(userCardDetails));
             localStorage.setItem('tourmas_ownedCards', JSON.stringify(Array.from(ownedCardIds)));
         }
