@@ -616,6 +616,28 @@ window.triggerCloudSave = async () => {
         btn.innerText = "セーブ(未保存)";
       });
     };
+// ★ 消えてしまった詳細モードのセーブ機能（復活！）
+    window.updateLocalMemory = () => {
+      if (!currentModalCardData) return;
+      
+      const cId = currentModalCardData["番号"];
+      const cV = parseInt(document.getElementById('modalCount').value) || 0;
+      const wV = parseInt(document.getElementById('modalWish').value) || 0;
+      const mV = document.getElementById('modalMemo').value;
+      
+      if (cV > 0) {
+          ownedCardIds.add(cId);
+      } else {
+          ownedCardIds.delete(cId);
+      }
+      userCardDetails[cId] = { count: cV, memo: mV, wish: wV };
+      
+      localStorage.setItem('tourmas_cardDetails', JSON.stringify(userCardDetails)); 
+      localStorage.setItem('tourmas_ownedCards', JSON.stringify(Array.from(ownedCardIds)));
+      
+      window.markAsUnsaved();
+      window.renderCards(); 
+    };
 
     $('modalCount').addEventListener('change', window.updateLocalMemory); $('modalWish').addEventListener('change', window.updateLocalMemory);
     let mtId; $('modalMemo').addEventListener('input', () => { clearTimeout(mtId); mtId = setTimeout(window.updateLocalMemory, 500); });
