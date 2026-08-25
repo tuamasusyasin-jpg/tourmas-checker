@@ -564,7 +564,7 @@ window.triggerCloudSave = async () => {
     const savePromise = setDoc(doc(db, "users", currentUser.uid), {
       ownedCards: Array.from(ownedCardIds),
       cardDetails: cleanCardDetails,
-      formations: cleanFormations
+      formations: cleanFormations,
       hiddenSeries: getStore('tourmas_hiddenSeries', []) // ★この1行を追加！
     }, { merge: true });
 
