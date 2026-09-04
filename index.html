@@ -3,25 +3,31 @@
 <head>
   <meta charset="UTF-8">
   <title>ツアマス所持率チェッカー - カード一覧</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <style>
     :root { --main-color: #ff66a3; --sub-color: #ffebf0; }
     body { font-family: sans-serif; padding: 0; margin: 0; background-color: #f0f0f0; color: #333; }
-    #marqueeContainer { background: #333; color: #fff; padding: 8px 0; font-size: 14px; font-weight: bold; }
-    header { background: #fff; padding: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: space-between; }
+    
+    .header-fixed-wrap { position: sticky; top: 0; z-index: 900; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    
+    #marqueeContainer { background: #333; color: #fff; padding: 8px 0; font-size: 14px; font-weight: bold; overflow: hidden; white-space: nowrap; position: relative; }
+    .marquee-content { display: inline-block; padding-left: 100%; animation: marquee 15s linear infinite; }
+    @keyframes marquee { 0% { transform: translate(0, 0); } 100% { transform: translate(-100%, 0); } }
+
+    header { background: #fff; padding: 15px; display: flex; align-items: center; justify-content: space-between; }
+    
     #menuOpenBtn { font-size: 24px; background: none; border: none; cursor: pointer; color: #555; }
     .header-left { display: flex; align-items: center; gap: 15px; }
     header h1 { margin: 0; font-size: 18px; }
 
-    #sidebar { position: fixed; top: 0; left: -300px; width: 300px; height: 100%; background: #fff; box-shadow: 2px 0 10px rgba(0,0,0,0.2); transition: left 0.3s ease; z-index: 1000; padding: 20px; box-sizing: border-box; overflow-y: auto; display: flex; flex-direction: column; }
+    #sidebar { position: fixed; top: 0; left: -300px; width: 300px; height: 100%; background: #fff; box-shadow: 2px 0 10px rgba(0,0,0,0.2); transition: left 0.3s ease; z-index: 1000; padding: 20px; box-sizing: border-box; overflow-y: auto; display: flex; flex-direction: column; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
     #sidebar.open { left: 0; }
-    #menuCloseBtn { font-size: 24px; background: none; border: none; cursor: pointer; color: #999; text-align: right; width: 100%; margin-bottom: 20px; }
+    #menuCloseBtn { font-size: 24px; background: none; border: none; cursor: pointer; color: #999; text-align: right; width: 100%; margin-bottom: 20px; padding: 15px; margin-right: -15px;}
     #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); opacity: 0; pointer-events: none; transition: opacity 0.3s ease; z-index: 999; }
     #overlay.open { opacity: 1; pointer-events: auto; }
     
     .menu-section { margin-bottom: 10px; width: 100%; border: none; box-sizing: border-box; }
     .menu-section h3 { margin: 0 0 10px 0; font-size: 15px; color: #555; }
-    
     .nav-btn { display: block; width: 100%; padding: 12px; margin-bottom: 10px; background: #fff; border: 2px solid #ddd; color: #555; font-weight: bold; border-radius: 8px; cursor: pointer; transition: 0.2s; text-align: center; box-sizing: border-box; text-decoration: none; }
     .nav-btn.active { border-color: var(--main-color); color: var(--main-color); background: var(--sub-color); }
 
@@ -30,9 +36,9 @@
     .auth-container button.logout-btn { background: #dc3545; }
     #userInfo { font-size: 12px; font-weight: bold; display: block; margin-bottom: 5px; }
     .checkbox-label { display: flex; align-items: center; margin-bottom: 8px; font-size: 14px; cursor: pointer; }
-    .mode-switch { background: var(--sub-color); padding: 10px; border-radius: 8px; border: 2px solid var(--main-color); font-weight: bold; margin-bottom: 15px; box-sizing: border-box; }
+    .mode-switch { background: var(--sub-color); padding: 10px; border-radius: 8px; border: 2px solid var(--main-color); font-weight: bold; margin-bottom: 15px; }
 
-    #egaoBtn { background: linear-gradient(45deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%); border: 2px solid #ff66a3; border-radius: 8px; padding: 10px; width: 100%; font-weight: bold; color: #d81b60; cursor: pointer; margin-top: 10px; transition: 0.2s; box-sizing: border-box; }
+    #egaoBtn { background: linear-gradient(45deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%); border: 2px solid #ff66a3; border-radius: 8px; padding: 10px; width: 100%; font-weight: bold; color: #d81b60; cursor: pointer; margin-top: 10px; transition: 0.2s; }
     #egaoBtn:hover { filter: brightness(0.95); transform: scale(0.98); }
     #egaoResult { display: none; margin-top: 10px; padding: 12px; border-radius: 8px; background: #fff; border: 2px dashed var(--main-color); font-size: 13px; line-height: 1.6; }
     
@@ -41,11 +47,11 @@
     #counterDisplay { color: var(--main-color); font-size: 22px; margin-top: 0; }
     #totalCountDisplay { font-size: 16px; color: #666; margin-left: 15px; display: inline-block; }
     .search-area { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-bottom: 10px; align-items: center; }
-    #searchInput { padding: 10px 20px; width: 100%; max-width: 350px; font-size: 15px; border-radius: 30px; border: 2px solid #ddd; outline: none; }
+    #searchInput { padding: 10px 20px; width: 100%; max-width: 350px; font-size: 16px; border-radius: 30px; border: 2px solid #ddd; outline: none; }
     .search-toggles { display: flex; gap: 15px; font-size: 13px; color: #555; }
     .sort-controls { display: flex; gap: 5px; margin-top: 10px; justify-content: center; align-items: center; }
-    .sort-controls select, .sort-controls button { padding: 8px 12px; font-size: 14px; border-radius: 20px; border: 1px solid #ccc; outline: none; cursor: pointer; background: #fff; }
-    .sort-controls button { background: #555; color: white; font-weight: bold; border: none; }
+    .sort-controls select, .sort-controls button { padding: 8px 12px; font-size: 16px; border-radius: 20px; border: 1px solid #ccc; outline: none; cursor: pointer; background: #fff; }
+    .sort-controls button { background: #555; color: white; font-weight: bold; border: none; font-size: 14px; }
     
     .cloud-save-btn { background: #1a73e8; color:white; border:none; padding:8px 12px; font-size:14px; font-weight:bold; border-radius:20px; cursor:pointer; box-shadow: 0 2px 5px rgba(26,115,232,0.3); display:none; }
     .cloud-save-btn.unsaved { animation: pulse 1.5s infinite; background: #e91e63; box-shadow: 0 2px 5px rgba(233,30,99,0.3); }
@@ -56,23 +62,22 @@
     #filterPanel { max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out; background: #fff; border-radius: 15px; text-align: left; margin: 15px auto 20px auto; max-width: 650px; padding: 0 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
     #filterPanel.open { max-height: 5000px; padding: 20px; }
     
-    .filter-tabs { display: flex; overflow-x: auto; gap: 4px; border-bottom: 2px solid var(--main-color); margin-bottom: 10px; padding-bottom: 0; }
-    .filter-tabs::-webkit-scrollbar { height: 6px; }
-    .filter-tabs::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
-    .filter-tab-btn { white-space: nowrap; padding: 8px 12px; background: #eee; border: none; border-radius: 6px 6px 0 0; cursor: pointer; font-size: 12px; font-weight: bold; color: #666; transition: 0.2s; }
+    .filter-tabs { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; border-bottom: 2px solid var(--sub-color); margin-bottom: 15px; padding-bottom: 12px; }
+    .filter-tab-btn { white-space: nowrap; padding: 8px 12px; background: #eee; border: none; border-radius: 20px; cursor: pointer; font-size: 12px; font-weight: bold; color: #666; transition: 0.2s; }
     .filter-tab-btn:hover { background: #ddd; }
-    .filter-tab-btn.active { background: var(--main-color); color: white; }
+    .filter-tab-btn.active { background: var(--main-color); color: white; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    
     .filter-content-pane { display: none; }
     .filter-content-pane.active { display: block; animation: fadeIn 0.3s ease; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
     
-    .filter-grid { display: flex; flex-wrap: wrap; gap: 6px; padding: 5px 0; }
+    .filter-grid { display: flex; flex-wrap: wrap; gap: 6px; padding: 5px 0; align-items: center; }
     .filter-btn-label { display: inline-block; padding: 4px 12px; border-radius: 20px; border: 1px solid #ccc; background: #fafafa; font-size: 11px; cursor: pointer; transition: 0.2s; user-select: none; }
     .filter-btn-label input { display: none; }
     .filter-btn-label:has(input:checked) { background: var(--main-color); color: white; border-color: var(--main-color); font-weight: bold; }
 
     .card-list { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; }
-    .card { border: 3px solid #ccc; border-radius: 12px; width: 160px; aspect-ratio: 378 / 533; cursor: pointer; background-color: #999; position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; }
+    .card { box-sizing: border-box; border: 3px solid #ccc; border-radius: 12px; width: 160px; aspect-ratio: 378 / 533; cursor: pointer; background-color: #999; position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; }
     .card-info { background: rgba(255, 255, 255, 0.95); padding: 10px; text-align: center; border-top: 1px solid #eee; overflow: hidden; z-index: 2; }
     .card-info h4, .card-info p { margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
     .card-info h4 { font-size: 14px; line-height: 1.2; font-weight: bold; }
@@ -88,12 +93,13 @@
     .card::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); pointer-events: none; transition: 0.2s; z-index: 1;}
     .card.owned { border-color: var(--main-color); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
     .card.owned::after { background-color: rgba(0, 0, 0, 0); }
-    .wish-star { position: absolute; top: 5px; right: 5px; color: #ffeb3b; text-shadow: 0 0 3px #000; font-size: 16px; z-index: 10; font-weight: bold; }
+ .wish-star { position: absolute; top: 5px; right: 5px; color: #ffeb3b; text-shadow: 0 0 3px #000; font-size: 16px; z-index: 10; font-weight: bold; }
+    .count-badge { position: absolute; top: 25px; right: 5px; background-color: var(--main-color); color: #fff; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: bold; z-index: 10; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
 
-    #detailModal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; display: none; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; }
-    #detailModal.open { display: flex; }
-    .modal-content { background: #fff; border-radius: 15px; width: 100%; max-width: 1050px; max-height: 90vh; overflow-y: auto; position: relative; padding: 40px 30px; box-sizing: border-box; }
-    .modal-close { position: absolute; top: 15px; right: 20px; font-size: 28px; background: none; border: none; cursor: pointer; color: #999; z-index: 20; }
+    #detailModal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; display: none; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 20px 0; box-sizing: border-box; overscroll-behavior: none; }
+    #detailModal.open { display: block; }
+    .modal-content { background: #fff; border-radius: 15px; width: 92%; max-width: 1050px; margin: 0 auto; position: relative; padding: 40px 20px; box-sizing: border-box; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+    .modal-close { position: absolute; top: 15px; right: 20px; font-size: 28px; background: none; border: none; cursor: pointer; color: #999; z-index: 20; padding: 15px; margin: -15px; }
     
     .modal-layout { display: flex; flex-wrap: wrap; gap: 40px; margin-top: 10px; align-items: center; justify-content: center; }
     .modal-images { flex: 1 1 400px; max-width: 460px; display: flex; flex-direction: row; gap: 15px; justify-content: center; align-items: center; }
@@ -112,24 +118,68 @@
     .user-input-area h4 { margin: 0 0 10px 0; color: #0056b3; }
     .input-row { display: flex; align-items: center; margin-bottom: 10px; }
     .input-row label { width: 80px; font-weight: bold; }
-    .input-row input, .input-row select { width: 100px; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
-    .input-row textarea { flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 4px; height: 60px; resize: vertical; font-size: 14px; }
+    .input-row input, .input-row select { width: 100px; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 16px; }
+    .input-row textarea { flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 4px; height: 60px; resize: vertical; font-size: 16px; }
     
     #toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 10px 20px; border-radius: 30px; z-index: 3000; font-weight: bold; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
     #toast.show { opacity: 1; }
+
+    /* ★ スマホ画面調整 */
+    @media (max-width: 500px) {
+      .view-section { padding: 10px; }
+      .card-list { gap: 5px; }
+      .card { width: calc(33.333% - 4px); min-width: unset; border-width: 2px; border-radius: 8px; }
+      .card-info { padding: 6px; }
+      .card-info h4 { font-size: 11px; }
+      .card-info p { font-size: 9px; margin-top: 3px; }
+      .rarity-badge { font-size: 9px; padding: 2px 4px; top: 3px; left: 3px; }
+.wish-star { font-size: 12px; top: 3px; right: 3px; }
+      .count-badge { font-size: 9px; padding: 2px 4px; top: 18px; right: 3px; }
+    }
   </style>
 </head>
 <body>
 
-  <div id="marqueeContainer"><marquee id="marqueeText" scrollamount="5"></marquee></div>
+<!-- ★ 1. エラーモーダル -->
+<div id="errorModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; justify-content:center; align-items:center; padding:20px; box-sizing:border-box;">
+  <div style="background:#fff; border:3px solid #dc3545; padding:20px 30px; border-radius:12px; max-width:100%; width:320px; text-align:center;">
+    <h3 style="color:#dc3545; margin-top:0; font-size:18px;">セーブ失敗</h3>
+    <p id="errorMessage" style="font-size:14px; line-height:1.5; color:#333; margin-bottom:20px; font-weight:bold; white-space:pre-wrap;"></p>
+    <button onclick="document.getElementById('errorModal').style.display='none'" style="padding:10px 30px; background:#555; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">閉じる</button>
+  </div>
+</div>
 
+<!-- ★ 2. ログイン必須モーダル -->
+<div id="loginRequiredModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; justify-content:center; align-items:center; padding:20px; box-sizing:border-box;">
+  <div style="background:#fff; border:3px solid #1a73e8; padding:20px 30px; border-radius:12px; max-width:100%; width:320px; text-align:center;">
+    <h3 style="color:#1a73e8; margin-top:0; font-size:18px;">ログインが必要です</h3>
+    <p style="font-size:14px; line-height:1.5; color:#333; margin-bottom:20px; font-weight:bold;">クラウドにセーブするには、<br>Googleアカウントでのログインが必要です。</p>
+    <button onclick="document.getElementById('loginRequiredModal').style.display='none'" style="padding:10px 30px; background:#555; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">閉じる</button>
+  </div>
+</div>
+
+<!-- ★ 3. 削除確認モーダル（マイ編成メモ用・他のページにあっても無害です） -->
+<div id="deleteConfirmModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; justify-content:center; align-items:center; padding:20px; box-sizing:border-box;">
+  <div style="background:#fff; border:3px solid #dc3545; padding:20px 30px; border-radius:12px; max-width:100%; width:320px; text-align:center;">
+    <h3 style="color:#dc3545; margin-top:0; font-size:18px;">編成の削除</h3>
+    <p style="font-size:14px; line-height:1.5; color:#333; margin-bottom:20px; font-weight:bold;">この編成を本当に削除しますか？</p>
+    <div style="display:flex; gap:10px; justify-content:center;">
+      <button onclick="document.getElementById('deleteConfirmModal').style.display='none'" style="padding:10px 20px; background:#555; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer; flex:1;">キャンセル</button>
+      <button onclick="executeDeleteFormation()" style="padding:10px 20px; background:#dc3545; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer; flex:1;">削除する</button>
+    </div>
+  </div>
+</div>
+
+<div class="header-fixed-wrap">
+  <div id="marqueeContainer"><div class="marquee-content" id="marqueeText"></div></div>
   <header>
     <div class="header-left">
         <button id="menuOpenBtn">☰</button>
         <h1>ツアマス所持率チェッカー</h1>
-    </div>
-    <button class="cloud-save-btn" id="cloudSaveBtn" style="display:none;" onclick="triggerCloudSave()">クラウドにセーブ</button>
-  </header>
+      </div>
+      <button class="cloud-save-btn" id="cloudSaveBtn" style="display:none;" onclick="triggerCloudSave()">クラウドにセーブ</button>
+    </header>
+  </div>
 
   <div id="overlay"></div>
   <div id="sidebar"></div>
@@ -149,7 +199,8 @@
           <select id="sortSelect">
             <option value="number">追加順</option><option value="rarity">レアリティ</option>
             <option value="vocal">アピール値: Vocal</option><option value="dance">アピール値: Dance</option>
-            <option value="visual">アピール値: Visual</option><option value="wish">欲しい度順</option>
+           <option value="visual">アピール値: Visual</option><option value="wish">欲しい度順</option>
+            <option value="count">所持枚数</option>
           </select>
           <button id="sortOrderBtn" data-order="asc">昇順 ▲</button>
         </div>
@@ -198,11 +249,9 @@
 
     let currentUser = null, ownedCardIds = new Set(), userCardDetails = {}, userFormations = [], hasUnsavedChanges = false, seriesSetForModal = new Set(); 
     
-    // ★ データを安全に読み込む（空っぽバグの防止機能）
     const getStore = (k, d) => { try { const v = localStorage.getItem(k); const p = v ? JSON.parse(v) : null; return (p && p.length > 0) ? p : d; } catch(e){ return d; } };
     const setStore = (k, v) => localStorage.setItem(k, JSON.stringify(v));
     
-    // ★ 未ログインやリロード時に備え、先にローカルから所持データを復旧させておく
     try {
       const localData = JSON.parse(localStorage.getItem('tourmas_cardDetails') || '{}');
       userCardDetails = localData;
@@ -227,6 +276,11 @@
     document.documentElement.style.setProperty('--main-color', themes[savedTheme].main);
     document.documentElement.style.setProperty('--sub-color', themes[savedTheme].sub);
 
+    const idolBrandMap = new Map();
+    filterConfig.idols.forEach(idol => { if (idol.brand) idolBrandMap.set(idol.name, idol.brand); });
+    cardData.forEach(c => { if (c["アイドル名"] && c["シリーズブランド名"] && !idolBrandMap.has(c["アイドル名"])) idolBrandMap.set(c["アイドル名"], c["シリーズブランド名"]); });
+    filterConfig.idols.forEach(idol => { if (!idolBrandMap.has(idol.name)) idolBrandMap.set(idol.name, "アイドルマスター"); });
+
     let bdayMessages = [];
     const today = new Date(); today.setHours(0,0,0,0);
     filterConfig.idols.forEach(idol => {
@@ -234,15 +288,41 @@
         const [month, day] = idol.birthday.split('-');
         let bdayDate = new Date(today.getFullYear(), parseInt(month) - 1, parseInt(day));
         let diffDays = (today - bdayDate) / (1000 * 60 * 60 * 24);
-        if (diffDays >= 0 && diffDays <= 2) bdayMessages.push(`${idol.name} のバースデー期間！`);
+        
+        if (idol.name === "袖屋 璃空") {
+            if (diffDays === 0) bdayMessages.push(`${idol.name} のお誕生日！`);
+        } else {
+            if (diffDays >= 0 && diffDays <= 2) bdayMessages.push(`${idol.name} のバースデー期間！`);
+        }
       }
     });
+    
     let finalNotice = siteConfig.noticeText;
     if (bdayMessages.length > 0) finalNotice += " ｜ " + bdayMessages.join(" ｜ ");
-    if($('marqueeText')) $('marqueeText').innerText = finalNotice;
-    if($('marqueeContainer')) $('marqueeContainer').style.display = savedNotice ? 'block' : 'none';
+    const mt = $('marqueeText');
+    const mc = $('marqueeContainer');
+    if(mt) mt.innerText = finalNotice;
+    if(mc) {
+      mc.style.display = savedNotice ? 'block' : 'none';
+      if(savedNotice && mt) {
+        mt.style.animationDuration = (mt.offsetWidth / 80) + 's';
+      }
+    }
 
-    // ★ メニュー構築処理（はみ出しバグ修正済）
+    let currentScrollY = 0;
+    const lockScroll = () => {
+        currentScrollY = window.scrollY;
+        document.body.style.position = 'fixed';
+        document.body.style.top = `-${currentScrollY}px`;
+        document.body.style.width = '100%';
+    };
+    const unlockScroll = () => {
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.body.style.width = '';
+        window.scrollTo(0, currentScrollY);
+    };
+
     window.renderSidebarMenu = () => {
       const sidebar = document.getElementById('sidebar');
       if(!sidebar) return;
@@ -290,7 +370,7 @@
         }
       });
 
-      document.getElementById('menuCloseBtn').onclick = () => { sidebar.classList.remove('open'); document.getElementById('overlay').classList.remove('open'); };
+      document.getElementById('menuCloseBtn').onclick = () => { sidebar.classList.remove('open'); document.getElementById('overlay').classList.remove('open'); unlockScroll(); };
       const pt = document.getElementById('privacyToggle');
       if(pt) pt.addEventListener('change', (e) => { localStorage.setItem('tourmas_privacy', e.target.checked); savedPrivacy = e.target.checked; updateUserInfo(); });
       const dmt = document.getElementById('detailModeToggle');
@@ -319,22 +399,59 @@
       if (currentUser) { userInfo.innerText = savedPrivacy ? `プロデューサー さん` : `${currentUser.displayName} さん`; } 
       else { userInfo.innerText = "未ログイン（セーブ不可）"; }
     };
-    
-    // ★ エラーを無くすため、ここでも1回実行しておきます
+
     window.renderSidebarMenu();
 
-    // ★ 公式リスペクトのタブ型フィルター構築
-    window.buildFilters = () => {
-      seriesSetForModal.clear(); let hasRare = false, hasUnk = false;
-      cardData.forEach(c => { let s = c["シリーズ"] || c["入手手段"]; if (!s || s === "") { hasUnk = true; return; } if (s.includes("ツアーズレア")) hasRare = true; else seriesSetForModal.add(s); });
+    const buildFilters = () => {
+      let actualSeriesSet = new Set();
+      let hasUnk = false;
+      
+      cardData.forEach(c => { 
+          let s = (c["シリーズ"] || c["入手手段"] || "").trim(); 
+          if (s === "") { hasUnk = true; } 
+          else { actualSeriesSet.add(s); } 
+      });
+      
+      let sortedSeries = [];
+      let definedSeries = (siteConfig && siteConfig.seriesList) || (filterConfig && filterConfig.seriesList) || [];
+      if (definedSeries && Array.isArray(definedSeries)) {
+          definedSeries.forEach(s => {
+              let st = s.trim();
+              let matched = Array.from(actualSeriesSet).filter(actual => actual.includes(st) || st.includes(actual));
+              matched.forEach(m => {
+                  sortedSeries.push(m);
+                  actualSeriesSet.delete(m); 
+              });
+          });
+      }
+      
+      sortedSeries = sortedSeries.concat(Array.from(actualSeriesSet));
       
       const sfc = $('seriesFilterContainer');
       if(sfc) {
-          let sh = ''; Array.from(seriesSetForModal).forEach(s => sh += `<label class="checkbox-label"><input type="checkbox" class="series-filter" value="${s}" checked> ${s}</label>`);
-          if(hasRare) sh += `<label class="checkbox-label" style="font-weight:bold; color:var(--main-color);"><input type="checkbox" class="series-filter" value="ツアーズレア" checked> ツアーズレア (全弾一括)</label>`;
-          if(hasUnk) sh += `<label class="checkbox-label" style="color:#888;"><input type="checkbox" class="series-filter" value="未設定" checked> 未設定（追加予定）</label>`;
+          let hiddenSeries = getStore('tourmas_hiddenSeries', []);
+          
+          let sh = ''; 
+          sortedSeries.forEach(s => {
+              const isChecked = hiddenSeries.includes(s) ? '' : 'checked';
+              sh += `<label class="checkbox-label"><input type="checkbox" class="series-filter" value="${s}" ${isChecked}> ${s}</label>`;
+          });
+          if(hasUnk) {
+              const unkChecked = hiddenSeries.includes("未設定") ? '' : 'checked';
+              sh += `<label class="checkbox-label" style="color:#888;"><input type="checkbox" class="series-filter" value="未設定" ${unkChecked}> 未設定（追加予定）</label>`;
+          }
           sfc.innerHTML = sh;
-          $$('.series-filter').forEach(cb => cb.addEventListener('change', window.applyFiltersAndSort));
+          
+          $$('.series-filter').forEach(cb => cb.addEventListener('change', (e) => {
+              let currentHidden = getStore('tourmas_hiddenSeries', []);
+              if (!e.target.checked) {
+                  if (!currentHidden.includes(e.target.value)) currentHidden.push(e.target.value);
+              } else {
+                  currentHidden = currentHidden.filter(v => v !== e.target.value);
+              }
+              setStore('tourmas_hiddenSeries', currentHidden);
+              window.applyFiltersAndSort();
+          }));
       }
 
       const panel = $('filterPanelBody');
@@ -373,7 +490,6 @@
     window.toggleFilterPanel = () => { const p = $('filterPanel'); p.classList.toggle('open'); $('toggleFilterBtn').innerText = p.classList.contains('open') ? "▲ 詳細な絞り込みを閉じる" : "▼ 詳細な絞り込みを開く"; };
     window.resetFilters = () => { $$('.advanced-filter').forEach(cb => cb.checked = false); const f1 = document.querySelector('input[name="filterOwned"][value="all"]'); if(f1) f1.checked = true; const f2 = document.querySelector('input[name="filterWish"][value="0"]'); if(f2) f2.checked = true; window.applyFiltersAndSort(); };
 
-    // --- カード描画 ---
     let currentModalCardData = null; 
     window.renderCards = () => {
       const container = $('cardList'); if(!container) return; container.innerHTML = '';
@@ -386,7 +502,6 @@
         cardDiv.dataset.vocal = parseInt(data["アピール値（Vocal)"]) || 0; cardDiv.dataset.dance = parseInt(data["アピール値（Dance）"]) || 0; cardDiv.dataset.visual = parseInt(data["アピール値（Visual）"]) || 0;
         cardDiv.dataset.wish = userCardDetails[data["番号"]]?.wish || 0; cardDiv.dataset.rarity = data["レアリティ"] || ""; cardDiv.dataset.type = data["種類"] || ""; cardDiv.dataset.brand = data["シリーズブランド名"] || ""; cardDiv.dataset.idol = data["アイドル名"] || ""; cardDiv.dataset.series = data["シリーズ"] || data["入手手段"] || "未設定"; cardDiv.dataset.target = data["対象アイドル／サポート効果対象"] || ""; cardDiv.dataset.part = data["部位"] || ""; cardDiv.dataset.genre = data["ジャンル"] || ""; 
 
-        // ★ 効果での検索対応＆キャラコメントの除外
         const searchItems = [ data["レアリティ"], data["種類"], data["ジャンル"], data["写り込み"], data["タグ"], data["対象アイドル／サポート効果対象"], data["部位"], data["セットボーナス"], data["サポート効果／リズムライブ効果"] ].filter(Boolean);
         let appealTags = [];
         if (cardDiv.dataset.vocal > 0) appealTags.push("vo", "ボーカル", "vocal");
@@ -403,12 +518,19 @@
         let h4Class = ""; const len = mainText.length;
         if (len >= 11) { if (savedNameStyle === 'marquee') h4Class = 'class="marquee-text"'; else if (savedNameStyle === 'shrink') { if (len >= 16) h4Class = 'class="shrink-text-sm"'; else if (len >= 13) h4Class = 'class="shrink-text-md"'; else h4Class = 'class="shrink-text-lg"'; } }
         
-        cardDiv.innerHTML = `${cardDiv.dataset.wish > 0 ? `<div class="wish-star">${'★'.repeat(cardDiv.dataset.wish)}</div>` : ''}<div class="rarity-badge">${data["レアリティ"]}</div><div class="card-info"><h4 ${h4Class}>${mainText}</h4>${subText}</div>`;
+        // ★ 2枚以上の場合は枚数バッジを表示
+        const ud = userCardDetails[data["番号"]] || { count: (ownedCardIds.has(data["番号"]) ? 1 : 0), wish: 0 };
+        const countBadge = ud.count >= 2 ? `<div class="count-badge">${ud.count}枚</div>` : '';
+        
+        cardDiv.innerHTML = `${cardDiv.dataset.wish > 0 ? `<div class="wish-star">${'★'.repeat(cardDiv.dataset.wish)}</div>` : ''}${countBadge}<div class="rarity-badge">${data["レアリティ"]}</div><div class="card-info"><h4 ${h4Class}>${mainText}</h4>${subText}</div>`;
         cardDiv.onclick = () => {
           if (isDetailMode) { openModal(data); } else {
             if (ownedCardIds.has(data["番号"])) { ownedCardIds.delete(data["番号"]); cardDiv.classList.remove('owned'); if (userCardDetails[data["番号"]]) userCardDetails[data["番号"]].count = 0; } 
             else { ownedCardIds.add(data["番号"]); cardDiv.classList.add('owned'); if (!userCardDetails[data["番号"]]) userCardDetails[data["番号"]] = { count: 1, memo: "", wish: 0 }; else userCardDetails[data["番号"]].count = 1; }
-            localStorage.setItem('tourmas_cardDetails', JSON.stringify(userCardDetails)); // ★ 同期のため保存
+            
+            localStorage.setItem('tourmas_cardDetails', JSON.stringify(userCardDetails));
+            localStorage.setItem('tourmas_ownedCards', JSON.stringify(Array.from(ownedCardIds)));
+            
             window.applyFiltersAndSort(); markAsUnsaved(); 
           }
         };
@@ -423,13 +545,17 @@
       const filterOwned = document.querySelector('input[name="filterOwned"]:checked').value;
       const filterWish = parseInt(document.querySelector('input[name="filterWish"]:checked').value);
       const getChecked = c => { const ch = Array.from(document.querySelectorAll(`.${c}:checked`)).map(cb => cb.value); return ch.length > 0 ? ch : null; };
-      const cR = getChecked('filter-rarity'), cT = getChecked('filter-type'), cB = getChecked('filter-brand'), cTa = getChecked('filter-target'), cP = getChecked('filter-part'), cG = getChecked('filter-genre'), cI = getChecked('filter-idol'), cS = Array.from($$('.series-filter:checked')).map(cb => cb.value);
+      const cR = getChecked('filter-rarity'), cT = getChecked('filter-type'), cB = getChecked('filter-brand'), cTa = getChecked('filter-target'), cP = getChecked('filter-part'), cG = getChecked('filter-genre'), cI = getChecked('filter-idol');
+      
+      const sfc = document.getElementById('seriesFilterContainer');
+      const cS = sfc ? Array.from(document.querySelectorAll('.series-filter:checked')).map(cb => cb.value) : null;
       
       let arr = Array.from($$('.card')), vis = 0, ownVis = 0, tot = 0;
       arr.forEach(c => {
         if(!c.dataset.number) return;
         const mt = (searchMode === 'partial' ? c.dataset.searchPartial : c.dataset.searchExact).includes(text);
-        const ms = cS.some(s => s === "ツアーズレア" ? c.dataset.series.includes("ツアーズレア") : c.dataset.series === s);
+        const ms = !cS || cS.length === 0 || cS.some(s => s === "ツアーズレア" ? c.dataset.series.includes("ツアーズレア") : c.dataset.series === s);
+        
         const io = c.classList.contains('owned'); const mo = filterOwned === 'all' || (filterOwned === 'owned' && io) || (filterOwned === 'unowned' && !io);
         const mw = filterWish === 0 || (filterWish === 5 ? c.dataset.wish == 5 : c.dataset.wish >= filterWish);
         if (mt && ms && (!cR || cR.includes(c.dataset.rarity)) && (!cT || cT.includes(c.dataset.type)) && (!cB || cB.includes(c.dataset.brand)) && (!cTa || cTa.some(t => c.dataset.target.includes(t))) && (!cP || cP.includes(c.dataset.part)) && (!cG || cG.includes(c.dataset.genre)) && (!cI || cI.includes(c.dataset.idol)) && mo && mw) {
@@ -439,9 +565,16 @@
       
       const sK = $('sortSelect').value, isA = $('sortOrderBtn').dataset.order === 'asc';
       const rO = { "UR": 9, "SSR": 8, "SR": 7, "R": 6, "N": 5, "CO": 4, "TSSR": 3, "TSR": 2, "TR": 1 };
-      arr.sort((a, b) => {
+arr.sort((a, b) => {
         let vA, vB;
-        if (sK === 'number') { vA = parseInt(a.dataset.imgNum); vB = parseInt(b.dataset.imgNum); } else if (sK === 'wish') { vA = parseInt(a.dataset.wish); vB = parseInt(b.dataset.wish); } else if (sK === 'vocal' || sK === 'dance' || sK === 'visual') { vA = parseInt(a.dataset[sK]); vB = parseInt(b.dataset[sK]); } else if (sK === 'rarity') { vA = rO[a.dataset.rarity] || -1; vB = rO[b.dataset.rarity] || -1; }
+        if (sK === 'number') { vA = parseInt(a.dataset.imgNum); vB = parseInt(b.dataset.imgNum); } 
+        else if (sK === 'wish') { vA = parseInt(a.dataset.wish); vB = parseInt(b.dataset.wish); } 
+        else if (sK === 'vocal' || sK === 'dance' || sK === 'visual') { vA = parseInt(a.dataset[sK]); vB = parseInt(b.dataset[sK]); } 
+        else if (sK === 'rarity') { vA = rO[a.dataset.rarity] || -1; vB = rO[b.dataset.rarity] || -1; }
+        else if (sK === 'count') { 
+          vA = userCardDetails[a.dataset.number]?.count || (a.classList.contains('owned') ? 1 : 0); 
+          vB = userCardDetails[b.dataset.number]?.count || (b.classList.contains('owned') ? 1 : 0); 
+        }
         return isA ? vA - vB : vB - vA;
       });
       const container = $('cardList');
@@ -453,23 +586,111 @@
     $$('input[name="searchMode"]').forEach(r => r.addEventListener('change', window.applyFiltersAndSort));
     if($('sortSelect')) $('sortSelect').addEventListener('change', window.applyFiltersAndSort);
     if($('sortOrderBtn')) $('sortOrderBtn').addEventListener('click', () => { const b = $('sortOrderBtn'); if (b.dataset.order === 'asc') { b.dataset.order = 'desc'; b.innerText = "降順 ▼"; } else { b.dataset.order = 'asc'; b.innerText = "昇順 ▲"; } window.applyFiltersAndSort(); });
+window.triggerCloudSave = async () => {
+if (!currentUser) {
+      document.getElementById('loginRequiredModal').style.display = 'flex';
+      return;
+  }
 
+  const saveBtns = document.querySelectorAll('.cloud-save-btn');
+  saveBtns.forEach(btn => {
+      btn.disabled = true;
+      btn.innerText = "セーブ中...";
+  });
+
+  try {
+const cleanCardDetails = JSON.parse(JSON.stringify(userCardDetails || {}));
+
+const savePromise = setDoc(doc(db, "users", currentUser.uid), {
+  ownedCards: Array.from(ownedCardIds),
+  cardDetails: cleanCardDetails,
+  hiddenSeries: getStore('tourmas_hiddenSeries', []) 
+}, { merge: true });
+
+    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), 15000));
+    
+    await Promise.race([savePromise, timeoutPromise]);
+
+    hasUnsavedChanges = false;
+    saveBtns.forEach(btn => {
+        btn.disabled = false;
+        btn.classList.remove('unsaved');
+        btn.innerText = "クラウドにセーブ済";
+    });
+    const toast = document.getElementById('toast');
+    if(toast) { toast.innerText = "クラウドに保存しました！"; toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 2000); }
+    
+  } catch (error) {
+    console.error("Save Error:", error);
+    saveBtns.forEach(btn => {
+        btn.disabled = false;
+        btn.innerText = "セーブ(未保存)";
+    });
+
+    let msg = "";
+    if (error.message === "timeout") {
+        msg = "スマホの通信環境が不安定か、時間がかかりすぎています。電波の良いところで再度お試しください。";
+    } else if (error.code === "resource-exhausted" || error.message.includes("Quota")) {
+        msg = "1日のセーブ回数上限（2万回）に達しました！\n明日までクラウドセーブはできません。";
+    } else {
+        msg = "通信エラーの可能性があります。\n詳細: " + error.message;
+    }
+    
+    const eModal = document.getElementById('errorModal');
+    const eMsg = document.getElementById('errorMessage');
+    if (eModal && eMsg) {
+        eMsg.innerText = msg;
+        eModal.style.display = 'flex';
+    } else {
+        alert("セーブに失敗しました。\n" + msg);
+    }
+  }
+};
+    
+    window.markAsUnsaved = () => {
+      hasUnsavedChanges = true;
+      $$('.cloud-save-btn').forEach(btn => {
+        btn.style.display = 'inline-block';
+        btn.classList.add('unsaved');
+        btn.innerText = "セーブ(未保存)";
+      });
+    };
+// ★ 消えてしまった詳細モードのセーブ機能（復活！）
     window.updateLocalMemory = () => {
       if (!currentModalCardData) return;
-      const cId = currentModalCardData["番号"], cV = parseInt($('modalCount').value) || 0, wV = parseInt($('modalWish').value) || 0, mV = $('modalMemo').value;
-      if (cV > 0) ownedCardIds.add(cId); else ownedCardIds.delete(cId);
+      
+      const cId = currentModalCardData["番号"];
+      const cV = parseInt(document.getElementById('modalCount').value) || 0;
+      const wV = parseInt(document.getElementById('modalWish').value) || 0;
+      const mV = document.getElementById('modalMemo').value;
+      
+      if (cV > 0) {
+          ownedCardIds.add(cId);
+      } else {
+          ownedCardIds.delete(cId);
+      }
       userCardDetails[cId] = { count: cV, memo: mV, wish: wV };
-      localStorage.setItem('tourmas_cardDetails', JSON.stringify(userCardDetails)); // ★ 同期のため保存
-      markAsUnsaved(); window.renderCards(); 
+      
+      localStorage.setItem('tourmas_cardDetails', JSON.stringify(userCardDetails)); 
+      localStorage.setItem('tourmas_ownedCards', JSON.stringify(Array.from(ownedCardIds)));
+      
+      window.markAsUnsaved();
+      window.renderCards(); 
     };
+
     $('modalCount').addEventListener('change', window.updateLocalMemory); $('modalWish').addEventListener('change', window.updateLocalMemory);
     let mtId; $('modalMemo').addEventListener('input', () => { clearTimeout(mtId); mtId = setTimeout(window.updateLocalMemory, 500); });
 
     const openModal = (data) => {
-      currentModalCardData = data;
+currentModalCardData = data;
       const iF = $('modalImgFront'), iB = $('modalImgBack');
-      if (data["カード表"] && iF) { iF.src = `images/${data["カード表"]}`; iF.style.display = 'block'; } else if(iF) iF.style.display = 'none';
-      if (data["カード裏"] && iB) { iB.src = `images/${data["カード裏"]}`; iB.style.display = 'block'; } else if(iB) iB.style.display = 'none';
+      
+      // ★ 画像のチラつき（前のカードが一瞬映る）を防止するために src を一旦リセット
+      if (iF) { iF.removeAttribute('src'); iF.style.display = 'none'; }
+      if (iB) { iB.removeAttribute('src'); iB.style.display = 'none'; }
+      
+      if (data["カード表"] && iF) { iF.src = `images/${data["カード表"]}`; iF.style.display = 'block'; }
+      if (data["カード裏"] && iB) { iB.src = `images/${data["カード裏"]}`; iB.style.display = 'block'; }
       
       $('modalCardName').innerText = data["カード名"] || data["番号"] || "名称不明"; $('modalCardIdol').innerText = `${data["シリーズブランド名"]} / ${data["アイドル名"]}`;
       
@@ -480,9 +701,13 @@
         if (!item.show) return; let v = "";
         if (item.id === 'number') v = data["番号"]; else if (item.id === 'rarity') v = data["レアリティ"]; else if (item.id === 'type') v = data["種類"]; else if (item.id === 'genre') v = data["ジャンル"];
         else if (item.id === 'appeal') { const vV = data["アピール値（Vocal)"] || 0, dV = data["アピール値（Dance）"] || 0, viV = data["アピール値（Visual）"] || 0; if (vV||dV||viV) v = `<span style="color:#e91e63">Vo: ${vV}</span> / <span style="color:#2196f3">Da: ${dV}</span> / <span style="color:#ffc107">Vi: ${viV}</span>`; }
-        else if (item.id === 'target') v = data["対象アイドル／サポート効果対象"]; else if (item.id === 'part') v = data["部位"]; else if (item.id === 'effect') v = data["サポート効果／リズムライブ効果"]; else if (item.id === 'note') v = (data["備考"] || "").replace(/,/g, '<br>'); else if (item.id === 'relax') v = data["制限緩和"]; else if (item.id === 'comment') v = data["キャラコメント"] || data["コメント"]; else if (item.id === 'series') v = data["シリーズ"] || data["入手手段"];
-        
-        // ★ カンマ区切りのバグ修正
+        else if (item.id === 'target') v = data["対象アイドル／サポート効果対象"]; 
+        else if (item.id === 'part') v = data["部位"]; 
+        else if (item.id === 'effect') v = (data["サポート効果／リズムライブ効果"] || "").replace(/,/g, '<br>'); // ★ カンマで改行
+        else if (item.id === 'note') v = (data["備考"] || "").replace(/,/g, '<br>'); 
+        else if (item.id === 'relax') v = data["制限緩和"]; 
+        else if (item.id === 'comment') v = data["キャラコメント"] || data["コメント"]; 
+        else if (item.id === 'series') v = data["シリーズ"] || data["入手手段"];        
         else if (item.id === 'bonus') { 
           if (data["セットボーナス"]) {
             const bonuses = data["セットボーナス"].split(',').map(b => b.trim()).filter(b => b !== '');
@@ -495,30 +720,28 @@
       
       const ud = userCardDetails[data["番号"]] || { count: (ownedCardIds.has(data["番号"]) ? 1 : 0), memo: "", wish: 0 };
       $('modalCount').value = ud.count; $('modalWish').value = ud.wish; $('modalMemo').value = ud.memo;
+      
       $('detailModal').classList.add('open');
+      lockScroll();
 
       tb.querySelectorAll('.card-link-btn:not(.disabled):not(.set-bonus-link)').forEach(b => { b.onclick = () => { const tD = cardData.find(c => c["番号"] === b.dataset.targetId); if (tD) { window.updateLocalMemory(); openModal(tD); } }; });
-      tb.querySelectorAll('.set-bonus-link').forEach(b => { b.onclick = () => { window.updateLocalMemory(); $('detailModal').classList.remove('open'); document.querySelector('input[name="searchMode"][value="partial"]').checked = true; $('searchInput').value = b.dataset.bonus; window.applyFiltersAndSort(); }; });
+      tb.querySelectorAll('.set-bonus-link').forEach(b => { b.onclick = () => { window.updateLocalMemory(); $('detailModal').classList.remove('open'); unlockScroll(); document.querySelector('input[name="searchMode"][value="partial"]').checked = true; $('searchInput').value = b.dataset.bonus; window.applyFiltersAndSort(); }; });
     };
 
-    $('modalCloseBtn').onclick = () => $('detailModal').classList.remove('open');
-    $('detailModal').addEventListener('click', (e) => { if (e.target === $('detailModal') && localStorage.getItem('tourmas_closeOutside') !== 'false') $('detailModal').classList.remove('open'); });
-
-    window.triggerCloudSave = async () => {
-      if (!currentUser) return alert("セーブするにはGoogleログインしてください。");
-      await setDoc(doc(db, "users", currentUser.uid), { ownedCards: Array.from(ownedCardIds), cardDetails: userCardDetails, formations: userFormations }, { merge: true });
-      hasUnsavedChanges = false;
-      $$('.cloud-save-btn').forEach(btn => { btn.classList.remove('unsaved'); btn.innerText = "クラウドにセーブ済"; });
-      const toast = $('toast'); if(toast) { toast.innerText = "クラウドに保存しました！"; toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 2000); }
+    $('modalCloseBtn').onclick = () => { 
+        $('detailModal').classList.remove('open'); 
+        unlockScroll(); 
     };
+    
+    $('detailModal').addEventListener('click', (e) => { 
+        if (e.target === $('detailModal') && localStorage.getItem('tourmas_closeOutside') !== 'false') {
+            $('detailModal').classList.remove('open'); 
+            unlockScroll(); 
+        }
+    });
 
-    const markAsUnsaved = () => {
-      hasUnsavedChanges = true;
-      $$('.cloud-save-btn').forEach(btn => { btn.style.display = 'inline-block'; btn.classList.add('unsaved'); btn.innerText = "セーブ(未保存)"; });
-    };
-
-    $('menuOpenBtn').onclick = () => { $('sidebar').classList.add('open'); $('overlay').classList.add('open'); };
-    const closeMenu = () => { $('sidebar').classList.remove('open'); $('overlay').classList.remove('open'); };
+    $('menuOpenBtn').onclick = () => { $('sidebar').classList.add('open'); $('overlay').classList.add('open'); lockScroll(); };
+    const closeMenu = () => { $('sidebar').classList.remove('open'); $('overlay').classList.remove('open'); unlockScroll(); };
     $('overlay').onclick = closeMenu;
 
     onAuthStateChanged(auth, async (user) => {
@@ -526,15 +749,24 @@
       if (user) {
         const docSnap = await getDoc(doc(db, "users", user.uid));
         if (docSnap.exists()) { 
+            const data = docSnap.data(); // ★ docSnap.data()を変数に入れると綺麗です
             ownedCardIds = new Set(docSnap.data().ownedCards || []); 
             userCardDetails = docSnap.data().cardDetails || {}; 
             userFormations = docSnap.data().formations || []; 
-            localStorage.setItem('tourmas_cardDetails', JSON.stringify(userCardDetails)); // ★ ログイン時に同期
+// ★クラウドのデータがあれば、ローカルに記憶させる（この1行を追加！）
+            if (data.hiddenSeries) { localStorage.setItem('tourmas_hiddenSeries', JSON.stringify(data.hiddenSeries)); }
+            localStorage.setItem('tourmas_cardDetails', JSON.stringify(userCardDetails));
+            localStorage.setItem('tourmas_ownedCards', JSON.stringify(Array.from(ownedCardIds)));
         }
+      } else {
+         try {
+           userCardDetails = JSON.parse(localStorage.getItem('tourmas_cardDetails')) || {};
+           ownedCardIds = new Set(JSON.parse(localStorage.getItem('tourmas_ownedCards')) || []);
+         } catch(e) {}
       }
       
       window.renderSidebarMenu(); 
-      window.buildFilters(); 
+      buildFilters(); 
       window.renderCards();
       
       const lBtn = $('loginBtn'), loBtn = $('logoutBtn');
