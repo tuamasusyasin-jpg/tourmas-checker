@@ -93,7 +93,8 @@
     .card::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); pointer-events: none; transition: 0.2s; z-index: 1;}
     .card.owned { border-color: var(--main-color); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
     .card.owned::after { background-color: rgba(0, 0, 0, 0); }
-    .wish-star { position: absolute; top: 5px; right: 5px; color: #ffeb3b; text-shadow: 0 0 3px #000; font-size: 16px; z-index: 10; font-weight: bold; }
+ .wish-star { position: absolute; top: 5px; right: 5px; color: #ffeb3b; text-shadow: 0 0 3px #000; font-size: 16px; z-index: 10; font-weight: bold; }
+    .count-badge { position: absolute; top: 25px; right: 5px; background-color: var(--main-color); color: #fff; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: bold; z-index: 10; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
 
     #detailModal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; display: none; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 20px 0; box-sizing: border-box; overscroll-behavior: none; }
     #detailModal.open { display: block; }
@@ -132,7 +133,8 @@
       .card-info h4 { font-size: 11px; }
       .card-info p { font-size: 9px; margin-top: 3px; }
       .rarity-badge { font-size: 9px; padding: 2px 4px; top: 3px; left: 3px; }
-      .wish-star { font-size: 12px; top: 3px; right: 3px; }
+.wish-star { font-size: 12px; top: 3px; right: 3px; }
+      .count-badge { font-size: 9px; padding: 2px 4px; top: 18px; right: 3px; }
     }
   </style>
 </head>
@@ -197,7 +199,8 @@
           <select id="sortSelect">
             <option value="number">追加順</option><option value="rarity">レアリティ</option>
             <option value="vocal">アピール値: Vocal</option><option value="dance">アピール値: Dance</option>
-            <option value="visual">アピール値: Visual</option><option value="wish">欲しい度順</option>
+           <option value="visual">アピール値: Visual</option><option value="wish">欲しい度順</option>
+            <option value="count">所持枚数</option>
           </select>
           <button id="sortOrderBtn" data-order="asc">昇順 ▲</button>
         </div>
@@ -515,7 +518,11 @@
         let h4Class = ""; const len = mainText.length;
         if (len >= 11) { if (savedNameStyle === 'marquee') h4Class = 'class="marquee-text"'; else if (savedNameStyle === 'shrink') { if (len >= 16) h4Class = 'class="shrink-text-sm"'; else if (len >= 13) h4Class = 'class="shrink-text-md"'; else h4Class = 'class="shrink-text-lg"'; } }
         
-        cardDiv.innerHTML = `${cardDiv.dataset.wish > 0 ? `<div class="wish-star">${'★'.repeat(cardDiv.dataset.wish)}</div>` : ''}<div class="rarity-badge">${data["レアリティ"]}</div><div class="card-info"><h4 ${h4Class}>${mainText}</h4>${subText}</div>`;
+        // ★ 2枚以上の場合は枚数バッジを表示
+        const ud = userCardDetails[data["番号"]] || { count: (ownedCardIds.has(data["番号"]) ? 1 : 0), wish: 0 };
+        const countBadge = ud.count >= 2 ? `<div class="count-badge">${ud.count}枚</div>` : '';
+        
+        cardDiv.innerHTML = `${cardDiv.dataset.wish > 0 ? `<div class="wish-star">${'★'.repeat(cardDiv.dataset.wish)}</div>` : ''}${countBadge}<div class="rarity-badge">${data["レアリティ"]}</div><div class="card-info"><h4 ${h4Class}>${mainText}</h4>${subText}</div>`;
         cardDiv.onclick = () => {
           if (isDetailMode) { openModal(data); } else {
             if (ownedCardIds.has(data["番号"])) { ownedCardIds.delete(data["番号"]); cardDiv.classList.remove('owned'); if (userCardDetails[data["番号"]]) userCardDetails[data["番号"]].count = 0; } 
@@ -558,9 +565,16 @@
       
       const sK = $('sortSelect').value, isA = $('sortOrderBtn').dataset.order === 'asc';
       const rO = { "UR": 9, "SSR": 8, "SR": 7, "R": 6, "N": 5, "CO": 4, "TSSR": 3, "TSR": 2, "TR": 1 };
-      arr.sort((a, b) => {
+arr.sort((a, b) => {
         let vA, vB;
-        if (sK === 'number') { vA = parseInt(a.dataset.imgNum); vB = parseInt(b.dataset.imgNum); } else if (sK === 'wish') { vA = parseInt(a.dataset.wish); vB = parseInt(b.dataset.wish); } else if (sK === 'vocal' || sK === 'dance' || sK === 'visual') { vA = parseInt(a.dataset[sK]); vB = parseInt(b.dataset[sK]); } else if (sK === 'rarity') { vA = rO[a.dataset.rarity] || -1; vB = rO[b.dataset.rarity] || -1; }
+        if (sK === 'number') { vA = parseInt(a.dataset.imgNum); vB = parseInt(b.dataset.imgNum); } 
+        else if (sK === 'wish') { vA = parseInt(a.dataset.wish); vB = parseInt(b.dataset.wish); } 
+        else if (sK === 'vocal' || sK === 'dance' || sK === 'visual') { vA = parseInt(a.dataset[sK]); vB = parseInt(b.dataset[sK]); } 
+        else if (sK === 'rarity') { vA = rO[a.dataset.rarity] || -1; vB = rO[b.dataset.rarity] || -1; }
+        else if (sK === 'count') { 
+          vA = userCardDetails[a.dataset.number]?.count || (a.classList.contains('owned') ? 1 : 0); 
+          vB = userCardDetails[b.dataset.number]?.count || (b.classList.contains('owned') ? 1 : 0); 
+        }
         return isA ? vA - vB : vB - vA;
       });
       const container = $('cardList');
@@ -641,7 +655,7 @@ const savePromise = setDoc(doc(db, "users", currentUser.uid), {
         btn.innerText = "セーブ(未保存)";
       });
     };
-// ★ 消えてしまった詳細モードのセーブ機能（復活！）
+// ★ 消えてしまった詳細モードのセーブ機能（復活）
     window.updateLocalMemory = () => {
       if (!currentModalCardData) return;
       
@@ -668,10 +682,15 @@ const savePromise = setDoc(doc(db, "users", currentUser.uid), {
     let mtId; $('modalMemo').addEventListener('input', () => { clearTimeout(mtId); mtId = setTimeout(window.updateLocalMemory, 500); });
 
     const openModal = (data) => {
-      currentModalCardData = data;
+currentModalCardData = data;
       const iF = $('modalImgFront'), iB = $('modalImgBack');
-      if (data["カード表"] && iF) { iF.src = `images/${data["カード表"]}`; iF.style.display = 'block'; } else if(iF) iF.style.display = 'none';
-      if (data["カード裏"] && iB) { iB.src = `images/${data["カード裏"]}`; iB.style.display = 'block'; } else if(iB) iB.style.display = 'none';
+      
+      // ★ 画像のチラつき（前のカードが一瞬映る）を防止するために src を一旦リセット
+      if (iF) { iF.removeAttribute('src'); iF.style.display = 'none'; }
+      if (iB) { iB.removeAttribute('src'); iB.style.display = 'none'; }
+      
+      if (data["カード表"] && iF) { iF.src = `images/${data["カード表"]}`; iF.style.display = 'block'; }
+      if (data["カード裏"] && iB) { iB.src = `images/${data["カード裏"]}`; iB.style.display = 'block'; }
       
       $('modalCardName').innerText = data["カード名"] || data["番号"] || "名称不明"; $('modalCardIdol').innerText = `${data["シリーズブランド名"]} / ${data["アイドル名"]}`;
       
@@ -682,8 +701,13 @@ const savePromise = setDoc(doc(db, "users", currentUser.uid), {
         if (!item.show) return; let v = "";
         if (item.id === 'number') v = data["番号"]; else if (item.id === 'rarity') v = data["レアリティ"]; else if (item.id === 'type') v = data["種類"]; else if (item.id === 'genre') v = data["ジャンル"];
         else if (item.id === 'appeal') { const vV = data["アピール値（Vocal)"] || 0, dV = data["アピール値（Dance）"] || 0, viV = data["アピール値（Visual）"] || 0; if (vV||dV||viV) v = `<span style="color:#e91e63">Vo: ${vV}</span> / <span style="color:#2196f3">Da: ${dV}</span> / <span style="color:#ffc107">Vi: ${viV}</span>`; }
-        else if (item.id === 'target') v = data["対象アイドル／サポート効果対象"]; else if (item.id === 'part') v = data["部位"]; else if (item.id === 'effect') v = data["サポート効果／リズムライブ効果"]; else if (item.id === 'note') v = (data["備考"] || "").replace(/,/g, '<br>'); else if (item.id === 'relax') v = data["制限緩和"]; else if (item.id === 'comment') v = data["キャラコメント"] || data["コメント"]; else if (item.id === 'series') v = data["シリーズ"] || data["入手手段"];
-        
+        else if (item.id === 'target') v = data["対象アイドル／サポート効果対象"]; 
+        else if (item.id === 'part') v = data["部位"]; 
+        else if (item.id === 'effect') v = (data["サポート効果／リズムライブ効果"] || "").replace(/,/g, '<br>'); // ★ カンマで改行
+        else if (item.id === 'note') v = (data["備考"] || "").replace(/,/g, '<br>'); 
+        else if (item.id === 'relax') v = data["制限緩和"]; 
+        else if (item.id === 'comment') v = data["キャラコメント"] || data["コメント"]; 
+        else if (item.id === 'series') v = data["シリーズ"] || data["入手手段"];        
         else if (item.id === 'bonus') { 
           if (data["セットボーナス"]) {
             const bonuses = data["セットボーナス"].split(',').map(b => b.trim()).filter(b => b !== '');
